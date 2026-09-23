@@ -194,6 +194,9 @@ end
 
 local _bit = _G.bit
 if not _bit then
+    pcall(function() _bit = require("bit") end)
+end
+if not _bit then
     local has_native, ops = pcall(loadstring or load, [[
         return {
             band = function(a, b) return (a & b) & 0xFFFFFFFF end,
@@ -211,6 +214,60 @@ if not _bit then
     if has_native and ops then
         _bit = ops()
     end
+end
+if not _bit then
+    local function band(a, b)
+        local res, p = 0, 1
+        a, b = a % 4294967296, b % 4294967296
+        while a > 0 and b > 0 do
+            local ra, rb = a % 2, b % 2
+            if ra == 1 and rb == 1 then res = res + p end
+            a = math.floor(a / 2)
+            b = math.floor(b / 2)
+            p = p * 2
+        end
+        return res
+    end
+    local function bor(a, b)
+        local res, p = 0, 1
+        a, b = a % 4294967296, b % 4294967296
+        while a > 0 or b > 0 do
+            local ra, rb = a % 2, b % 2
+            if ra == 1 or rb == 1 then res = res + p end
+            a = math.floor(a / 2)
+            b = math.floor(b / 2)
+            p = p * 2
+        end
+        return res
+    end
+    local function bxor(a, b)
+        local res, p = 0, 1
+        a, b = a % 4294967296, b % 4294967296
+        while a > 0 or b > 0 do
+            local ra, rb = a % 2, b % 2
+            if (ra == 1 and rb == 0) or (ra == 0 and rb == 1) then res = res + p end
+            a = math.floor(a / 2)
+            b = math.floor(b / 2)
+            p = p * 2
+        end
+        return res
+    end
+    local function bnot(a)
+        return (4294967295 - (a % 4294967296))
+    end
+    local function rshift(a, n)
+        return math.floor((a % 4294967296) / (2 ^ n))
+    end
+    local function lshift(a, n)
+        return (math.floor(a % 4294967296) * (2 ^ n)) % 4294967296
+    end
+    local function ror(a, n)
+        a = a % 4294967296
+        local right = math.floor(a / (2 ^ n))
+        local left = (a % (2 ^ n)) * (2 ^ (32 - n))
+        return (right + left) % 4294967296
+    end
+    _bit = { band = band, bor = bor, bxor = bxor, bnot = bnot, rshift = rshift, lshift = lshift, ror = ror }
 end
 
 local SHA256_K = {
