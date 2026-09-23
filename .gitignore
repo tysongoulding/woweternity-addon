@@ -1,0 +1,15 @@
+# Distribution & Archives
+*.zip
+*.tar.gz
+*.bak
+
+# Node & Dependencies (if any test tools run)
+node_modules/
+npm-debug.log*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log

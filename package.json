@@ -1,0 +1,9 @@
+{
+  "name": "woweternity-addon",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/addon_simulation_test.js && node tests/m4_adversarial_challenge.mjs"
+  }
+}

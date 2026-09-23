@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name to release (e.g. v1.1.0)'
+        required: true
+        default: 'v1.1.0'
+
+permissions:
+  contents: write
+
+jobs:
+  package-and-release:
+    name: Package Addon & Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set Release Tag
+        id: vars
+        run: |
+          if [ -n "${{ github.event.inputs.tag_name }}" ]; then
+            echo "tag=${{ github.event.inputs.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Package Addon Distribution Zip
+        run: |
+          STAGING_DIR="WoW Eternity Addon"
+          ZIP_NAME="WoW-Eternity-Addon-${{ steps.vars.outputs.tag }}.zip"
+          mkdir -p "$STAGING_DIR"
+          cp "WoWEternityAddon.lua" "$STAGING_DIR/"
+          cp "WoW Eternity Addon.toc" "$STAGING_DIR/"
+          zip -r "$ZIP_NAME" "$STAGING_DIR"
+          echo "ZIP_FILE=$ZIP_NAME" >> $GITHUB_ENV
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          name: "WoW Eternity Addon ${{ steps.vars.outputs.tag }}"
+          body: "Release ${{ steps.vars.outputs.tag }} for WoW Eternity companion addon. Extract the contents of this zip directly into your `World of Warcraft/_classic_beta_/Interface/AddOns/` (or `_classic_/Interface/AddOns/`) directory."
+          files: ${{ env.ZIP_FILE }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,9 @@
+## Interface: 11506
+## Title: WoW Eternity Addon
+## Notes: In-Game Character Exporter, BiS Tooltips & Sync Companion for WoW Eternity Client
+## Author: WoW Eternity Team
+## Version: 1.1.0
+## SavedVariables: WoWEternityAddonDB
+## SavedVariablesPerCharacter: WoWEternityAddonCharDB
+
+WoWEternityAddon.lua
