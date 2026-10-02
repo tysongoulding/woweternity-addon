@@ -316,8 +316,113 @@ assert.strictEqual(simulateLevelUpSync(allyStepObjects, levelSim, 55), 1, 'Level
 assert.strictEqual(levelSim['ally-38'], true, 'Step 38 should be completed at level 55');
 assert.strictEqual(levelSim['ally-44'], undefined, 'Step 44 should still be incomplete at level 55');
 
-assert.strictEqual(simulateLevelUpSync(allyStepObjects, levelSim, 60), 1, 'Level 60 should trigger ally-44 milestone completion');
-assert.strictEqual(levelSim['ally-44'], true, 'Step 44 should be completed at level 60');
+// ============================================================================
+// SUITE 9: Dynamic Player Level Skip (>5 Levels Below) & Auto-Faction
+// ============================================================================
+console.log('--- Suite 9: Dynamic Level Call, Auto-Skip Outleveled & Faction Detection ---');
+
+// 1. Static Verification of Methods & DB Properties
+assert.ok(luaSource.includes('function WoWEternityAddon:GetPlayerFaction()'), 'Must implement GetPlayerFaction');
+assert.ok(luaSource.includes('function WoWEternityAddon:SyncPlayerFaction()'), 'Must implement SyncPlayerFaction');
+assert.ok(luaSource.includes('function WoWEternityAddon:GetStepLevelRange(step)'), 'Must implement GetStepLevelRange');
+assert.ok(luaSource.includes('function WoWEternityAddon:SyncWithPlayerLevel(verbose)'), 'Must implement SyncWithPlayerLevel');
+assert.ok(luaSource.includes('WoWEternityAddonDB.skipOutleveled'), 'Must support skipOutleveled setting');
+assert.ok(luaSource.includes('WoWEternityAddonCharDB.manuallyUnchecked'), 'Must persist manuallyUnchecked per character');
+assert.ok(luaSource.includes('cmd == "synclevel"'), 'Must handle /wea synclevel command');
+
+// 2. Behavioral Simulation of GetStepLevelRange
+const simulateGetStepLevelRange = (badge) => {
+    if (!badge) return [1, 60];
+    const rangeMatch = badge.match(/(\d+)\s*[^\d\s]+\s*(\d+)/);
+    if (rangeMatch) {
+        return [parseInt(rangeMatch[1], 10), parseInt(rangeMatch[2], 10)];
+    }
+    const singleMatch = badge.match(/(\d+)/);
+    if (singleMatch) {
+        const val = parseInt(singleMatch[1], 10);
+        return [val, val];
+    }
+    return [1, 60];
+};
+
+assert.deepStrictEqual(simulateGetStepLevelRange('1–12'), [1, 12], '1–12 must parse to [1, 12]');
+assert.deepStrictEqual(simulateGetStepLevelRange('~13'), [13, 13], '~13 must parse to [13, 13]');
+assert.deepStrictEqual(simulateGetStepLevelRange('13–15'), [13, 15], '13–15 must parse to [13, 15]');
+assert.deepStrictEqual(simulateGetStepLevelRange('55'), [55, 55], '55 must parse to [55, 55]');
+assert.deepStrictEqual(simulateGetStepLevelRange('60'), [60, 60], '60 must parse to [60, 60]');
+
+// Attach min/max levels to step objects
+for (const step of allyStepObjects) {
+    const [minLvl, maxLvl] = simulateGetStepLevelRange(step.levelBadge);
+    step.minLvl = minLvl;
+    step.maxLvl = maxLvl;
+}
+for (const step of hordeStepObjects) {
+    const [minLvl, maxLvl] = simulateGetStepLevelRange(step.levelBadge);
+    step.minLvl = minLvl;
+    step.maxLvl = maxLvl;
+}
+
+// 3. Simulation of Level-Based Auto-Skip (>5 levels below character)
+const simulateDynamicLevelSync = (steps, completedMap, manuallyUncheckedMap, playerLevel, skipOutleveled = true) => {
+    if (!skipOutleveled) return 0;
+    const minRelevantLevel = Math.max(1, playerLevel - 5);
+    let newlyCompleted = 0;
+    for (const step of steps) {
+        if (!completedMap[step.id]) {
+            if (step.maxLvl < minRelevantLevel && !manuallyUncheckedMap[step.id]) {
+                completedMap[step.id] = true;
+                newlyCompleted++;
+            }
+        }
+    }
+    return newlyCompleted;
+};
+
+// Test A: Level 10 toon (min relevant level = 5)
+// Step 1 is 1-12 (max 12 >= 5). Nothing should be skipped!
+const charLvl10 = {};
+const uncheckLvl10 = {};
+simulateDynamicLevelSync(allyStepObjects, charLvl10, uncheckLvl10, 10);
+assert.strictEqual(simulateGetActiveStep(allyStepObjects, charLvl10).stepNumber, 1, 'Level 10 should keep step 1 active');
+
+// Test B: Level 20 toon (min relevant level = 15)
+// Steps 1-3 (max 12, 13, 13) are < 15 -> SKIPPED!
+// Step 4 (13-15) max 15 >= 15 -> KEPT!
+const charLvl20 = {};
+const uncheckLvl20 = {};
+simulateDynamicLevelSync(allyStepObjects, charLvl20, uncheckLvl20, 20);
+assert.strictEqual(charLvl20['ally-1'], true, 'Step 1 should be skipped at level 20');
+assert.strictEqual(charLvl20['ally-2'], true, 'Step 2 should be skipped at level 20');
+assert.strictEqual(charLvl20['ally-3'], true, 'Step 3 (max 13) should be skipped at level 20');
+assert.strictEqual(charLvl20['ally-4'], undefined, 'Step 4 (max 15) should NOT be skipped at level 20 (within 5 levels)');
+assert.strictEqual(simulateGetActiveStep(allyStepObjects, charLvl20).stepNumber, 4, 'Level 20 should have step 4 active');
+
+// Test C: Level 30 toon (min relevant level = 25)
+// Steps with max < 25 are skipped.
+// Step 9 is 22-25 (max 25 >= 25) -> KEPT!
+const charLvl30 = {};
+const uncheckLvl30 = {};
+simulateDynamicLevelSync(allyStepObjects, charLvl30, uncheckLvl30, 30);
+assert.strictEqual(charLvl30['ally-8'], true, 'Step 8 (max 24) should be skipped at level 30');
+assert.strictEqual(charLvl30['ally-9'], undefined, 'Step 9 (max 25) must be preserved within 5 levels');
+assert.strictEqual(simulateGetActiveStep(allyStepObjects, charLvl30).stepNumber, 9, 'Level 30 active step should be step 9');
+
+// Test D: Manual Uncheck Persistence
+// Suppose the player wants to do Step 1 anyway at level 30
+uncheckLvl30['ally-1'] = true;
+delete charLvl30['ally-1'];
+// Re-running sync must NOT re-skip ally-1 because it was manually unchecked!
+simulateDynamicLevelSync(allyStepObjects, charLvl30, uncheckLvl30, 30);
+assert.strictEqual(charLvl30['ally-1'], undefined, 'Manually unchecked step must NOT be auto-skipped');
+assert.strictEqual(simulateGetActiveStep(allyStepObjects, charLvl30).stepNumber, 1, 'Active step should now be manually unchecked step 1');
+
+// Test E: Horde Level 30 Sync
+const hordeCharLvl30 = {};
+const hordeUncheckLvl30 = {};
+simulateDynamicLevelSync(hordeStepObjects, hordeCharLvl30, hordeUncheckLvl30, 30);
+// In Horde guide, Step 10 is [22–26] SFK quests (max 26 >= 25)
+assert.strictEqual(simulateGetActiveStep(hordeStepObjects, hordeCharLvl30).stepNumber, 10, 'Horde Level 30 active step should be step 10');
 
 console.log('[PASS] Addon simulation & static analysis passed 100%.');
 

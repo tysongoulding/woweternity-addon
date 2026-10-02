@@ -3651,7 +3651,7 @@ function WoWEternityAddon:CreateSettingsTab(parent)
     local prefCard = CreateCard(tab)
     prefCard:SetPoint("TOPLEFT", 0, 0)
     prefCard:SetPoint("TOPRIGHT", 0, 0)
-    prefCard:SetHeight(238)
+    prefCard:SetHeight(304)
 
     local title1 = prefCard:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     title1:SetPoint("TOPLEFT", 12, -10)
@@ -3677,7 +3677,7 @@ function WoWEternityAddon:CreateSettingsTab(parent)
         WoWEternityAddonDB = WoWEternityAddonDB or {}
         WoWEternityAddonDB.playBiSSound = checked
     end)
-    tab.cbSound:SetPoint("TOPLEFT", 14, -66)
+    tab.cbSound:SetPoint("TOPLEFT", 14, -64)
 
     CreateStyledButton(prefCard, "Test Sound", 95, 22, function()
         pcall(PlaySound, SOUND_ID)
@@ -3687,19 +3687,19 @@ function WoWEternityAddon:CreateSettingsTab(parent)
         WoWEternityAddonDB = WoWEternityAddonDB or {}
         WoWEternityAddonDB.autoExport = checked
     end)
-    tab.cbAutoExport:SetPoint("TOPLEFT", 14, -98)
+    tab.cbAutoExport:SetPoint("TOPLEFT", 14, -94)
 
     tab.cbPlayerTooltips = CreateCheckbox(prefCard, "WoWEternityAddonOptPlayerTooltips", "Show Progress & Parse in Player Tooltips", true, function(checked)
         WoWEternityAddonDB = WoWEternityAddonDB or {}
         WoWEternityAddonDB.showPlayerTooltips = checked
     end)
-    tab.cbPlayerTooltips:SetPoint("TOPLEFT", 14, -130)
+    tab.cbPlayerTooltips:SetPoint("TOPLEFT", 14, -124)
 
     tab.cbVerbose = CreateCheckbox(prefCard, "WoWEternityAddonOptVerbose", "Verbose Talent Diagnostics in Chat", false, function(checked)
         WoWEternityAddonDB = WoWEternityAddonDB or {}
         WoWEternityAddonDB.verboseLogs = checked
     end)
-    tab.cbVerbose:SetPoint("TOPLEFT", 14, -162)
+    tab.cbVerbose:SetPoint("TOPLEFT", 14, -154)
 
     tab.cbTracker = CreateCheckbox(prefCard, "WoWEternityAddonOptTracker", "Show Floating Quest Tracker HUD (Questie Style)", true, function(checked)
         WoWEternityAddonDB = WoWEternityAddonDB or {}
@@ -3716,35 +3716,46 @@ function WoWEternityAddon:CreateSettingsTab(parent)
             WoWEternityAddon:CreateTrackerHUD()
         end
     end)
-    tab.cbTracker:SetPoint("TOPLEFT", 14, -194)
+    tab.cbTracker:SetPoint("TOPLEFT", 14, -184)
+
+    tab.cbAutoAdvance = CreateCheckbox(prefCard, "WoWEternityAddonOptAutoAdvance", "Auto-Advance Guide Upon Quest Turn-In", true, function(checked)
+        WoWEternityAddonDB = WoWEternityAddonDB or {}
+        WoWEternityAddonDB.autoAdvanceGuide = checked
+    end)
+    tab.cbAutoAdvance:SetPoint("TOPLEFT", 14, -214)
+
+    tab.cbSkipOutleveled = CreateCheckbox(prefCard, "WoWEternityAddonOptSkipOutleveled", "Auto-Skip Outleveled Guide Steps (>5 Levels Below Character)", true, function(checked)
+        WoWEternityAddonDB = WoWEternityAddonDB or {}
+        WoWEternityAddonDB.skipOutleveled = checked
+        if checked and WoWEternityAddon.ScanAndSyncCompletedQuests then
+            WoWEternityAddon:ScanAndSyncCompletedQuests()
+        end
+    end)
+    tab.cbSkipOutleveled:SetPoint("TOPLEFT", 14, -244)
 
     local dbPath = prefCard:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    dbPath:SetPoint("TOPLEFT", 14, -222)
+    dbPath:SetPoint("TOPLEFT", 14, -276)
     dbPath:SetText("SavedVariables: |cff9ca3afWTF/Account/<Account>/SavedVariables/WoW Eternity Addon.lua|r")
 
     -- Card 2: Slash Commands Reference
     local slashCard = CreateCard(tab)
-    slashCard:SetPoint("TOPLEFT", 0, -250)
-    slashCard:SetPoint("TOPRIGHT", 0, -250)
-    slashCard:SetHeight(158)
+    slashCard:SetPoint("TOPLEFT", 0, -310)
+    slashCard:SetPoint("TOPRIGHT", 0, -310)
+    slashCard:SetHeight(132)
 
     local title2 = slashCard:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    title2:SetPoint("TOPLEFT", 12, -10)
+    title2:SetPoint("TOPLEFT", 12, -8)
     title2:SetText("|cffe6cc80Slash Commands Reference|r")
 
     local ref = slashCard:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    ref:SetPoint("TOPLEFT", 12, -30)
-    ref:SetPoint("TOPRIGHT", -12, -30)
+    ref:SetPoint("TOPLEFT", 12, -26)
+    ref:SetPoint("TOPRIGHT", -12, -26)
     ref:SetJustifyH("LEFT")
     ref:SetText(
-        "|cffffd100/wea|r - Toggle this 6-tab main control window\n" ..
-        "|cffffd100/wea leveling|r - Open Cadberry Leveling Guide\n" ..
-        "|cffffd100/wea tracker|r - Toggle Questie-style floating tracker HUD\n" ..
-        "|cffffd100/wea arrow|r - Toggle waypoint navigation arrow\n" ..
-        "|cffffd100/wea sync|r - Export gear, unbuffed stats, and talents to desktop client\n" ..
-        "|cffffd100/wea spec <name>|r - Set active BiS spec filter (e.g. paladin_ret, all)\n" ..
-        "|cffffd100/wea verify|r - Verify database Adler-32 checksum integrity\n" ..
-        "|cffffd100/wea minimap|r - Toggle minimap button visibility"
+        "|cffffd100/wea|r - Toggle main panel | |cffffd100/wea leveling|r - Open Guide | |cffffd100/wea synclevel|r - Dynamic Level Sync\n" ..
+        "|cffffd100/wea tracker|r - Toggle Questie HUD | |cffffd100/wea arrow|r - Waypoint Arrow | |cffffd100/wea resetguide|r - Reset Steps\n" ..
+        "|cffffd100/wea sync|r - Export Character | |cffffd100/wea spec <name>|r - BiS Spec | |cffffd100/wea minimap|r - Toggle Icon\n" ..
+        "|cffffd100/wea verify|r - Verify Adler-32 integrity & cryptographic player signatures"
     )
 
     -- Bottom Actions
@@ -3755,6 +3766,8 @@ function WoWEternityAddon:CreateSettingsTab(parent)
         WoWEternityAddonDB.autoExport = true
         WoWEternityAddonDB.showPlayerTooltips = true
         WoWEternityAddonDB.verboseLogs = false
+        WoWEternityAddonDB.autoAdvanceGuide = true
+        WoWEternityAddonDB.skipOutleveled = true
         WoWEternityAddonDB.minimapPos = 45
         WoWEternityAddon:UpdateSettingsTab()
         WoWEternityAddon:UpdateMinimapVisibility()
@@ -3790,6 +3803,12 @@ function WoWEternityAddon:UpdateSettingsTab()
     end
     if tab.cbTracker then
         tab.cbTracker:SetChecked(WoWEternityAddonDB and WoWEternityAddonDB.tracker and WoWEternityAddonDB.tracker.shown ~= false)
+    end
+    if tab.cbAutoAdvance then
+        tab.cbAutoAdvance:SetChecked(WoWEternityAddonDB and WoWEternityAddonDB.autoAdvanceGuide ~= false)
+    end
+    if tab.cbSkipOutleveled then
+        tab.cbSkipOutleveled:SetChecked(WoWEternityAddonDB and WoWEternityAddonDB.skipOutleveled ~= false)
     end
 end
 
@@ -3856,12 +3875,7 @@ function WoWEternityAddon:CreateLevelingTab(parent)
 
     -- Auto-detect player faction default
     if not self.levelingFaction then
-        local factionGroup = UnitFactionGroup and UnitFactionGroup("player")
-        if factionGroup and factionGroup:lower() == "horde" then
-            self.levelingFaction = "horde"
-        else
-            self.levelingFaction = "alliance"
-        end
+        self:SyncPlayerFaction()
     end
     self.levelingCategory = self.levelingCategory or "All"
 
@@ -3873,7 +3887,7 @@ function WoWEternityAddon:CreateLevelingTab(parent)
 
     -- Faction Selector Buttons
     local allyBtn = CreateFrame("Button", nil, headerCard, GetBackdropTemplate())
-    allyBtn:SetSize(110, 24)
+    allyBtn:SetSize(95, 24)
     allyBtn:SetPoint("TOPLEFT", 10, -8)
     ApplyBackdrop(allyBtn, 0.08, 0.14, 0.28, 0.9, 0.28, 0.45, 0.75, 1)
     local allyBtnText = allyBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -3889,7 +3903,7 @@ function WoWEternityAddon:CreateLevelingTab(parent)
     tab.allyBtn = allyBtn
 
     local hordeBtn = CreateFrame("Button", nil, headerCard, GetBackdropTemplate())
-    hordeBtn:SetSize(110, 24)
+    hordeBtn:SetSize(95, 24)
     hordeBtn:SetPoint("LEFT", allyBtn, "RIGHT", 6, 0)
     ApplyBackdrop(hordeBtn, 0.22, 0.08, 0.08, 0.9, 0.65, 0.22, 0.22, 1)
     local hordeBtnText = hordeBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -3906,8 +3920,8 @@ function WoWEternityAddon:CreateLevelingTab(parent)
 
     -- Progress Bar
     local progressBg = CreateFrame("Frame", nil, headerCard, GetBackdropTemplate())
-    progressBg:SetSize(160, 18)
-    progressBg:SetPoint("LEFT", hordeBtn, "RIGHT", 10, 0)
+    progressBg:SetSize(120, 18)
+    progressBg:SetPoint("LEFT", hordeBtn, "RIGHT", 8, 0)
     ApplyBackdrop(progressBg, 0.02, 0.03, 0.05, 0.9, 0.18, 0.22, 0.32, 1)
     tab.progressBg = progressBg
 
@@ -3923,25 +3937,32 @@ function WoWEternityAddon:CreateLevelingTab(parent)
     progressText:SetText("0 / 44 (0%)")
     tab.progressText = progressText
 
+    -- Quick Level Sync Button
+    local syncBtn = CreateStyledButton(headerCard, "Sync Lvl", 62, 22, function()
+        WoWEternityAddon:SyncWithPlayerLevel(true)
+    end)
+    syncBtn:SetPoint("LEFT", progressBg, "RIGHT", 6, 0)
+    tab.syncBtn = syncBtn
+
     -- Quick Arrow Toggle Button
-    local arrowBtn = CreateStyledButton(headerCard, "Arrow: ON", 74, 22, function()
+    local arrowBtn = CreateStyledButton(headerCard, "Arrow: ON", 68, 22, function()
         WoWEternityAddon:ToggleWaypointArrow()
     end)
-    arrowBtn:SetPoint("TOPRIGHT", -154, -9)
+    arrowBtn:SetPoint("TOPRIGHT", -128, -9)
     tab.arrowBtn = arrowBtn
 
     -- Quick Tracker Toggle Button
-    local trackerBtn = CreateStyledButton(headerCard, "Tracker: ON", 84, 22, function()
+    local trackerBtn = CreateStyledButton(headerCard, "Tracker: ON", 72, 22, function()
         WoWEternityAddon:ToggleTrackerHUD()
     end)
-    trackerBtn:SetPoint("TOPRIGHT", -66, -9)
+    trackerBtn:SetPoint("TOPRIGHT", -52, -9)
     tab.trackerBtn = trackerBtn
 
     -- Reset Progress Button
-    local resetBtn = CreateStyledButton(headerCard, "Reset", 52, 22, function()
+    local resetBtn = CreateStyledButton(headerCard, "Reset", 42, 22, function()
         WoWEternityAddon:ResetLevelingGuide()
     end)
-    resetBtn:SetPoint("TOPRIGHT", -10, -9)
+    resetBtn:SetPoint("TOPRIGHT", -6, -9)
     tab.resetBtn = resetBtn
 
     -- Row 2: Category Filter Bar
@@ -4133,10 +4154,13 @@ function WoWEternityAddon:UpdateLevelingTab()
                 local checked = selfBtn:GetChecked()
                 WoWEternityAddonCharDB = WoWEternityAddonCharDB or {}
                 WoWEternityAddonCharDB.cadberryCompleted = WoWEternityAddonCharDB.cadberryCompleted or {}
+                WoWEternityAddonCharDB.manuallyUnchecked = WoWEternityAddonCharDB.manuallyUnchecked or {}
                 if checked then
                     WoWEternityAddonCharDB.cadberryCompleted[stepId] = true
+                    WoWEternityAddonCharDB.manuallyUnchecked[stepId] = nil
                 else
                     WoWEternityAddonCharDB.cadberryCompleted[stepId] = nil
+                    WoWEternityAddonCharDB.manuallyUnchecked[stepId] = true
                 end
                 WoWEternityAddon:UpdateLevelingTab()
                 WoWEternityAddon:UpdateWaypointArrow()
@@ -4229,8 +4253,44 @@ function WoWEternityAddon:UpdateLevelingTab()
     tab.scrollChild:SetHeight(math.max(totalOffset, 320))
 end
 
+function WoWEternityAddon:GetPlayerFaction()
+    if self.levelingFaction then return self.levelingFaction end
+    local factionGroup = UnitFactionGroup and UnitFactionGroup("player")
+    if factionGroup and factionGroup:lower() == "horde" then
+        self.levelingFaction = "horde"
+    else
+        self.levelingFaction = "alliance"
+    end
+    return self.levelingFaction
+end
+
+function WoWEternityAddon:SyncPlayerFaction()
+    local factionGroup = UnitFactionGroup and UnitFactionGroup("player")
+    if factionGroup and factionGroup:lower() == "horde" then
+        self.levelingFaction = "horde"
+    else
+        self.levelingFaction = "alliance"
+    end
+    return self.levelingFaction
+end
+
+function WoWEternityAddon:GetStepLevelRange(step)
+    if not step or not step.levelBadge then return 1, 60 end
+    local b = tostring(step.levelBadge)
+    local low, high = b:match("(%d+)%s*[^%d%s]+%s*(%d+)")
+    if low and high then
+        return tonumber(low), tonumber(high)
+    end
+    local single = b:match("(%d+)")
+    if single then
+        local lvl = tonumber(single)
+        return lvl, lvl
+    end
+    return 1, 60
+end
+
 function WoWEternityAddon:GetActiveLevelingStep(faction)
-    faction = faction or self.levelingFaction or "alliance"
+    faction = faction or self:GetPlayerFaction()
     local guide = (faction == "horde") and self.CADBERRY_HORDE_GUIDE or self.CADBERRY_ALLIANCE_GUIDE
     if not guide or not guide.steps then return nil end
 
@@ -4245,7 +4305,7 @@ end
 
 function WoWEternityAddon:GetUpcomingLevelingSteps(faction, count)
     count = count or 2
-    faction = faction or self.levelingFaction or "alliance"
+    faction = faction or self:GetPlayerFaction()
     local guide = (faction == "horde") and self.CADBERRY_HORDE_GUIDE or self.CADBERRY_ALLIANCE_GUIDE
     if not guide or not guide.steps then return {} end
 
@@ -4473,6 +4533,7 @@ end
 function WoWEternityAddon:ResetLevelingGuide()
     WoWEternityAddonCharDB = WoWEternityAddonCharDB or {}
     WoWEternityAddonCharDB.cadberryCompleted = {}
+    WoWEternityAddonCharDB.manuallyUnchecked = {}
     self:Print("|cffe6cc80[WoW Eternity Addon]|r Cadberry Leveling Guide steps reset for this character.")
     if self.UpdateLevelingTab then
         self:UpdateLevelingTab()
@@ -4496,12 +4557,13 @@ function WoWEternityAddon:OnQuestTurnedIn(questId)
     if not questId or questId <= 0 then return end
     if WoWEternityAddonDB and WoWEternityAddonDB.autoAdvanceGuide == false then return end
 
-    local faction = self.levelingFaction or "alliance"
+    local faction = self.levelingFaction or self:GetPlayerFaction()
     local guide = (faction == "horde") and self.CADBERRY_HORDE_GUIDE or self.CADBERRY_ALLIANCE_GUIDE
     if not guide or not guide.steps then return end
 
     WoWEternityAddonCharDB = WoWEternityAddonCharDB or {}
     WoWEternityAddonCharDB.cadberryCompleted = WoWEternityAddonCharDB.cadberryCompleted or {}
+    WoWEternityAddonCharDB.manuallyUnchecked = WoWEternityAddonCharDB.manuallyUnchecked or {}
 
     local matchedStep = nil
     for _, step in ipairs(guide.steps) do
@@ -4515,6 +4577,7 @@ function WoWEternityAddon:OnQuestTurnedIn(questId)
 
     if matchedStep then
         WoWEternityAddonCharDB.cadberryCompleted[matchedStep.id] = true
+        WoWEternityAddonCharDB.manuallyUnchecked[matchedStep.id] = nil
         if PlaySound and SOUNDKIT and SOUNDKIT.UI_QUEST_COMPLETE then
             pcall(PlaySound, SOUNDKIT.UI_QUEST_COMPLETE)
         end
@@ -4536,14 +4599,17 @@ end
 function WoWEternityAddon:ScanAndSyncCompletedQuests()
     if WoWEternityAddonDB and WoWEternityAddonDB.autoAdvanceGuide == false then return end
 
-    local faction = self.levelingFaction or "alliance"
+    local faction = self.levelingFaction or self:GetPlayerFaction()
     local guide = (faction == "horde") and self.CADBERRY_HORDE_GUIDE or self.CADBERRY_ALLIANCE_GUIDE
     if not guide or not guide.steps then return end
 
     WoWEternityAddonCharDB = WoWEternityAddonCharDB or {}
     WoWEternityAddonCharDB.cadberryCompleted = WoWEternityAddonCharDB.cadberryCompleted or {}
+    WoWEternityAddonCharDB.manuallyUnchecked = WoWEternityAddonCharDB.manuallyUnchecked or {}
 
     local playerLevel = (UnitLevel and UnitLevel("player")) or 1
+    local minRelevantLevel = math.max(1, playerLevel - 5)
+    local skipOutleveled = (WoWEternityAddonDB and WoWEternityAddonDB.skipOutleveled ~= false)
     local newlyCompleted = 0
 
     for _, step in ipairs(guide.steps) do
@@ -4560,10 +4626,18 @@ function WoWEternityAddon:ScanAndSyncCompletedQuests()
                 end
             end
 
-            -- 2. Check milestone levels (e.g. "Hit Level 55 Milestone")
+            -- 2. Check milestone levels (e.g. "Hit Level 55 Milestone", "GRATS ON 60!")
             if not isDone and step.type == "milestone" then
-                local reqLevel = tonumber(step.levelBadge:match("(%d+)"))
-                if reqLevel and playerLevel >= reqLevel then
+                local _, maxLvl = self:GetStepLevelRange(step)
+                if maxLvl and playerLevel >= maxLvl then
+                    isDone = true
+                end
+            end
+
+            -- 3. Dynamic Level Skip (>5 levels below character)
+            if not isDone and skipOutleveled then
+                local _, maxLvl = self:GetStepLevelRange(step)
+                if maxLvl and maxLvl < minRelevantLevel and not WoWEternityAddonCharDB.manuallyUnchecked[step.id] then
                     isDone = true
                 end
             end
@@ -4583,9 +4657,24 @@ function WoWEternityAddon:ScanAndSyncCompletedQuests()
     end
 end
 
+function WoWEternityAddon:SyncWithPlayerLevel(verbose)
+    self:SyncPlayerFaction()
+    self:ScanAndSyncCompletedQuests()
+    local lvl = (UnitLevel and UnitLevel("player")) or 1
+    local minKeep = math.max(1, lvl - 5)
+    local active = self:GetActiveLevelingStep()
+    if verbose then
+        if active then
+            self:Print(string.format("|cff00ff00[WoW Eternity Addon]|r Synced with Level %d (%s): kept objectives >= Level %d. Current Active: Step #%d (|cffffd100%s|r)", lvl, (self.levelingFaction or "alliance"):upper(), minKeep, active.stepNumber, active.title))
+        else
+            self:Print(string.format("|cff00ff00[WoW Eternity Addon]|r Synced with Level %d (%s): all steps completed!", lvl, (self.levelingFaction or "alliance"):upper()))
+        end
+    end
+end
+
 function WoWEternityAddon:OnPlayerLevelUp(newLevel)
     self:ScanAndSyncCompletedQuests()
-    local faction = self.levelingFaction or "alliance"
+    local faction = self.levelingFaction or self:GetPlayerFaction()
     local active = self:GetActiveLevelingStep(faction)
     if active then
         self:Print(string.format("|cffe6cc80[WoW Eternity Addon]|r Ding level %d! Current leveling objective: Step #%d (|cffffd100%s|r)", newLevel or 0, active.stepNumber, active.title))
@@ -4875,13 +4964,20 @@ function WoWEternityAddon:CreateTrackerHUD()
     activeCB:SetSize(18, 18)
     activeCB:SetPoint("TOPLEFT", activeSub, "BOTTOMLEFT", 0, -4)
     activeCB:SetScript("OnClick", function(cb)
-        local faction = WoWEternityAddon.levelingFaction or "alliance"
+        local faction = WoWEternityAddon.levelingFaction or WoWEternityAddon:GetPlayerFaction()
         local step = WoWEternityAddon:GetActiveLevelingStep(faction)
         if step then
             WoWEternityAddonCharDB = WoWEternityAddonCharDB or {}
             WoWEternityAddonCharDB.cadberryCompleted = WoWEternityAddonCharDB.cadberryCompleted or {}
+            WoWEternityAddonCharDB.manuallyUnchecked = WoWEternityAddonCharDB.manuallyUnchecked or {}
             local isChecked = cb:GetChecked()
-            WoWEternityAddonCharDB.cadberryCompleted[step.id] = isChecked
+            if isChecked then
+                WoWEternityAddonCharDB.cadberryCompleted[step.id] = true
+                WoWEternityAddonCharDB.manuallyUnchecked[step.id] = nil
+            else
+                WoWEternityAddonCharDB.cadberryCompleted[step.id] = nil
+                WoWEternityAddonCharDB.manuallyUnchecked[step.id] = true
+            end
             if PlaySound and SOUNDKIT and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON then
                 pcall(PlaySound, SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
             end
@@ -6689,6 +6785,7 @@ function WoWEternityAddon:OnInitialize()
     -- Cadberry Leveling Guide & Navigation Arrow Persistence
     WoWEternityAddonCharDB = WoWEternityAddonCharDB or {}
     WoWEternityAddonCharDB.cadberryCompleted = WoWEternityAddonCharDB.cadberryCompleted or {}
+    WoWEternityAddonCharDB.manuallyUnchecked = WoWEternityAddonCharDB.manuallyUnchecked or {}
 
     WoWEternityAddonDB.waypointArrow = WoWEternityAddonDB.waypointArrow or {
         shown = true,
@@ -6707,6 +6804,8 @@ function WoWEternityAddon:OnInitialize()
         width = 280,
     }
     if WoWEternityAddonDB.autoAdvanceGuide == nil then WoWEternityAddonDB.autoAdvanceGuide = true end
+    if WoWEternityAddonDB.skipOutleveled == nil then WoWEternityAddonDB.skipOutleveled = true end
+    self:SyncPlayerFaction()
 
     self:InitAddonComms()
     self:StartProximityScanner()
@@ -6743,6 +6842,7 @@ function WoWEternityAddon:OnInitialize()
 end
 
 function WoWEternityAddon:OnPlayerLogin()
+    self:SyncPlayerFaction()
     if WoWEternityAddonDB and (not WoWEternityAddonDB.active_spec or WoWEternityAddonDB.active_spec == "") then
         if UnitClass then
             local _, class = UnitClass("player")
@@ -6751,6 +6851,7 @@ function WoWEternityAddon:OnPlayerLogin()
             end
         end
     end
+    self:ScanAndSyncCompletedQuests()
 end
 
 function WoWEternityAddon:OnLootOpened()
@@ -6996,10 +7097,14 @@ function WoWEternityAddon:HandleSlashCommand(msg)
         self:Print("  |cffffd100/wea minimap|r - Toggle minimap button visibility")
         self:Print("  |cffffd100/wea inspect|r - Inspect currently targeted player character")
         self:Print("  |cffffd100/wea leveling|r - Open Cadberry Leveling Guide")
+        self:Print("  |cffffd100/wea synclevel|r - Dynamic sync to player level & faction (keeps steps >= level - 5)")
         self:Print("  |cffffd100/wea arrow|r - Toggle waypoint navigation arrow")
+        self:Print("  |cffffd100/wea tracker|r - Toggle Questie-style floating tracker HUD")
         self:Print("  |cffffd100/wea resetguide|r - Reset leveling guide completed steps")
     elseif cmd == "sync" or cmd == "export" then
         self:ExportCharacter()
+    elseif cmd == "synclevel" or cmd == "autolevel" or cmd == "skip" then
+        self:SyncWithPlayerLevel(true)
     elseif cmd == "inspect" then
         self:TriggerInspect(args[2] or "target")
     elseif cmd == "spec" then
