@@ -4963,47 +4963,60 @@ function WoWEternityAddon:GetOrCreateMapZoneBadge(canvas)
     if not CreateFrame then return nil end
 
     local badge = CreateFrame("Button", "WoWEternity_MapZoneBadge", canvas)
-    badge:SetSize(170, 42)
+    badge:SetSize(210, 48)
     badge:SetFrameStrata("HIGH")
 
-    -- Subtle dark backdrop matching WoWEternity_PaperDollIlvlBadge
+    -- Subtle high-contrast dark backdrop
     local bg = badge:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints(badge)
-    bg:SetColorTexture(0.04, 0.04, 0.07, 0.85)
+    bg:SetColorTexture(0.04, 0.04, 0.07, 0.90)
     badge.bg = bg
 
-    -- Clean gold border accent matching PaperDoll badge
+    -- Border accent tinted by difficulty
     local border = badge:CreateTexture(nil, "BORDER")
     border:SetPoint("TOPLEFT", -1, 1)
     border:SetPoint("BOTTOMRIGHT", 1, -1)
-    border:SetColorTexture(0.90, 0.80, 0.50, 0.35)
+    border:SetColorTexture(0.90, 0.80, 0.50, 0.45)
     badge.border = border
 
-    local title = badge:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    title:SetPoint("TOPLEFT", badge, "TOPLEFT", 8, -6)
-    title:SetPoint("TOPRIGHT", badge, "TOPRIGHT", -8, -6)
+    local title = badge:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    pcall(function()
+        local fPath = title:GetFont()
+        if fPath then title:SetFont(fPath, 11, "OUTLINE") end
+    end)
+    title:SetPoint("TOPLEFT", badge, "TOPLEFT", 10, -6)
+    title:SetPoint("TOPRIGHT", badge, "TOPRIGHT", -10, -6)
     title:SetJustifyH("LEFT")
     title:SetTextColor(0.90, 0.80, 0.50, 1)
     title:SetText("WoW Eternity Addon")
+    title:SetShadowOffset(1, -1)
     badge.title = title
 
-    local subText = badge:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    subText:SetPoint("BOTTOMLEFT", badge, "BOTTOMLEFT", 8, 6)
-    subText:SetPoint("BOTTOMRIGHT", badge, "BOTTOMRIGHT", -8, 6)
+    local subText = badge:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+    pcall(function()
+        local fPath = subText:GetFont()
+        if fPath then subText:SetFont(fPath, 16, "OUTLINE") end
+    end)
+    subText:SetPoint("BOTTOMLEFT", badge, "BOTTOMLEFT", 10, 6)
+    subText:SetPoint("BOTTOMRIGHT", badge, "BOTTOMRIGHT", -10, 6)
     subText:SetJustifyH("LEFT")
+    subText:SetShadowOffset(1, -1)
     badge.subText = subText
 
     badge:EnableMouse(true)
     badge:SetScript("OnEnter", function(b)
-        if b.border then b.border:SetColorTexture(0.90, 0.80, 0.50, 0.70) end
+        local br = b.currentBorderR or 0.90
+        local bgCol = b.currentBorderG or 0.80
+        local bb = b.currentBorderB or 0.50
+        if b.border then b.border:SetColorTexture(br, bgCol, bb, 0.85) end
         if not GameTooltip or not b.zoneData then return end
         GameTooltip:SetOwner(b, "ANCHOR_BOTTOMRIGHT", 0, -4)
         local z = b.zoneData
         local playerLvl = (UnitLevel and UnitLevel("player")) or 1
         local hex, diffLabel = WoWEternityAddon:GetZoneLevelColor(z.minLvl, z.maxLvl, playerLvl)
         GameTooltip:AddLine("|cffe6cc80WoW Eternity Addon|r", 1, 1, 1)
-        GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r  |cffe6cc80[Level %d–%d]|r", z.name, z.minLvl, z.maxLvl), 1, 1, 1)
-        GameTooltip:AddLine(string.format("Difficulty: %s%s|r  ·  Your Level: |cffffd100%d|r", hex, diffLabel, playerLvl), 0.9, 0.9, 0.9)
+        GameTooltip:AddLine(string.format("Level Range: %s%d–%d|r  (%s%s|r)", hex, z.minLvl, z.maxLvl, hex, diffLabel), 1, 1, 1)
+        GameTooltip:AddLine(string.format("Your Level: |cffffd100%d|r", playerLvl), 0.9, 0.9, 0.9)
         if z.faction then
             local fHex = (z.faction == "Horde" and "|cffff4444") or (z.faction == "Alliance" and "|cff38bdf8") or "|cffffd100"
             GameTooltip:AddLine(string.format("Territory: %s%s|r", fHex, z.faction), 0.8, 0.8, 0.8)
@@ -5027,7 +5040,10 @@ function WoWEternityAddon:GetOrCreateMapZoneBadge(canvas)
     end)
 
     badge:SetScript("OnLeave", function(b)
-        if b.border then b.border:SetColorTexture(0.90, 0.80, 0.50, 0.35) end
+        local br = b.currentBorderR or 0.90
+        local bgCol = b.currentBorderG or 0.80
+        local bb = b.currentBorderB or 0.50
+        if b.border then b.border:SetColorTexture(br, bgCol, bb, 0.45) end
         if GameTooltip then GameTooltip:Hide() end
     end)
 
@@ -5217,8 +5233,11 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                 badge.title:SetText("WoW Eternity Addon")
                 local hex, diffLabel, r, g, b = self:GetZoneLevelColor(zoneData.minLvl, zoneData.maxLvl, playerLevel)
                 badge.subText:SetText(string.format("%sLevel %d–%d|r  ·  %s%s|r", hex, zoneData.minLvl, zoneData.maxLvl, hex, diffLabel))
+                badge.currentBorderR = r
+                badge.currentBorderG = g
+                badge.currentBorderB = b
                 if badge.border then
-                    badge.border:SetColorTexture(0.90, 0.80, 0.50, 0.35)
+                    badge.border:SetColorTexture(r, g, b, 0.45)
                 end
                 badge:ClearAllPoints()
                 badge:SetPoint("TOPRIGHT", canvas, "TOPRIGHT", -12, -12)
