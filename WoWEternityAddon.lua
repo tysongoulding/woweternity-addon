@@ -4489,6 +4489,110 @@ function WoWEternityAddon:ResetLevelingGuide()
 end
 
 -- ============================================================================
+-- Automated Quest Turn-In & Level Milestone Detection
+-- ============================================================================
+
+function WoWEternityAddon:OnQuestTurnedIn(questId)
+    if not questId or questId <= 0 then return end
+    if WoWEternityAddonDB and WoWEternityAddonDB.autoAdvanceGuide == false then return end
+
+    local faction = self.levelingFaction or "alliance"
+    local guide = (faction == "horde") and self.CADBERRY_HORDE_GUIDE or self.CADBERRY_ALLIANCE_GUIDE
+    if not guide or not guide.steps then return end
+
+    WoWEternityAddonCharDB = WoWEternityAddonCharDB or {}
+    WoWEternityAddonCharDB.cadberryCompleted = WoWEternityAddonCharDB.cadberryCompleted or {}
+
+    local matchedStep = nil
+    for _, step in ipairs(guide.steps) do
+        if not WoWEternityAddonCharDB.cadberryCompleted[step.id] then
+            if step.questieQuestId == questId then
+                matchedStep = step
+                break
+            end
+        end
+    end
+
+    if matchedStep then
+        WoWEternityAddonCharDB.cadberryCompleted[matchedStep.id] = true
+        if PlaySound and SOUNDKIT and SOUNDKIT.UI_QUEST_COMPLETE then
+            pcall(PlaySound, SOUNDKIT.UI_QUEST_COMPLETE)
+        end
+
+        if self.UpdateLevelingTab then self:UpdateLevelingTab() end
+        if self.UpdateWaypointArrow then self:UpdateWaypointArrow() end
+        if self.UpdateWorldMapPins then self:UpdateWorldMapPins() end
+        if self.UpdateTrackerHUD then self:UpdateTrackerHUD() end
+
+        local nextStep = self:GetActiveLevelingStep(faction)
+        if nextStep then
+            self:Print(string.format("|cff00ff00[WoW Eternity Addon]|r Quest completed! Auto-advancing to Step #%d: |cffffd100%s|r", nextStep.stepNumber, nextStep.title))
+        else
+            self:Print("|cff00ff00[WoW Eternity Addon]|r All 1–60 steps completed! Level 60 Milestone Reached!")
+        end
+    end
+end
+
+function WoWEternityAddon:ScanAndSyncCompletedQuests()
+    if WoWEternityAddonDB and WoWEternityAddonDB.autoAdvanceGuide == false then return end
+
+    local faction = self.levelingFaction or "alliance"
+    local guide = (faction == "horde") and self.CADBERRY_HORDE_GUIDE or self.CADBERRY_ALLIANCE_GUIDE
+    if not guide or not guide.steps then return end
+
+    WoWEternityAddonCharDB = WoWEternityAddonCharDB or {}
+    WoWEternityAddonCharDB.cadberryCompleted = WoWEternityAddonCharDB.cadberryCompleted or {}
+
+    local playerLevel = (UnitLevel and UnitLevel("player")) or 1
+    local newlyCompleted = 0
+
+    for _, step in ipairs(guide.steps) do
+        if not WoWEternityAddonCharDB.cadberryCompleted[step.id] then
+            local isDone = false
+            -- 1. Check quest completion via API
+            if step.questieQuestId and step.questieQuestId > 0 then
+                if C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted and C_QuestLog.IsQuestFlaggedCompleted(step.questieQuestId) then
+                    isDone = true
+                elseif _G.IsQuestFlaggedCompleted and _G.IsQuestFlaggedCompleted(step.questieQuestId) then
+                    isDone = true
+                elseif _G.Questie and _G.Questie.db and _G.Questie.db.char and _G.Questie.db.char.complete and _G.Questie.db.char.complete[step.questieQuestId] then
+                    isDone = true
+                end
+            end
+
+            -- 2. Check milestone levels (e.g. "Hit Level 55 Milestone")
+            if not isDone and step.type == "milestone" then
+                local reqLevel = tonumber(step.levelBadge:match("(%d+)"))
+                if reqLevel and playerLevel >= reqLevel then
+                    isDone = true
+                end
+            end
+
+            if isDone then
+                WoWEternityAddonCharDB.cadberryCompleted[step.id] = true
+                newlyCompleted = newlyCompleted + 1
+            end
+        end
+    end
+
+    if newlyCompleted > 0 then
+        if self.UpdateLevelingTab then self:UpdateLevelingTab() end
+        if self.UpdateWaypointArrow then self:UpdateWaypointArrow() end
+        if self.UpdateWorldMapPins then self:UpdateWorldMapPins() end
+        if self.UpdateTrackerHUD then self:UpdateTrackerHUD() end
+    end
+end
+
+function WoWEternityAddon:OnPlayerLevelUp(newLevel)
+    self:ScanAndSyncCompletedQuests()
+    local faction = self.levelingFaction or "alliance"
+    local active = self:GetActiveLevelingStep(faction)
+    if active then
+        self:Print(string.format("|cffe6cc80[WoW Eternity Addon]|r Ding level %d! Current leveling objective: Step #%d (|cffffd100%s|r)", newLevel or 0, active.stepNumber, active.title))
+    end
+end
+
+-- ============================================================================
 -- World Map Pin Overlay
 -- ============================================================================
 
@@ -6602,6 +6706,7 @@ function WoWEternityAddon:OnInitialize()
         y = -220,
         width = 280,
     }
+    if WoWEternityAddonDB.autoAdvanceGuide == nil then WoWEternityAddonDB.autoAdvanceGuide = true end
 
     self:InitAddonComms()
     self:StartProximityScanner()
@@ -6692,6 +6797,9 @@ if eventFrame then
     eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
     eventFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
     eventFrame:RegisterEvent("GET_ITEM_INFO_RECEIVED")
+    eventFrame:RegisterEvent("QUEST_TURNED_IN")
+    eventFrame:RegisterEvent("PLAYER_LEVEL_UP")
+    eventFrame:RegisterEvent("QUEST_LOG_UPDATE")
 
     eventFrame:SetScript("OnEvent", function(self, event, ...)
         if event == "ADDON_LOADED" then
@@ -6714,6 +6822,9 @@ if eventFrame then
             end
             WoWEternityAddon:UpdateCharacterFrameIlvl()
             WoWEternityAddon:HookInspectFrame()
+            if WoWEternityAddon.ScanAndSyncCompletedQuests then
+                WoWEternityAddon:ScanAndSyncCompletedQuests()
+            end
         elseif event == "PLAYER_ENTERING_WORLD" then
             if not WoWEternityAddon.minimapButton and CreateFrame and Minimap then
                 WoWEternityAddon:CreateMinimapButton()
@@ -6725,6 +6836,9 @@ if eventFrame then
             end
             WoWEternityAddon:UpdateCharacterFrameIlvl()
             WoWEternityAddon:HookInspectFrame()
+            if WoWEternityAddon.ScanAndSyncCompletedQuests then
+                WoWEternityAddon:ScanAndSyncCompletedQuests()
+            end
             if C_Timer and C_Timer.After then
                 C_Timer.After(3, function()
                     pcall(function()
@@ -6786,6 +6900,20 @@ if eventFrame then
             WoWEternityAddon:BroadcastMyIlvl()
         elseif event == "PLAYER_EQUIPMENT_CHANGED" then
             WoWEternityAddon:BroadcastMyIlvl()
+        elseif event == "QUEST_TURNED_IN" then
+            local questId, xpReward, moneyReward = ...
+            if WoWEternityAddon.OnQuestTurnedIn then
+                WoWEternityAddon:OnQuestTurnedIn(questId)
+            end
+        elseif event == "PLAYER_LEVEL_UP" then
+            local newLevel = ...
+            if WoWEternityAddon.OnPlayerLevelUp then
+                WoWEternityAddon:OnPlayerLevelUp(newLevel)
+            end
+        elseif event == "QUEST_LOG_UPDATE" then
+            if WoWEternityAddon.ScanAndSyncCompletedQuests then
+                WoWEternityAddon:ScanAndSyncCompletedQuests()
+            end
         end
     end)
 end

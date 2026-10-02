@@ -126,11 +126,11 @@ assert.ok(luaSource.includes('cmd == "resetguide" or cmd == "resetleveling"'), '
 
 // 7. Strict Linear Auto-Tracking Simulation
 const extractSteps = (src, prefix) => {
-    const regex = new RegExp(`id\\s*=\\s*"(${prefix}-\\d+)",\\s*stepNumber\\s*=\\s*(\\d+)[\\s\\S]*?type\\s*=\\s*"([^"]+)"`, 'g');
+    const regex = new RegExp(`id\\s*=\\s*"(${prefix}-\\d+)",\\s*stepNumber\\s*=\\s*(\\d+),\\s*levelBadge\\s*=\\s*"([^"]+)",[\\s\\S]*?type\\s*=\\s*"([^"]+)"`, 'g');
     const steps = [];
     let match;
     while ((match = regex.exec(src)) !== null) {
-        steps.push({ id: match[1], stepNumber: parseInt(match[2], 10), type: match[3] });
+        steps.push({ id: match[1], stepNumber: parseInt(match[2], 10), levelBadge: match[3], type: match[4] });
     }
     return steps;
 };
@@ -226,5 +226,99 @@ assert.ok(luaSource.includes('["ally-5"] = { starter = "Custom Objective", custo
 assert.ok(luaSource.includes('WoWEternityAddonDB.tracker'), 'Must persist tracker state in WoWEternityAddonDB.tracker');
 assert.ok(luaSource.includes('WEA_TrackerActiveCB'), 'Must provide interactive checkbutton on tracker HUD');
 
+// ============================================================================
+// SUITE 8: Automatic Quest Turn-In & Level Milestone Detection
+// ============================================================================
+console.log('--- Suite 8: Automatic Quest Turn-In & Level Milestone Detection ---');
+
+// 1. Static Verification of Event Registrations and Handlers
+assert.ok(luaSource.includes('eventFrame:RegisterEvent("QUEST_TURNED_IN")'), 'Must register QUEST_TURNED_IN event');
+assert.ok(luaSource.includes('eventFrame:RegisterEvent("PLAYER_LEVEL_UP")'), 'Must register PLAYER_LEVEL_UP event');
+assert.ok(luaSource.includes('eventFrame:RegisterEvent("QUEST_LOG_UPDATE")'), 'Must register QUEST_LOG_UPDATE event');
+
+assert.ok(luaSource.includes('function WoWEternityAddon:OnQuestTurnedIn(questId)'), 'Must implement OnQuestTurnedIn');
+assert.ok(luaSource.includes('function WoWEternityAddon:ScanAndSyncCompletedQuests()'), 'Must implement ScanAndSyncCompletedQuests');
+assert.ok(luaSource.includes('function WoWEternityAddon:OnPlayerLevelUp(newLevel)'), 'Must implement OnPlayerLevelUp');
+
+assert.ok(luaSource.includes('WoWEternityAddonDB.autoAdvanceGuide'), 'Must support autoAdvanceGuide setting');
+
+// 2. Behavioral Simulation: Turn-In Detection & Auto-Advance
+const enrichRegex = /\["(ally-\d+)"\]\s*=\s*\{[^}]*?questId\s*=\s*(\d+)/g;
+let eMatch;
+const enrichment = {};
+while ((eMatch = enrichRegex.exec(luaSource)) !== null) {
+    enrichment[eMatch[1]] = parseInt(eMatch[2], 10);
+}
+for (const step of allyStepObjects) {
+    if (enrichment[step.id]) {
+        step.questieQuestId = enrichment[step.id];
+    }
+}
+
+const simulateOnQuestTurnedIn = (steps, completedMap, questId) => {
+    let matchedStep = null;
+    for (const step of steps) {
+        if (!completedMap[step.id] && step.questieQuestId === questId) {
+            matchedStep = step;
+            break;
+        }
+    }
+    if (matchedStep) {
+        completedMap[matchedStep.id] = true;
+        return {
+            completedStep: matchedStep,
+            nextActiveStep: simulateGetActiveStep(steps, completedMap)
+        };
+    }
+    return null;
+};
+
+// Simulate completing ally-7 (Defias Brotherhood, quest 65)
+const simCompleted = {};
+// Initially active step is 1
+assert.strictEqual(simulateGetActiveStep(allyStepObjects, simCompleted).stepNumber, 1);
+
+// Suppose player turns in quest 65
+const result = simulateOnQuestTurnedIn(allyStepObjects, simCompleted, 65);
+assert.ok(result, 'Turning in quest 65 should find matching step');
+assert.strictEqual(result.completedStep.id, 'ally-7', 'Matched step should be ally-7');
+assert.strictEqual(simCompleted['ally-7'], true, 'ally-7 should now be marked completed in char DB');
+
+// Active step remains step 1 because steps 1-6 are still incomplete
+assert.strictEqual(simulateGetActiveStep(allyStepObjects, simCompleted).stepNumber, 1);
+
+// When steps 1-6 are completed, active step should automatically skip 7 and go to 8!
+for (let i = 1; i <= 6; i++) simCompleted[`ally-${i}`] = true;
+assert.strictEqual(simulateGetActiveStep(allyStepObjects, simCompleted).stepNumber, 8, 'Should skip already completed step 7 and point to step 8');
+
+// 3. Simulate milestone level up
+const simulateLevelUpSync = (steps, completedMap, playerLevel) => {
+    let newlyCompleted = 0;
+    for (const step of steps) {
+        if (!completedMap[step.id] && step.type === 'milestone') {
+            const reqMatch = step.levelBadge && step.levelBadge.match(/(\d+)/);
+            if (reqMatch && playerLevel >= parseInt(reqMatch[1], 10)) {
+                completedMap[step.id] = true;
+                newlyCompleted++;
+            }
+        }
+    }
+    return newlyCompleted;
+};
+
+const levelSim = {};
+// ally-38 is milestone level 55 ("Hit Level 55 Milestone"), ally-44 is milestone level 60 ("GRATS ON 60!")
+assert.strictEqual(simulateLevelUpSync(allyStepObjects, levelSim, 54), 0, 'Level 54 should not complete level 55 milestone');
+assert.strictEqual(levelSim['ally-38'], undefined);
+assert.strictEqual(levelSim['ally-44'], undefined);
+
+assert.strictEqual(simulateLevelUpSync(allyStepObjects, levelSim, 55), 1, 'Level 55 should trigger ally-38 milestone completion');
+assert.strictEqual(levelSim['ally-38'], true, 'Step 38 should be completed at level 55');
+assert.strictEqual(levelSim['ally-44'], undefined, 'Step 44 should still be incomplete at level 55');
+
+assert.strictEqual(simulateLevelUpSync(allyStepObjects, levelSim, 60), 1, 'Level 60 should trigger ally-44 milestone completion');
+assert.strictEqual(levelSim['ally-44'], true, 'Step 44 should be completed at level 60');
+
 console.log('[PASS] Addon simulation & static analysis passed 100%.');
+
 
