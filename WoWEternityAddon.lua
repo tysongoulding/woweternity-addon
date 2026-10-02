@@ -4746,7 +4746,8 @@ function WoWEternityAddon:UpdateWorldMapPins()
     local guide = (faction == "horde") and self.CADBERRY_HORDE_GUIDE or self.CADBERRY_ALLIANCE_GUIDE
     if not guide or not guide.steps then return end
 
-    local canvas = (WorldMapFrame.ScrollContainer and WorldMapFrame.ScrollContainer.Child)
+    local canvas = (WorldMapFrame.GetCanvas and WorldMapFrame:GetCanvas())
+        or (WorldMapFrame.ScrollContainer and WorldMapFrame.ScrollContainer.Child)
         or WorldMapButton
         or WorldMapFrame
 
@@ -4835,48 +4836,48 @@ end
 
 local ZONE_LEVEL_RANGES = {
     -- Kalimdor (18 zones)
-    { name = "Teldrassil", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.28, y = 0.10, uiMapID = 1438, faction = "Alliance" },
-    { name = "Darkshore", continent = "kalimdor", minLvl = 10, maxLvl = 20, x = 0.38, y = 0.22, uiMapID = 1439, faction = "Alliance" },
-    { name = "Moonglade", continent = "kalimdor", minLvl = 1, maxLvl = 60, x = 0.54, y = 0.20, uiMapID = 1450, faction = "Neutral" },
-    { name = "Winterspring", continent = "kalimdor", minLvl = 55, maxLvl = 60, x = 0.56, y = 0.29, uiMapID = 1452, faction = "Contested" },
-    { name = "Felwood", continent = "kalimdor", minLvl = 48, maxLvl = 55, x = 0.44, y = 0.31, uiMapID = 1448, faction = "Contested" },
-    { name = "Ashenvale", continent = "kalimdor", minLvl = 18, maxLvl = 30, x = 0.42, y = 0.39, uiMapID = 1440, faction = "Contested", dungeons = { "Blackfathom Deeps (24–32)" } },
-    { name = "Azshara", continent = "kalimdor", minLvl = 45, maxLvl = 55, x = 0.58, y = 0.38, uiMapID = 1447, faction = "Contested" },
-    { name = "Durotar", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.54, y = 0.50, uiMapID = 1411, faction = "Horde", dungeons = { "Ragefire Chasm (13–18)" } },
-    { name = "The Barrens", continent = "kalimdor", minLvl = 10, maxLvl = 30, x = 0.44, y = 0.53, uiMapID = 1413, faction = "Horde", dungeons = { "Wailing Caverns (17–24)", "Razorfen Kraul (29–38)", "Razorfen Downs (37–46)" } },
-    { name = "Mulgore", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.37, y = 0.57, uiMapID = 1412, faction = "Horde" },
-    { name = "Stonetalon Mountains", continent = "kalimdor", minLvl = 15, maxLvl = 25, x = 0.35, y = 0.45, uiMapID = 1442, faction = "Contested" },
-    { name = "Desolace", continent = "kalimdor", minLvl = 30, maxLvl = 40, x = 0.30, y = 0.58, uiMapID = 1443, faction = "Contested", dungeons = { "Maraudon (46–55)" } },
-    { name = "Dustwallow Marsh", continent = "kalimdor", minLvl = 35, maxLvl = 45, x = 0.54, y = 0.65, uiMapID = 1445, faction = "Contested", dungeons = { "Onyxia's Lair (60+)" } },
-    { name = "Thousand Needles", continent = "kalimdor", minLvl = 25, maxLvl = 35, x = 0.46, y = 0.69, uiMapID = 1441, faction = "Contested" },
-    { name = "Feralas", continent = "kalimdor", minLvl = 40, maxLvl = 50, x = 0.33, y = 0.70, uiMapID = 1444, faction = "Contested", dungeons = { "Dire Maul (55–60)" } },
-    { name = "Tanaris", continent = "kalimdor", minLvl = 40, maxLvl = 50, x = 0.51, y = 0.81, uiMapID = 1446, faction = "Contested", dungeons = { "Zul'Farrak (44–54)" } },
-    { name = "Un'Goro Crater", continent = "kalimdor", minLvl = 50, maxLvl = 55, x = 0.43, y = 0.80, uiMapID = 1449, faction = "Contested" },
-    { name = "Silithus", continent = "kalimdor", minLvl = 55, maxLvl = 60, x = 0.32, y = 0.81, uiMapID = 1451, faction = "Contested", dungeons = { "Temple of Ahn'Qiraj (60+)", "Ruins of Ahn'Qiraj (60+)" } },
+    { name = "Teldrassil", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.40, y = 0.10, uiMapID = 1438, faction = "Alliance" },
+    { name = "Darkshore", continent = "kalimdor", minLvl = 10, maxLvl = 20, x = 0.48, y = 0.24, uiMapID = 1439, faction = "Alliance" },
+    { name = "Moonglade", continent = "kalimdor", minLvl = 1, maxLvl = 60, x = 0.57, y = 0.19, uiMapID = 1450, faction = "Neutral" },
+    { name = "Winterspring", continent = "kalimdor", minLvl = 55, maxLvl = 60, x = 0.61, y = 0.28, uiMapID = 1452, faction = "Contested" },
+    { name = "Felwood", continent = "kalimdor", minLvl = 48, maxLvl = 55, x = 0.51, y = 0.33, uiMapID = 1448, faction = "Contested" },
+    { name = "Ashenvale", continent = "kalimdor", minLvl = 18, maxLvl = 30, x = 0.50, y = 0.40, uiMapID = 1440, faction = "Contested", dungeons = { "Blackfathom Deeps (24–32)" } },
+    { name = "Azshara", continent = "kalimdor", minLvl = 45, maxLvl = 55, x = 0.66, y = 0.39, uiMapID = 1447, faction = "Contested" },
+    { name = "Durotar", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.64, y = 0.52, uiMapID = 1411, faction = "Horde", dungeons = { "Ragefire Chasm (13–18)" } },
+    { name = "The Barrens", continent = "kalimdor", minLvl = 10, maxLvl = 30, x = 0.52, y = 0.53, uiMapID = 1413, faction = "Horde", dungeons = { "Wailing Caverns (17–24)", "Razorfen Kraul (29–38)", "Razorfen Downs (37–46)" } },
+    { name = "Mulgore", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.47, y = 0.59, uiMapID = 1412, faction = "Horde" },
+    { name = "Stonetalon Mountains", continent = "kalimdor", minLvl = 15, maxLvl = 25, x = 0.43, y = 0.45, uiMapID = 1442, faction = "Contested" },
+    { name = "Desolace", continent = "kalimdor", minLvl = 30, maxLvl = 40, x = 0.39, y = 0.59, uiMapID = 1443, faction = "Contested", dungeons = { "Maraudon (46–55)" } },
+    { name = "Dustwallow Marsh", continent = "kalimdor", minLvl = 35, maxLvl = 45, x = 0.60, y = 0.66, uiMapID = 1445, faction = "Contested", dungeons = { "Onyxia's Lair (60+)" } },
+    { name = "Thousand Needles", continent = "kalimdor", minLvl = 25, maxLvl = 35, x = 0.54, y = 0.72, uiMapID = 1441, faction = "Contested" },
+    { name = "Feralas", continent = "kalimdor", minLvl = 40, maxLvl = 50, x = 0.42, y = 0.73, uiMapID = 1444, faction = "Contested", dungeons = { "Dire Maul (55–60)" } },
+    { name = "Tanaris", continent = "kalimdor", minLvl = 40, maxLvl = 50, x = 0.59, y = 0.84, uiMapID = 1446, faction = "Contested", dungeons = { "Zul'Farrak (44–54)" } },
+    { name = "Un'Goro Crater", continent = "kalimdor", minLvl = 50, maxLvl = 55, x = 0.51, y = 0.83, uiMapID = 1449, faction = "Contested" },
+    { name = "Silithus", continent = "kalimdor", minLvl = 55, maxLvl = 60, x = 0.41, y = 0.84, uiMapID = 1451, faction = "Contested", dungeons = { "Temple of Ahn'Qiraj (60+)", "Ruins of Ahn'Qiraj (60+)" } },
 
     -- Eastern Kingdoms (22 zones)
-    { name = "Tirisfal Glades", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.40, y = 0.22, uiMapID = 1420, faction = "Horde", dungeons = { "Scarlet Monastery (32–45)" } },
-    { name = "Silverpine Forest", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.37, y = 0.31, uiMapID = 1421, faction = "Horde", dungeons = { "Shadowfang Keep (22–30)" } },
-    { name = "Hillsbrad Foothills", continent = "eastern_kingdoms", minLvl = 20, maxLvl = 30, x = 0.46, y = 0.37, uiMapID = 1424, faction = "Contested" },
-    { name = "Alterac Mountains", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 40, x = 0.45, y = 0.31, uiMapID = 1416, faction = "Contested" },
-    { name = "Western Plaguelands", continent = "eastern_kingdoms", minLvl = 51, maxLvl = 58, x = 0.51, y = 0.27, uiMapID = 1422, faction = "Contested", dungeons = { "Scholomance (58–60)" } },
-    { name = "Eastern Plaguelands", continent = "eastern_kingdoms", minLvl = 53, maxLvl = 60, x = 0.60, y = 0.24, uiMapID = 1423, faction = "Contested", dungeons = { "Stratholme (58–60)" } },
-    { name = "The Hinterlands", continent = "eastern_kingdoms", minLvl = 40, maxLvl = 50, x = 0.58, y = 0.36, uiMapID = 1425, faction = "Contested" },
-    { name = "Arathi Highlands", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 40, x = 0.55, y = 0.43, uiMapID = 1417, faction = "Contested" },
-    { name = "Wetlands", continent = "eastern_kingdoms", minLvl = 20, maxLvl = 30, x = 0.50, y = 0.51, uiMapID = 1437, faction = "Contested" },
-    { name = "Dun Morogh", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.44, y = 0.57, uiMapID = 1426, faction = "Alliance", dungeons = { "Gnomeregan (29–38)" } },
-    { name = "Loch Modan", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.54, y = 0.58, uiMapID = 1432, faction = "Alliance" },
-    { name = "Badlands", continent = "eastern_kingdoms", minLvl = 35, maxLvl = 45, x = 0.55, y = 0.64, uiMapID = 1418, faction = "Contested", dungeons = { "Uldaman (41–51)" } },
-    { name = "Searing Gorge", continent = "eastern_kingdoms", minLvl = 43, maxLvl = 50, x = 0.47, y = 0.64, uiMapID = 1427, faction = "Contested", dungeons = { "Blackrock Depths (52–60)", "Molten Core (60+)" } },
-    { name = "Burning Steppes", continent = "eastern_kingdoms", minLvl = 50, maxLvl = 58, x = 0.50, y = 0.69, uiMapID = 1428, faction = "Contested", dungeons = { "Lower Blackrock Spire (55–60)", "Blackwing Lair (60+)" } },
-    { name = "Redridge Mountains", continent = "eastern_kingdoms", minLvl = 15, maxLvl = 25, x = 0.55, y = 0.72, uiMapID = 1433, faction = "Contested" },
-    { name = "Elwynn Forest", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.42, y = 0.68, uiMapID = 1429, faction = "Alliance", dungeons = { "Stockade (24–32)" } },
-    { name = "Westfall", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.37, y = 0.74, uiMapID = 1436, faction = "Alliance", dungeons = { "The Deadmines (17–26)" } },
-    { name = "Duskwood", continent = "eastern_kingdoms", minLvl = 18, maxLvl = 30, x = 0.46, y = 0.75, uiMapID = 1431, faction = "Contested" },
-    { name = "Swamp of Sorrows", continent = "eastern_kingdoms", minLvl = 35, maxLvl = 45, x = 0.55, y = 0.78, uiMapID = 1435, faction = "Contested", dungeons = { "Sunken Temple (50–60)" } },
-    { name = "Deadwind Pass", continent = "eastern_kingdoms", minLvl = 55, maxLvl = 60, x = 0.50, y = 0.76, uiMapID = 1430, faction = "Contested", dungeons = { "Karazhan (70+)" } },
-    { name = "Blasted Lands", continent = "eastern_kingdoms", minLvl = 45, maxLvl = 55, x = 0.56, y = 0.85, uiMapID = 1419, faction = "Contested" },
-    { name = "Stranglethorn Vale", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 45, x = 0.44, y = 0.88, uiMapID = 1434, faction = "Contested", dungeons = { "Zul'Gurub (60+)" } },
+    { name = "Tirisfal Glades", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.48, y = 0.23, uiMapID = 1420, faction = "Horde", dungeons = { "Scarlet Monastery (32–45)" } },
+    { name = "Silverpine Forest", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.46, y = 0.33, uiMapID = 1421, faction = "Horde", dungeons = { "Shadowfang Keep (22–30)" } },
+    { name = "Hillsbrad Foothills", continent = "eastern_kingdoms", minLvl = 20, maxLvl = 30, x = 0.54, y = 0.38, uiMapID = 1424, faction = "Contested" },
+    { name = "Alterac Mountains", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 40, x = 0.53, y = 0.33, uiMapID = 1416, faction = "Contested" },
+    { name = "Western Plaguelands", continent = "eastern_kingdoms", minLvl = 51, maxLvl = 58, x = 0.59, y = 0.28, uiMapID = 1422, faction = "Contested", dungeons = { "Scholomance (58–60)" } },
+    { name = "Eastern Plaguelands", continent = "eastern_kingdoms", minLvl = 53, maxLvl = 60, x = 0.67, y = 0.25, uiMapID = 1423, faction = "Contested", dungeons = { "Stratholme (58–60)" } },
+    { name = "The Hinterlands", continent = "eastern_kingdoms", minLvl = 40, maxLvl = 50, x = 0.65, y = 0.37, uiMapID = 1425, faction = "Contested" },
+    { name = "Arathi Highlands", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 40, x = 0.62, y = 0.44, uiMapID = 1417, faction = "Contested" },
+    { name = "Wetlands", continent = "eastern_kingdoms", minLvl = 20, maxLvl = 30, x = 0.57, y = 0.52, uiMapID = 1437, faction = "Contested" },
+    { name = "Dun Morogh", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.53, y = 0.58, uiMapID = 1426, faction = "Alliance", dungeons = { "Gnomeregan (29–38)" } },
+    { name = "Loch Modan", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.62, y = 0.59, uiMapID = 1432, faction = "Alliance" },
+    { name = "Badlands", continent = "eastern_kingdoms", minLvl = 35, maxLvl = 45, x = 0.63, y = 0.65, uiMapID = 1418, faction = "Contested", dungeons = { "Uldaman (41–51)" } },
+    { name = "Searing Gorge", continent = "eastern_kingdoms", minLvl = 43, maxLvl = 50, x = 0.56, y = 0.65, uiMapID = 1427, faction = "Contested", dungeons = { "Blackrock Depths (52–60)", "Molten Core (60+)" } },
+    { name = "Burning Steppes", continent = "eastern_kingdoms", minLvl = 50, maxLvl = 58, x = 0.59, y = 0.70, uiMapID = 1428, faction = "Contested", dungeons = { "Lower Blackrock Spire (55–60)", "Blackwing Lair (60+)" } },
+    { name = "Redridge Mountains", continent = "eastern_kingdoms", minLvl = 15, maxLvl = 25, x = 0.62, y = 0.74, uiMapID = 1433, faction = "Contested" },
+    { name = "Elwynn Forest", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.51, y = 0.70, uiMapID = 1429, faction = "Alliance", dungeons = { "Stockade (24–32)" } },
+    { name = "Westfall", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.46, y = 0.76, uiMapID = 1436, faction = "Alliance", dungeons = { "The Deadmines (17–26)" } },
+    { name = "Duskwood", continent = "eastern_kingdoms", minLvl = 18, maxLvl = 30, x = 0.55, y = 0.77, uiMapID = 1431, faction = "Contested" },
+    { name = "Swamp of Sorrows", continent = "eastern_kingdoms", minLvl = 35, maxLvl = 45, x = 0.63, y = 0.80, uiMapID = 1435, faction = "Contested", dungeons = { "Sunken Temple (50–60)" } },
+    { name = "Deadwind Pass", continent = "eastern_kingdoms", minLvl = 55, maxLvl = 60, x = 0.58, y = 0.78, uiMapID = 1430, faction = "Contested", dungeons = { "Karazhan (70+)" } },
+    { name = "Blasted Lands", continent = "eastern_kingdoms", minLvl = 45, maxLvl = 55, x = 0.63, y = 0.87, uiMapID = 1419, faction = "Contested" },
+    { name = "Stranglethorn Vale", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 45, x = 0.53, y = 0.89, uiMapID = 1434, faction = "Contested", dungeons = { "Zul'Gurub (60+)" } },
 }
 
 WoWEternityAddon.ZONE_LEVEL_RANGES = ZONE_LEVEL_RANGES
@@ -4953,7 +4954,12 @@ function WoWEternityAddon:GetCurrentZoneData(mapID)
 end
 
 function WoWEternityAddon:GetOrCreateMapZoneBadge(canvas)
-    if self.mapZoneBadge then return self.mapZoneBadge end
+    if self.mapZoneBadge then
+        if canvas and self.mapZoneBadge:GetParent() ~= canvas then
+            self.mapZoneBadge:SetParent(canvas)
+        end
+        return self.mapZoneBadge
+    end
     if not CreateFrame then return nil end
 
     local badge = CreateFrame("Button", "WoWEternity_MapZoneBadge", canvas)
@@ -5069,7 +5075,8 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
         return
     end
 
-    local canvas = (WorldMapFrame.ScrollContainer and WorldMapFrame.ScrollContainer.Child)
+    local canvas = (WorldMapFrame.GetCanvas and WorldMapFrame:GetCanvas())
+        or (WorldMapFrame.ScrollContainer and WorldMapFrame.ScrollContainer.Child)
         or WorldMapButton
         or WorldMapFrame
 
@@ -5163,6 +5170,10 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                     end)
 
                     self.continentZonePills[pIndex] = pill
+                end
+
+                if pill:GetParent() ~= canvas then
+                    pill:SetParent(canvas)
                 end
 
                 pill.zoneData = z
