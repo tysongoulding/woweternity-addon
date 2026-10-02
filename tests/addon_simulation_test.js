@@ -446,7 +446,7 @@ assert.ok(luaSource.includes('function WoWEternityAddon:InitMapZoneOverlays'), '
 assert.ok(luaSource.includes('function WoWEternityAddon:UpdateMapZoneOverlays'), 'Must implement UpdateMapZoneOverlays');
 assert.ok(luaSource.includes('function WoWEternityAddon:ToggleMapZoneOverlays'), 'Must implement ToggleMapZoneOverlays');
 assert.ok(luaSource.includes('WoWEternity_MapZoneBadge'), 'Must create WoWEternity_MapZoneBadge frame');
-assert.ok(luaSource.includes('badge.title:SetText("WoW Eternity Addon")'), 'Must display WoW Eternity Addon title on map zone badge');
+assert.ok(luaSource.includes('badge.text:SetText(string.format("%s%d–%d|r"'), 'Must format ##–## level range for zone badges');
 assert.ok(luaSource.includes('GameTooltip:AddLine("|cffe6cc80WoW Eternity Addon|r", 1, 1, 1)'), 'Must include WoW Eternity Addon header in map tooltips');
 assert.ok(luaSource.includes('ZONE_LEVEL_RANGES'), 'Must define ZONE_LEVEL_RANGES database');
 assert.ok(luaSource.includes('WoWEternityAddonDB.showMapOverlays'), 'Must support showMapOverlays setting');
