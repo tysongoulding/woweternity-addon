@@ -370,7 +370,7 @@ const simulateDynamicLevelSync = (steps, completedMap, manuallyUncheckedMap, pla
     let newlyCompleted = 0;
     for (const step of steps) {
         if (!completedMap[step.id]) {
-            if (step.maxLvl < minRelevantLevel && !manuallyUncheckedMap[step.id]) {
+            if (step.maxLvl && playerLevel > step.maxLvl && step.minLvl < minRelevantLevel && !manuallyUncheckedMap[step.id]) {
                 completedMap[step.id] = true;
                 newlyCompleted++;
             }
@@ -380,33 +380,40 @@ const simulateDynamicLevelSync = (steps, completedMap, manuallyUncheckedMap, pla
 };
 
 // Test A: Level 10 toon (min relevant level = 5)
-// Step 1 is 1-12 (max 12 >= 5). Nothing should be skipped!
+// Step 1 is 1-12 (playerLevel 10 <= 12). Nothing should be skipped!
 const charLvl10 = {};
 const uncheckLvl10 = {};
 simulateDynamicLevelSync(allyStepObjects, charLvl10, uncheckLvl10, 10);
 assert.strictEqual(simulateGetActiveStep(allyStepObjects, charLvl10).stepNumber, 1, 'Level 10 should keep step 1 active');
 
 // Test B: Level 20 toon (min relevant level = 15)
-// Steps 1-3 (max 12, 13, 13) are < 15 -> SKIPPED!
-// Step 4 (13-15) max 15 >= 15 -> KEPT!
+// Steps 1-5 have min < 15 and max < 20 -> SKIPPED!
+// Step 6 (15-18) min 15 >= 15 -> KEPT (gap: 5 levels)!
 const charLvl20 = {};
 const uncheckLvl20 = {};
 simulateDynamicLevelSync(allyStepObjects, charLvl20, uncheckLvl20, 20);
 assert.strictEqual(charLvl20['ally-1'], true, 'Step 1 should be skipped at level 20');
 assert.strictEqual(charLvl20['ally-2'], true, 'Step 2 should be skipped at level 20');
 assert.strictEqual(charLvl20['ally-3'], true, 'Step 3 (max 13) should be skipped at level 20');
-assert.strictEqual(charLvl20['ally-4'], undefined, 'Step 4 (max 15) should NOT be skipped at level 20 (within 5 levels)');
-assert.strictEqual(simulateGetActiveStep(allyStepObjects, charLvl20).stepNumber, 4, 'Level 20 should have step 4 active');
+assert.strictEqual(charLvl20['ally-4'], true, 'Step 4 (min 13 < 15) should be skipped at level 20');
+assert.strictEqual(charLvl20['ally-5'], true, 'Step 5 (min 13 < 15) should be skipped at level 20');
+assert.strictEqual(charLvl20['ally-6'], undefined, 'Step 6 (min 15 >= 15) should NOT be skipped at level 20 (within 5 levels)');
+assert.strictEqual(simulateGetActiveStep(allyStepObjects, charLvl20).stepNumber, 6, 'Level 20 should have step 6 active');
 
 // Test C: Level 30 toon (min relevant level = 25)
-// Steps with max < 25 are skipped.
-// Step 9 is 22-25 (max 25 >= 25) -> KEPT!
+// Steps with min < 25 and max < 30 are skipped.
+// Step 10 (24-26) min 24 < 25 -> SKIPPED!
+// Step 11 (24-28) min 24 < 25 -> SKIPPED!
+// Step 12 (26-30) min 26 >= 25 -> KEPT (gap: 4 levels)!
 const charLvl30 = {};
 const uncheckLvl30 = {};
 simulateDynamicLevelSync(allyStepObjects, charLvl30, uncheckLvl30, 30);
-assert.strictEqual(charLvl30['ally-8'], true, 'Step 8 (max 24) should be skipped at level 30');
-assert.strictEqual(charLvl30['ally-9'], undefined, 'Step 9 (max 25) must be preserved within 5 levels');
-assert.strictEqual(simulateGetActiveStep(allyStepObjects, charLvl30).stepNumber, 9, 'Level 30 active step should be step 9');
+assert.strictEqual(charLvl30['ally-8'], true, 'Step 8 (max 22) should be skipped at level 30');
+assert.strictEqual(charLvl30['ally-9'], true, 'Step 9 (min 22 < 25) should be skipped at level 30');
+assert.strictEqual(charLvl30['ally-10'], true, 'Step 10 (min 24 < 25) should be skipped at level 30');
+assert.strictEqual(charLvl30['ally-11'], true, 'Step 11 (min 24 < 25) should be skipped at level 30');
+assert.strictEqual(charLvl30['ally-12'], undefined, 'Step 12 (min 26 >= 25) must be preserved within 5 levels');
+assert.strictEqual(simulateGetActiveStep(allyStepObjects, charLvl30).stepNumber, 12, 'Level 30 active step should be step 12');
 
 // Test D: Manual Uncheck Persistence
 // Suppose the player wants to do Step 1 anyway at level 30
@@ -417,12 +424,13 @@ simulateDynamicLevelSync(allyStepObjects, charLvl30, uncheckLvl30, 30);
 assert.strictEqual(charLvl30['ally-1'], undefined, 'Manually unchecked step must NOT be auto-skipped');
 assert.strictEqual(simulateGetActiveStep(allyStepObjects, charLvl30).stepNumber, 1, 'Active step should now be manually unchecked step 1');
 
-// Test E: Horde Level 30 Sync
+// Test E: Horde Level 30 Sync (min relevant level = 25)
 const hordeCharLvl30 = {};
 const hordeUncheckLvl30 = {};
 simulateDynamicLevelSync(hordeStepObjects, hordeCharLvl30, hordeUncheckLvl30, 30);
-// In Horde guide, Step 10 is [22–26] SFK quests (max 26 >= 25)
-assert.strictEqual(simulateGetActiveStep(hordeStepObjects, hordeCharLvl30).stepNumber, 10, 'Horde Level 30 active step should be step 10');
+// In Horde guide, Step 10 is [22–26] (min 22 < 25) -> SKIPPED.
+// Step 11 is [25–28] Thousand Needles & Stonetalon (min 25 >= 25) -> KEPT (gap: 5 levels)!
+assert.strictEqual(simulateGetActiveStep(hordeStepObjects, hordeCharLvl30).stepNumber, 11, 'Horde Level 30 active step should be step 11');
 
 console.log('[PASS] Addon simulation & static analysis passed 100%.');
 

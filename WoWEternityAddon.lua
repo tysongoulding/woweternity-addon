@@ -4636,8 +4636,8 @@ function WoWEternityAddon:ScanAndSyncCompletedQuests()
 
             -- 3. Dynamic Level Skip (>5 levels below character)
             if not isDone and skipOutleveled then
-                local _, maxLvl = self:GetStepLevelRange(step)
-                if maxLvl and maxLvl < minRelevantLevel and not WoWEternityAddonCharDB.manuallyUnchecked[step.id] then
+                local minLvl, maxLvl = self:GetStepLevelRange(step)
+                if maxLvl and playerLevel > maxLvl and minLvl < minRelevantLevel and not WoWEternityAddonCharDB.manuallyUnchecked[step.id] then
                     isDone = true
                 end
             end
@@ -4665,7 +4665,7 @@ function WoWEternityAddon:SyncWithPlayerLevel(verbose)
     local active = self:GetActiveLevelingStep()
     if verbose then
         if active then
-            self:Print(string.format("|cff00ff00[WoW Eternity Addon]|r Synced with Level %d (%s): kept objectives >= Level %d. Current Active: Step #%d (|cffffd100%s|r)", lvl, (self.levelingFaction or "alliance"):upper(), minKeep, active.stepNumber, active.title))
+            self:Print(string.format("|cff00ff00[WoW Eternity Addon]|r Synced with Level %d (%s): kept objectives within 5-level gap (>= Level %d). Current Active: Step #%d [%s] (|cffffd100%s|r)", lvl, (self.levelingFaction or "alliance"):upper(), minKeep, active.stepNumber, active.levelBadge or "", active.title))
         else
             self:Print(string.format("|cff00ff00[WoW Eternity Addon]|r Synced with Level %d (%s): all steps completed!", lvl, (self.levelingFaction or "alliance"):upper()))
         end
