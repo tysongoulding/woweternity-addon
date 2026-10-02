@@ -1,7 +1,7 @@
 -- ============================================================================
 -- WoW Eternity Addon (WEA) - /wea
--- WoW Eternity Client BiS Tooltip Sync & In-Game Character Exporter
--- Version: 1.1.0 (Interface: 11506)
+-- WoW Eternity Client BiS Tooltip Sync, Cadberry Guide & In-Game Character Exporter
+-- Version: 1.2.0 (Interface: 16001 - Build 1.60.1.70170)
 -- ============================================================================
 
 local ADDON_NAME = "WoW Eternity Addon"
@@ -11,7 +11,9 @@ local SOUND_DEBOUNCE_INTERVAL = 2.0
 -- Root addon namespace
 local WoWEternityAddon = {
     name = "WoW Eternity Addon",
-    version = "1.1.0",
+    version = "1.2.0",
+    build = "1.60.1.70170",
+    interfaceVersion = 16001,
     lastSoundPlayedTime = 0,
     isCorrupted = false,
     debounceInterval = SOUND_DEBOUNCE_INTERVAL,
@@ -26,7 +28,7 @@ local WoWEternityAddon = {
 _G.WoWEternityAddon = WoWEternityAddon
 
 -- ============================================================================
--- Client Compatibility Patch (Classic 1.15.6 / Camelot Beta)
+-- Client Compatibility Patch (WoW Forever Beta 1.60.1.70170 / Camelot Beta)
 -- Fixes Blizzard bug where Blizzard_GroupFinder_VanillaStyle crashes on UI
 -- reload during LFGBrowseFrame OnLoad because LFGParentFrame_SetTab indexes
 -- LFGWhoListFrame before Blizzard_LFGVanilla_WhoList.xml has finished loading.
@@ -1631,11 +1633,1299 @@ function WoWEternityAddon:GetBuildUrl()
         classSlug, raceSlug, cleanSpec, cleanName, talents, cleanProf1, cleanProf2, table.concat(gearParts, ","))
 end
 
+-- ============================================================================
+-- Cadberry Leveling Extravaganza Database (Alliance 44 Steps, Horde 34 Steps)
+-- Source: https://woweternity.com/forever/guides/cadberry-leveling
+-- ============================================================================
+
+local CADBERRY_ALLIANCE_GUIDE = {
+    faction = "alliance",
+    title = "Alliance 1–60 Leveling & Dungeon Path",
+    description = "Complete 1–60 leveling progression for Alliance, covering RestedXP zone routes, Sleeping Bag quest pickup, dungeon prerequisite quest chains, and endgame attunements.",
+    steps = {
+    {
+        id = "ally-1",
+        stepNumber = 1,
+        levelBadge = "1–12",
+        title = "Starter Zone & Loch Modan Leveling",
+        type = "leveling",
+        location = "Dun Morogh / Elwynn / Loch Modan",
+        dungeonName = "",
+        details = { "Follow standard RestedXP leveling route through starting zones all the way through Loch Modan.", "Keep up with class trainers and secondary skill training along the route." },
+        note = "",
+        links = {},
+        mapID = 27,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-2",
+        stepNumber = 2,
+        levelBadge = "~13",
+        title = "Get Hall of Thanes (HoT) Quest from Gol'Bolar Quarry",
+        type = "prep",
+        location = "Gol'Bolar Quarry, Dun Morogh (/way 64.8 58.4)",
+        dungeonName = "",
+        details = { "Pick up quest from Earthseer Farsen at /way 64.8 58.4 in Gol'Bolar Quarry.", "Prerequisite to pick up Underground Map from Dark Iron Map object." },
+        note = "Gotta go kill Captain Beld which is located far southeast of Dun Morogh.",
+        links = {},
+        mapID = 27,
+        x = 0.6480,
+        y = 0.5840,
+    },
+    {
+        id = "ally-3",
+        stepNumber = 3,
+        levelBadge = "~13",
+        title = "Get Cozy Sleeping Bag Starting in Westfall",
+        type = "quest",
+        location = "Westfall (Starting Point)",
+        dungeonName = "",
+        details = { "Critical leveling item: Provides +3% stacking rested XP gain anywhere in the world.", "Starts in Westfall with the quest \"This Must Be the Place\"." },
+        note = "",
+        links = { { text = "Sleeping Bag Quest Chain (Wowhead Guide)", url = "https://www.wowhead.com/forever/quest=79976/this-must-be-the-place" } },
+        mapID = 52,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-4",
+        stepNumber = 4,
+        levelBadge = "13–15",
+        title = "Get Hall of Thanes (HoT) Quests",
+        type = "prep",
+        location = "Old Ironforge",
+        dungeonName = "",
+        details = { "These are all in Old Ironforge: 2 of them located just north of the bank, plus 2 inside the instance." },
+        note = "",
+        links = {},
+        mapID = 87,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-5",
+        stepNumber = 5,
+        levelBadge = "13–16",
+        title = "Do Hall of Thanes (HoT)",
+        type = "dungeon",
+        location = "",
+        dungeonName = "Hall of Thanes",
+        details = {},
+        note = "Turn in quests upon completion. Most turn-ins are located in Ironforge.",
+        links = {},
+        mapID = 27,
+        x = 0.6480,
+        y = 0.5840,
+    },
+    {
+        id = "ally-6",
+        stepNumber = 6,
+        levelBadge = "15–18",
+        title = "Go Do Ruins of Lordaeron (RoL)",
+        type = "dungeon",
+        location = "",
+        dungeonName = "Ruins of Lordaeron",
+        details = {},
+        note = "All dungeon quests are picked up directly inside the instance for Alliance.",
+        links = {},
+        mapID = 18,
+        x = 0.6120,
+        y = 0.6720,
+    },
+    {
+        id = "ally-7",
+        stepNumber = 7,
+        levelBadge = "17–20",
+        title = "Prepare for Deadmines",
+        type = "prep",
+        location = "Westfall / Lakeshire / Stormwind",
+        dungeonName = "",
+        details = { "Start Defias Brotherhood chain in Westfall that sends you to Lakeshire. Fly back and forth and eventually kill the Defias Messenger.", "Pick up 3 other quests in the Dwarven District of Stormwind while traveling for the Messenger quest.", "Last quest is on top of the tower in Sentinel Hill, Westfall." },
+        note = "",
+        links = {},
+        mapID = 52,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-8",
+        stepNumber = 8,
+        levelBadge = "~22",
+        title = "Do The Deadmines",
+        type = "dungeon",
+        location = "Moonbrook, Westfall",
+        dungeonName = "The Deadmines",
+        details = {},
+        note = "Finish all Defias Brotherhood turn-ins. Expect to be level 22 or so upon completion.",
+        links = {},
+        mapID = 52,
+        x = 0.4260,
+        y = 0.7220,
+    },
+    {
+        id = "ally-9",
+        stepNumber = 9,
+        levelBadge = "22–25",
+        title = "Quest Until Level 24–25 (Duskwood & Redridge)",
+        type = "leveling",
+        location = "Redridge Mountains & Duskwood",
+        dungeonName = "",
+        details = {},
+        note = "Follow the RestedXP guide through Redridge and Duskwood until it routes you into Stormwind Stockades.",
+        links = {},
+        mapID = 49,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-10",
+        stepNumber = 10,
+        levelBadge = "24–26",
+        title = "Skip Shadowfang Keep (SFK)",
+        type = "info",
+        location = "Silverpine Forest",
+        dungeonName = "",
+        details = {},
+        note = "SFK quests do NOT exist for Alliance. Not worth running for Alliance due to the total lack of quest rewards.",
+        links = {},
+        mapID = 21,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-11",
+        stepNumber = 11,
+        levelBadge = "24–28",
+        title = "Get Stockades Quests & Do The Stockade",
+        type = "dungeon",
+        location = "Stormwind City",
+        dungeonName = "The Stockade",
+        details = { "Pick up quests across Stormwind, Redridge, and Duskwood.", "Quick instance run inside Stormwind City." },
+        note = "Expect to be around level 28 upon completion.",
+        links = {},
+        mapID = 84,
+        x = 0.5050,
+        y = 0.6650,
+    },
+    {
+        id = "ally-12",
+        stepNumber = 12,
+        levelBadge = "26–30",
+        title = "Get Wetlands Excavation Site Quests & Do ESW",
+        type = "dungeon",
+        location = "Wetlands",
+        dungeonName = "Wetlands Excavation Site",
+        details = {},
+        note = "",
+        links = {},
+        mapID = 56,
+        x = 0.3540,
+        y = 0.4760,
+    },
+    {
+        id = "ally-13",
+        stepNumber = 13,
+        levelBadge = "24–30",
+        title = "Get Blackfathom Deeps (BFD) Quests",
+        type = "prep",
+        location = "Ironforge / Darnassus",
+        dungeonName = "",
+        details = { "One quest in Ironforge: Forlorn Caverns from Gerrig Bonegrip.", "One in Darnassus: Craftsman's Terrace from Dawnwatcher Shaedlass.", "Another in Darnassus: same area from Argent Guard Manados.", "Last is from The Park in Darnassus, which routes to Auberdine before heading into BFD." },
+        note = "",
+        links = {},
+        mapID = 87,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-14",
+        stepNumber = 14,
+        levelBadge = "24–32",
+        title = "Do Blackfathom Deeps (BFD)",
+        type = "dungeon",
+        location = "Ashenvale",
+        dungeonName = "Blackfathom Deeps",
+        details = {},
+        note = "",
+        links = {},
+        mapID = 63,
+        x = 0.1420,
+        y = 0.1440,
+    },
+    {
+        id = "ally-15",
+        stepNumber = 15,
+        levelBadge = "~30",
+        title = "Get City of Dalaran Quests & Do Dalaran",
+        type = "dungeon",
+        location = "Alterac Mountains / Dalaran",
+        dungeonName = "City of Dalaran",
+        details = {},
+        note = "Expect to be around level 30.",
+        links = {},
+        mapID = 94,
+        x = 0.2010,
+        y = 0.7320,
+    },
+    {
+        id = "ally-16",
+        stepNumber = 16,
+        levelBadge = "29–33",
+        title = "Gnomeregan Prerequisite Quests",
+        type = "prep",
+        location = "Stormwind / Darnassus / Stonetalon / Kharanos",
+        dungeonName = "",
+        details = { "Stormwind Cathedral: Brother Sarno (sends you to Ironforge).", "Darnassus Warrior's Terrace: Mathiel.", "Stonetalon Mountains South: Gaxim Rustfizzle.", "Gnogaine quest: Kharanos, Ozzie Togglevolt. Unlocks \"The Only Cure is More Green Glow\" (complete outside Gnomer and turn in)." },
+        note = "",
+        links = {},
+        mapID = 84,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-17",
+        stepNumber = 17,
+        levelBadge = "29–34",
+        title = "Get Gnomeregan Quests",
+        type = "quest",
+        location = "Ironforge & Stormwind",
+        dungeonName = "",
+        details = { "Stormwind Dwarven District: Shoni the Shilent.", "Techbot's CPU: Ironforge Tinker Town, Tinkmaster Overspark.", "Essential Artificials: Ironforge Tinker Town, Klockmort Spannerspan.", "Data Rescue: Ironforge Tinker Town, Master Mechanic Castpipe.", "The Grand Betrayal: Ironforge Tinker Town, High Tinker Mekkatorque." },
+        note = "",
+        links = {},
+        mapID = 87,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-18",
+        stepNumber = 18,
+        levelBadge = "29–34",
+        title = "Do Gnomeregan",
+        type = "dungeon",
+        location = "Dun Morogh",
+        dungeonName = "Gnomeregan",
+        details = { "Inside dungeon quest right after the Clean Room: Kernobee (escort quest).", "Cleanse Grime-Encrusted Object in dungeon Sparklematic 5200.", "Pick up and cleanse Grime-Encrusted Ring." },
+        note = "",
+        links = {},
+        mapID = 27,
+        x = 0.2450,
+        y = 0.3950,
+    },
+    {
+        id = "ally-19",
+        stepNumber = 19,
+        levelBadge = "33–35",
+        title = "Get Scarlet Monastery Library Quests",
+        type = "prep",
+        location = "Hillsbrad & Ironforge",
+        dungeonName = "",
+        details = { "Hillsbrad: Raleigh the Devout (requires level 34).", "Ironforge Hall of Explorers: Librarian Mae Paledust." },
+        note = "",
+        links = {},
+        mapID = 87,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-20",
+        stepNumber = 20,
+        levelBadge = "33–36",
+        title = "Do Scarlet Monastery: Library",
+        type = "dungeon",
+        location = "Tirisfal Glades",
+        dungeonName = "Scarlet Monastery (Library)",
+        details = {},
+        note = "",
+        links = {},
+        mapID = 18,
+        x = 0.8520,
+        y = 0.3160,
+    },
+    {
+        id = "ally-21",
+        stepNumber = 21,
+        levelBadge = "30–35",
+        title = "Razorfen Kraul (RFK) Prerequisites & Quests",
+        type = "prep",
+        location = "Thousand Needles & Ratchet",
+        dungeonName = "",
+        details = { "Prereq starts at the elevator in Thousand Needles in a bag next to a body, routes to easternmost spot of Feralas from Falfindel Waywarder.", "Blueleaf Tubers: Ratchet, Mebok Mizzyrix." },
+        note = "",
+        links = {},
+        mapID = 64,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-22",
+        stepNumber = 22,
+        levelBadge = "~36",
+        title = "Do Razorfen Kraul (RFK)",
+        type = "dungeon",
+        location = "Southern Barrens",
+        dungeonName = "Razorfen Kraul",
+        details = {},
+        note = "Expect to be around level 36 upon completion.",
+        links = {},
+        mapID = 10,
+        x = 0.4080,
+        y = 0.8980,
+    },
+    {
+        id = "ally-23",
+        stepNumber = 23,
+        levelBadge = "36–39",
+        title = "Get SM Armory & Cathedral Quests & Run Both Wings",
+        type = "dungeon",
+        location = "Tirisfal Glades",
+        dungeonName = "Scarlet Monastery (Armory & Cathedral)",
+        details = { "No additional quests required — just the follow-up obtained from Library at level 34." },
+        note = "",
+        links = {},
+        mapID = 18,
+        x = 0.8540,
+        y = 0.3160,
+    },
+    {
+        id = "ally-24",
+        stepNumber = 24,
+        levelBadge = "~39",
+        title = "Get Drowned City Quests & Do Drowned City",
+        type = "dungeon",
+        location = "",
+        dungeonName = "Drowned City",
+        details = {},
+        note = "Expect to be around level 39.",
+        links = {},
+        mapID = 51,
+        x = 0.6500,
+        y = 0.3500,
+    },
+    {
+        id = "ally-25",
+        stepNumber = 25,
+        levelBadge = "39–41",
+        title = "Quest Until Level 41",
+        type = "leveling",
+        location = "Badlands / Stranglethorn Vale / Arathi Highlands",
+        dungeonName = "",
+        details = {},
+        note = "Follow RestedXP guide until level 41 before zoning into Krol'dok.",
+        links = {},
+        mapID = 14,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-26",
+        stepNumber = 26,
+        levelBadge = "41–43",
+        title = "Get Krol'dok Quests & Do Krol'Dok",
+        type = "dungeon",
+        location = "",
+        dungeonName = "Krol'dok",
+        details = {},
+        note = "",
+        links = {},
+        mapID = 66,
+        x = 0.5500,
+        y = 0.5500,
+    },
+    {
+        id = "ally-27",
+        stepNumber = 27,
+        levelBadge = "39–43",
+        title = "Get Razorfen Downs (RFD) Quests",
+        type = "quest",
+        location = "Stormwind & Southern Barrens",
+        dungeonName = "",
+        details = { "Stormwind Cathedral Square: Archbishop Benedictus (level 39).", "Outside RFD: Mariam Moonsinger (south near Thousand Needles border)." },
+        note = "",
+        links = {},
+        mapID = 84,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-28",
+        stepNumber = 28,
+        levelBadge = "40–44",
+        title = "Do Razorfen Downs (RFD)",
+        type = "dungeon",
+        location = "Southern Barrens",
+        dungeonName = "Razorfen Downs",
+        details = {},
+        note = "",
+        links = {},
+        mapID = 10,
+        x = 0.4720,
+        y = 0.9250,
+    },
+    {
+        id = "ally-29",
+        stepNumber = 29,
+        levelBadge = "40–45",
+        title = "Uldaman Prerequisites",
+        type = "prep",
+        location = "Ironforge / Loch Modan / Badlands",
+        dungeonName = "",
+        details = { "Ironband Wants You!: Ironforge Hall of Explorers, Prospector Stormpike -> SE Loch Modan -> Badlands.", "The Lost Dwarves: Ironforge Hall of Explorers, Prospector Stormpike (level 35).", "Badlands Reagent Run: Ghak Healtouch in Thelsamar (Loch Modan) -> Badlands Reagent Run 2.", "Pick up the hidden map in Badlands at coordinates /way 53 33." },
+        note = "",
+        links = {},
+        mapID = 48,
+        x = 0.5300,
+        y = 0.3300,
+    },
+    {
+        id = "ally-30",
+        stepNumber = 30,
+        levelBadge = "40–46",
+        title = "Get Uldaman Quests",
+        type = "quest",
+        location = "Badlands & Ironforge",
+        dungeonName = "",
+        details = { "Solution to Doom: Theldurin the Lost (middle south Badlands, outside instance).", "Turn in Sign of Hope right outside instance portal.", "Power Stones (30): Rigglefuzz (middle of Badlands).", "Reclaimed Treasures: Ironforge Hall of Explorers, Krom Stoutarm (outside instance).", "Agmond's Fate: Battered Dwarven Skeleton / Urns (outside instance)." },
+        note = "",
+        links = {},
+        mapID = 87,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-31",
+        stepNumber = 31,
+        levelBadge = "40–47",
+        title = "Do Uldaman",
+        type = "dungeon",
+        location = "Badlands",
+        dungeonName = "Uldaman",
+        details = {},
+        note = "",
+        links = {},
+        mapID = 15,
+        x = 0.4400,
+        y = 0.1250,
+    },
+    {
+        id = "ally-32",
+        stepNumber = 32,
+        levelBadge = "44–47",
+        title = "Zul'Farrak (ZF) Prerequisites & Mallet Quest Chain",
+        type = "prep",
+        location = "Booty Bay / Stormwind / Tanaris / Hinterlands",
+        dungeonName = "",
+        details = { "Tran'rek: Booty Bay, Krazek.", "Tabetha's Task: Stormwind Mage Quarter, Bink or Jennea Cannon.", "Screecher Spirits: Steamwheedle Port, Yeh'kinya.", "The Brassbolts Brothers: Ironforge Tinker Town, Klockmort.", "Mallet of Zul'Farrak: Hinterlands Jintha'Alor elite area, kill Qiaga the Keeper for Sacred Mallet, take to top of pyramid altar to forge the Mallet.", "Witherbark Cages chain: Aerie Peak -> Altar of Zul -> Thadias Grimshade (Nethergarde Keep) -> ZF." },
+        note = "",
+        links = {},
+        mapID = 84,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-33",
+        stepNumber = 33,
+        levelBadge = "44–48",
+        title = "Get Zul'Farrak (ZF) Quests",
+        type = "quest",
+        location = "Gadgetzan / Steamwheedle Port / Shimmering Flats",
+        dungeonName = "",
+        details = { "Troll Temper: Gadgetzan, Trenton Lighthammer.", "Scarab Shells: Gadgetzan, Tran'rek.", "Prophecy of Mosh'aru: Steamwheedle Port, Yeh'kinya.", "Divino-matic Rod: Gadgetzan, Chief Engineer Bilgewhizzle.", "Gahz'rilla: Shimmering Flats, Wizzle Brassbolts." },
+        note = "",
+        links = {},
+        mapID = 0,
+        x = 0.0000,
+        y = 0.0000,
+    },
+    {
+        id = "ally-34",
+        stepNumber = 34,
+        levelBadge = "~47",
+        title = "Do Zul'Farrak (ZF)",
+        type = "dungeon",
+        location = "Tanaris",
+        dungeonName = "Zul'Farrak",
+        details = {},
+        note = "Expect to be around level 47.",
+        links = {},
+        mapID = 71,
+        x = 0.3920,
+        y = 0.2130,
+    },
+    {
+        id = "ally-35",
+        stepNumber = 35,
+        levelBadge = "46–50",
+        title = "Get Maraudon Quests & Do All 3 Wings",
+        type = "dungeon",
+        location = "Desolace",
+        dungeonName = "Maraudon",
+        details = { "Twisted Evils: Desolace middle cliffs, Willow.", "The Pariah's Instructions: South Desolace, Centaur Pariah (half outside, half inside).", "Legends of Maraudon (Scepter): Orange side Maraudon, Cavindra.", "Shadowshard Fragments: Theramore, Archmage Tervosh.", "Vyletongue Corruption: Nijel's Point, Talendria.", "Corruption of Earth and Seed: Nijel's Point, Keeper Marandis." },
+        note = "",
+        links = {},
+        mapID = 66,
+        x = 0.2920,
+        y = 0.6250,
+    },
+    {
+        id = "ally-36",
+        stepNumber = 36,
+        levelBadge = "~52",
+        title = "Get Alcaz Prison Quests & Do Alcaz Prison",
+        type = "dungeon",
+        location = "Dustwallow Marsh (Alcaz Island)",
+        dungeonName = "Alcaz Prison",
+        details = {},
+        note = "Expect to be around level 52.",
+        links = {},
+        mapID = 70,
+        x = 0.7750,
+        y = 0.1780,
+    },
+    {
+        id = "ally-37",
+        stepNumber = 37,
+        levelBadge = "47–55",
+        title = "BRD & Sunken Temple Prerequisite Chains",
+        type = "prep",
+        location = "Searing Gorge / Burning Steppes / Feralas / Tanaris / Stormwind",
+        dungeonName = "",
+        details = { "BRD Taste of Flame: Searing Gorge, Cyrus Therepentous (long chain, start at level 47).", "BRD Incendius!: Burning Steppes SE, Jalinda Sprig.", "BRD Kharan Mighthammer: Ironforge, King Magni Bronzebeard.", "ST The Sunken Temple: Feathermoon Stronghold, Angelas Moonbreeze -> Stone Circle.", "ST The Ancient Eggs: Tanaris, Yeh'kinya -> top of Jintha'Alor -> The God Hakkar.", "ST Into the Temple: SW Dwarven District Brohann -> Swamp of Sorrows -> Aerie Peak Gryphon Master Talonaxe -> Rhapsody Shindigger -> Tanaris/Feralas -> SW Dwarven District.", "ST Haze of Evil: Un'Goro Crater, Muigin -> Feralas." },
+        note = "",
+        links = {},
+        mapID = 84,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-38",
+        stepNumber = 38,
+        levelBadge = "55",
+        title = "Hit Level 55 Milestone",
+        type = "milestone",
+        location = "Western Plaguelands / Un'Goro / Silithus",
+        dungeonName = "",
+        details = {},
+        note = "Ensure you are level 55 before proceeding to the endgame dungeon circuit.",
+        links = {},
+        mapID = 22,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "ally-39",
+        stepNumber = 39,
+        levelBadge = "50–55",
+        title = "Get Sunken Temple Quests & Do Sunken Temple",
+        type = "dungeon",
+        location = "Swamp of Sorrows",
+        dungeonName = "Sunken Temple",
+        details = { "Jammal'an the Prophet: Hinterlands southern troll temple.", "Into the Temple of Atal'Hakkar.", "Statue Activation Puzzle Order: South, North, Southwest, Southeast, Northwest, Northeast -> then center large snake statue." },
+        note = "",
+        links = {},
+        mapID = 51,
+        x = 0.6980,
+        y = 0.5360,
+    },
+    {
+        id = "ally-40",
+        stepNumber = 40,
+        levelBadge = "52–56",
+        title = "Get BRD Quests & Run BRD (First Half)",
+        type = "dungeon",
+        location = "Blackrock Mountain",
+        dungeonName = "Blackrock Depths",
+        details = { "Heart of the Mountain: Burning Steppes far north camp, Maxwort Uberglint.", "Dark Iron Legacy (Shadowforge Key): Franclorn Forgewright (ghost at tomb near summoning stone).", "Incendius!: Burning Steppes, Jalinda Sprig.", "The Good Stuff: Burning Steppes, Jalinda Sprig." },
+        note = "Recommended to stop halfway through on first run (Prison, Arena, Shadowforge Key). Save Princess / Emperor for second dedicated run.",
+        links = {},
+        mapID = 32,
+        x = 0.3520,
+        y = 0.8440,
+    },
+    {
+        id = "ally-41",
+        stepNumber = 41,
+        levelBadge = "55–58",
+        title = "Get LBRS Quests & Run Lower Blackrock Spire",
+        type = "dungeon",
+        location = "Blackrock Mountain",
+        dungeonName = "Lower Blackrock Spire",
+        details = { "En-Ay-Es-Tee-Why: Burning Steppes far north camp, Kibler (level 55).", "Kibler's Exotic Pets: Burning Steppes far north camp, Kibler (level 55).", "The Final Tablets of Mosh'aru: Tanaris, Yeh'kinya.", "Put Her Down: Burning Steppes SE, Helendis Riverhorn.", "CRUCIAL: Use the cage item on a Bloodaxe Worg Pup during the Halycon encounter while the pup is still alive!" },
+        note = "",
+        links = {},
+        mapID = 32,
+        x = 0.3550,
+        y = 0.8400,
+    },
+    {
+        id = "ally-42",
+        stepNumber = 42,
+        levelBadge = "56–60",
+        title = "Get Scholomance Quests & Run Scholomance",
+        type = "dungeon",
+        location = "Western Plaguelands (Caer Darrow)",
+        dungeonName = "Scholomance",
+        details = { "Plagued Hatchlings: Light's Hope Chapel, Betina Bigglezink.", "Doctor Theolen Krastinov: Caer Darrow, Eva Sarkhoff.", "Barov Family Fortune: Chillwind Camp, Weldon Barov.", "4 Barov Deed Locations: (1) Large room after bridge next to bookshelf on desk; (2) Desk in right corner before dragon whelps; (3) Ras Frostwhisper room; (4) Alexi Barov room." },
+        note = "",
+        links = {},
+        mapID = 22,
+        x = 0.6920,
+        y = 0.7300,
+    },
+    {
+        id = "ally-43",
+        stepNumber = 43,
+        levelBadge = "58–60",
+        title = "Get Stratholme Quests & Run Living & Undead Wings",
+        type = "dungeon",
+        location = "Eastern Plaguelands",
+        dungeonName = "Stratholme",
+        details = { "Houses of the Holy: Light's Hope Chapel, Leonid Barthalomew.", "The Restless Souls: Light's Hope Chapel, Caretaker Alen.", "The Great Fras Siabi: Light's Hope Chapel, Smokey LaRue.", "The Archivist: Light's Hope Chapel, Duke Nicholas Zverenhoff.", "Strategy: Pick up Medallion of Faith from Aurius at entrance of UD church side. Run living side first, turn in Medallion, then push Undead Baron Rivendare side." },
+        note = "",
+        links = {},
+        mapID = 23,
+        x = 0.2720,
+        y = 0.1160,
+    },
+    {
+        id = "ally-44",
+        stepNumber = 44,
+        levelBadge = "60",
+        title = "GRATS ON 60! Endgame Raids & Pre-BiS Unlocked",
+        type = "milestone",
+        location = "Azeroth",
+        dungeonName = "",
+        details = {},
+        note = "Congratulations on reaching Level 60 in World of Warcraft: Forever! Check out our Molten Core & Onyxia raid guides and Phase 1 BiS lists.",
+        links = {},
+        mapID = 0,
+        x = 0.0000,
+        y = 0.0000,
+    }
+    },
+}
+
+local CADBERRY_HORDE_GUIDE = {
+    faction = "horde",
+    title = "Horde 1–60 Leveling & Dungeon Path",
+    description = "Complete 1–60 leveling progression for Horde, covering RestedXP zone routes, Sleeping Bag quest pickup, dungeon prerequisite quest chains, and endgame attunements.",
+    steps = {
+    {
+        id = "horde-1",
+        stepNumber = 1,
+        levelBadge = "1–12",
+        title = "Starter Zone Leveling All The Way to RFC",
+        type = "leveling",
+        location = "Durotar / Mulgore / Tirisfal Glades",
+        dungeonName = "",
+        details = { "Follow RestedXP leveling guide all the way through starter zones until Ragefire Chasm preparation." },
+        note = "",
+        links = {},
+        mapID = 18,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "horde-2",
+        stepNumber = 2,
+        levelBadge = "12–13",
+        title = "Wailing Caverns & Ratchet Prerequisites",
+        type = "prep",
+        location = "Ratchet & The Crossroads",
+        dungeonName = "",
+        details = { "Raptor Horns in Ratchet from Mebok Mizzyrix.", "5-quest chain starting at The Forgotten Pools, Crossroads (Tonga Runetotem), ending at Leaders of the Fang." },
+        note = "",
+        links = {},
+        mapID = 10,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "horde-3",
+        stepNumber = 3,
+        levelBadge = "~13",
+        title = "Go Get Cozy Sleeping Bag Starting in Westfall",
+        type = "quest",
+        location = "Westfall / Barrens Cross-Faction Run",
+        dungeonName = "",
+        details = { "Must-have leveling tool: +3% stacking rested XP anywhere in the world.", "Guide covers both Horde and Alliance pathing." },
+        note = "",
+        links = { { text = "Sleeping Bag Quest Chain (Wowhead Guide)", url = "https://www.wowhead.com/forever/quest=79976/this-must-be-the-place" } },
+        mapID = 52,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "horde-4",
+        stepNumber = 4,
+        levelBadge = "13–15",
+        title = "Get Ragefire Chasm (RFC) Quests",
+        type = "quest",
+        location = "Orgrimmar / Thunder Bluff / Undercity",
+        dungeonName = "",
+        details = { "Hidden Enemies: Orgrimmar, Thrall (5-part chain).", "Slaying the Beast: Orgrimmar Cleft of Shadow, Neeru Fireblade.", "Searching for the Lost Satchel: Thunder Bluff Elder Rise, Rahaur (must be lvl 13).", "Testing an Enemy's Strength: Thunder Bluff Elder Rise, Rahaur (must be lvl 13).", "The Power to Destroy...: Undercity Royal Quarter, Varimathras." },
+        note = "Character must be level 13 to pick up the Thunder Bluff quests.",
+        links = {},
+        mapID = 85,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "horde-5",
+        stepNumber = 5,
+        levelBadge = "13–16",
+        title = "Do Ragefire Chasm (RFC)",
+        type = "dungeon",
+        location = "Orgrimmar",
+        dungeonName = "Ragefire Chasm",
+        details = {},
+        note = "",
+        links = {},
+        mapID = 85,
+        x = 0.5280,
+        y = 0.4950,
+    },
+    {
+        id = "horde-6",
+        stepNumber = 6,
+        levelBadge = "15–18",
+        title = "Get Ruins of Lordaeron (RoL) Quests & Do RoL",
+        type = "dungeon",
+        location = "Tirisfal Glades / Undercity",
+        dungeonName = "Ruins of Lordaeron",
+        details = { "A Frightened Request: Undercity, Tabitha Heartweaver.", "Wrath of Rath'mael: Brill, Deathguard Kristof.", "New Plague: Undercity, Theodore Griffs.", "Light's Justice: Undercity, Morbin Lightbane." },
+        note = "",
+        links = {},
+        mapID = 18,
+        x = 0.6120,
+        y = 0.6720,
+    },
+    {
+        id = "horde-7",
+        stepNumber = 7,
+        levelBadge = "17–20",
+        title = "Get Wailing Caverns (WC) Quests",
+        type = "quest",
+        location = "Thunder Bluff / Ratchet / WC Entrance",
+        dungeonName = "",
+        details = { "Serpentbloom: Thunder Bluff Pools of Vision, Apothecary Zamah.", "Smart Drinks: Ratchet, Mebok Mizzyrix.", "Trouble at the Docks: Ratchet, Crane Operator Bigglefuzz.", "Deviate Hides: Outside WC instance entrance, Nalpak.", "Deviate Eradication: Outside WC instance entrance, Ebru.", "Leaders of the Fang: Thunder Bluff Elder Rise, Nara Wildmane." },
+        note = "",
+        links = {},
+        mapID = 88,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "horde-8",
+        stepNumber = 8,
+        levelBadge = "18–22",
+        title = "Do Wailing Caverns (WC)",
+        type = "dungeon",
+        location = "The Barrens",
+        dungeonName = "Wailing Caverns",
+        details = {},
+        note = "",
+        links = {},
+        mapID = 10,
+        x = 0.4220,
+        y = 0.6660,
+    },
+    {
+        id = "horde-9",
+        stepNumber = 9,
+        levelBadge = "22–23",
+        title = "Quest Until Level 23",
+        type = "leveling",
+        location = "The Barrens & Stonetalon Mountains",
+        dungeonName = "",
+        details = {},
+        note = "",
+        links = {},
+        mapID = 10,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "horde-10",
+        stepNumber = 10,
+        levelBadge = "22–26",
+        title = "Get Shadowfang Keep (SFK) Quests & Do SFK",
+        type = "dungeon",
+        location = "Silverpine Forest",
+        dungeonName = "Shadowfang Keep",
+        details = { "The Book of Ur: Undercity Apothecarium, Keeper Bel'dugur.", "Deathstalkers in Shadowfang: The Sepulcher, High Executor Hadrec.", "Arugal Must Die: The Sepulcher, Dalar Dawnweaver." },
+        note = "",
+        links = {},
+        mapID = 21,
+        x = 0.4480,
+        y = 0.6780,
+    },
+    {
+        id = "horde-11",
+        stepNumber = 11,
+        levelBadge = "25–28",
+        title = "Questing Transition (Levels 25–28)",
+        type = "leveling",
+        location = "Ashenvale, Hillsbrad Foothills, Thousand Needles",
+        dungeonName = "",
+        details = {},
+        note = "Bridge XP gap with RestedXP quest lines across Ashenvale and Hillsbrad Foothills.",
+        links = {},
+        mapID = 63,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "horde-12",
+        stepNumber = 12,
+        levelBadge = "~28",
+        title = "Get Blackfathom Deeps (BFD) Quests & Do BFD",
+        type = "dungeon",
+        location = "Ashenvale",
+        dungeonName = "Blackfathom Deeps",
+        details = { "Essence of Aku'Mai: Ashenvale Zoram'gar Outpost, Je'neu Sancrea.", "Amongst the Ruins: Ashenvale Zoram'gar Outpost, Je'neu Sancrea.", "Crucial Tip: Make sure to turn right after the Gelihast turtle boss to pick up the campfire quest.", "Summon and defeat Baron Aquanis for the water globe quest item." },
+        note = "",
+        links = {},
+        mapID = 63,
+        x = 0.1420,
+        y = 0.1440,
+    },
+    {
+        id = "horde-13",
+        stepNumber = 13,
+        levelBadge = "28–30",
+        title = "Get Wetlands Excavation Site Quests & Do ESW",
+        type = "dungeon",
+        location = "Wetlands",
+        dungeonName = "Wetlands Excavation Site",
+        details = {},
+        note = "",
+        links = {},
+        mapID = 56,
+        x = 0.3540,
+        y = 0.4760,
+    },
+    {
+        id = "horde-14",
+        stepNumber = 14,
+        levelBadge = "~30",
+        title = "Get City of Dalaran Quests & Do Dalaran",
+        type = "dungeon",
+        location = "Alterac Mountains / Dalaran",
+        dungeonName = "City of Dalaran",
+        details = { "The Grave Knight: Melisara in Tarren Mill, Hillsbrad Foothills (level 24)." },
+        note = "",
+        links = {},
+        mapID = 94,
+        x = 0.2010,
+        y = 0.7320,
+    },
+    {
+        id = "horde-15",
+        stepNumber = 15,
+        levelBadge = "29–34",
+        title = "Gnomeregan Prerequisites & Run",
+        type = "dungeon",
+        location = "Dun Morogh (Via Booty Bay Teleporter)",
+        dungeonName = "Gnomeregan",
+        details = { "Prereq Rig Wars: Orgrimmar Valley of Honor, Nogg.", "Use the Goblin Transporter in Booty Bay to teleport straight into Gnomeregan.", "Inside instance escort quest: Kernobee after the Clean Room.", "Cleanse Grime-Encrusted Object at the Sparklematic 5200.", "Grime-Encrusted Ring." },
+        note = "",
+        links = {},
+        mapID = 27,
+        x = 0.2450,
+        y = 0.3950,
+    },
+    {
+        id = "horde-16",
+        stepNumber = 16,
+        levelBadge = "30–35",
+        title = "Razorfen Kraul (RFK) Quests & Run",
+        type = "dungeon",
+        location = "Southern Barrens",
+        dungeonName = "Razorfen Kraul",
+        details = { "A Vengeful Fate: Thunder Bluff near Main Lift, Auld Stonespire.", "Going, Going, Guano: Undercity Apothecarium, Master Apothecary Faranell.", "Blueleaf Tubers: Ratchet, Mebok Mizzyrix.", "Don't forget the Willix the Importer escort quest under the final boss platform." },
+        note = "",
+        links = {},
+        mapID = 10,
+        x = 0.4080,
+        y = 0.8980,
+    },
+    {
+        id = "horde-17",
+        stepNumber = 17,
+        levelBadge = "32–36",
+        title = "Scarlet Monastery: Graveyard & Library",
+        type = "dungeon",
+        location = "Tirisfal Glades",
+        dungeonName = "Scarlet Monastery (GY & Library)",
+        details = { "Test of Faith: 6-part chain starting at Thousand Needles northeast cliff jump (unlocks Test of Lore in SM).", "Hearts of Zeal: Undercity Apothecarium.", "Check for Vorrel Sengrim cell in Graveyard after killing Interrogator Vishas.", "Into the Scarlet Monastery: Undercity Royal Quarter, Varimathras (level 33).", "Test of Lore: Undercity Apothecarium, Parqual Fintallas." },
+        note = "Expect to be level ~36 upon finishing Library.",
+        links = {},
+        mapID = 18,
+        x = 0.8520,
+        y = 0.3160,
+    },
+    {
+        id = "horde-18",
+        stepNumber = 18,
+        levelBadge = "36–40",
+        title = "SM Armory & Cathedral",
+        type = "dungeon",
+        location = "Tirisfal Glades",
+        dungeonName = "Scarlet Monastery (Armory & Cathedral)",
+        details = { "No additional quests needed — turn in and continue the chain obtained from Library at level 34." },
+        note = "",
+        links = {},
+        mapID = 18,
+        x = 0.8540,
+        y = 0.3160,
+    },
+    {
+        id = "horde-19",
+        stepNumber = 19,
+        levelBadge = "~39",
+        title = "Get Drowned City Quests & Do Drowned City",
+        type = "dungeon",
+        location = "",
+        dungeonName = "Drowned City",
+        details = {},
+        note = "Expect to be around level 39.",
+        links = {},
+        mapID = 51,
+        x = 0.6500,
+        y = 0.3500,
+    },
+    {
+        id = "horde-20",
+        stepNumber = 20,
+        levelBadge = "39–41",
+        title = "Quest Until Level 41",
+        type = "leveling",
+        location = "Badlands & Stranglethorn Vale",
+        dungeonName = "",
+        details = {},
+        note = "",
+        links = {},
+        mapID = 15,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "horde-21",
+        stepNumber = 21,
+        levelBadge = "41–43",
+        title = "Get Krol'dok Quests & Do Krol'Dok",
+        type = "dungeon",
+        location = "",
+        dungeonName = "Krol'dok",
+        details = {},
+        note = "",
+        links = {},
+        mapID = 66,
+        x = 0.5500,
+        y = 0.5500,
+    },
+    {
+        id = "horde-22",
+        stepNumber = 22,
+        levelBadge = "40–44",
+        title = "Razorfen Downs (RFD) Quests & Run",
+        type = "dungeon",
+        location = "Southern Barrens",
+        dungeonName = "Razorfen Downs",
+        details = { "Bring the End: Undercity Mage Quarter, Andrew Brownell.", "Unholy Alliance: Undercity Royal Quarter, Varimathras.", "A Host of Evil: Outside RFD instance entrance.", "Make sure to do the Belnistrasz escort quest." },
+        note = "",
+        links = {},
+        mapID = 10,
+        x = 0.4720,
+        y = 0.9250,
+    },
+    {
+        id = "horde-23",
+        stepNumber = 23,
+        levelBadge = "40–46",
+        title = "Uldaman Prerequisites & Quests",
+        type = "dungeon",
+        location = "Badlands (Kargath)",
+        dungeonName = "Uldaman",
+        details = { "Badlands Reagent Run: Kargath, Jarkal Mossmeld (gives Uldaman Reagent and Badlands Reagent Run 2 dragons).", "Solution to Doom: Theldurin the Lost (middle south Badlands, outside instance).", "Turn in Sign of Hope right outside instance.", "Power Stones (30): Rigglefuzz in Badlands.", "Reclaimed Treasures: Krom Stoutarm outside instance.", "Agmond's Fate: Urns outside instance." },
+        note = "",
+        links = {},
+        mapID = 15,
+        x = 0.4400,
+        y = 0.1250,
+    },
+    {
+        id = "horde-24",
+        stepNumber = 24,
+        levelBadge = "44–48",
+        title = "Zul'Farrak (ZF) Prerequisites & Quests",
+        type = "dungeon",
+        location = "Tanaris (Gadgetzan)",
+        dungeonName = "Zul'Farrak",
+        details = { "Tran'rek: Booty Bay, Krazek.", "Tabetha's Task: Tabetha in Dustwallow Marsh.", "Screecher Spirits: Steamwheedle Port, Yeh'kinya.", "Mallet of Zul'Farrak: Hinterlands Jintha'Alor elite area, kill Qiaga the Keeper for Sacred Mallet, take to top of pyramid altar.", "Troll Temper: Gadgetzan, Trenton Lighthammer.", "Scarab Shells: Gadgetzan, Tran'rek.", "Prophecy of Mosh'aru: Steamwheedle Port, Yeh'kinya.", "Divino-matic Rod: Gadgetzan, Chief Engineer Bilgewhizzle.", "Gahz'rilla: Shimmering Flats, Wizzle Brassbolts." },
+        note = "Expect to be around level 47.",
+        links = {},
+        mapID = 71,
+        x = 0.3920,
+        y = 0.2130,
+    },
+    {
+        id = "horde-25",
+        stepNumber = 25,
+        levelBadge = "46–50",
+        title = "Get Maraudon Quests & Do All 3 Wings",
+        type = "dungeon",
+        location = "Desolace",
+        dungeonName = "Maraudon",
+        details = { "Twisted Evils: Desolace middle cliffs, Willow.", "The Pariah's Instructions: South Desolace, Centaur Pariah.", "Legends of Maraudon (Scepter): Orange side Maraudon, Cavindra.", "Shadowshard Fragments: Shadowprey Village.", "Vyletongue Corruption & Corruption of Earth and Seed: Shadowprey Village." },
+        note = "",
+        links = {},
+        mapID = 66,
+        x = 0.2920,
+        y = 0.6250,
+    },
+    {
+        id = "horde-26",
+        stepNumber = 26,
+        levelBadge = "~52",
+        title = "Get Alcaz Prison Quests & Do Alcaz Prison",
+        type = "dungeon",
+        location = "Dustwallow Marsh",
+        dungeonName = "Alcaz Prison",
+        details = {},
+        note = "Expect to be around level 52.",
+        links = {},
+        mapID = 70,
+        x = 0.7750,
+        y = 0.1780,
+    },
+    {
+        id = "horde-27",
+        stepNumber = 27,
+        levelBadge = "47–55",
+        title = "Endgame Prerequisite Quest Chains",
+        type = "prep",
+        location = "Searing Gorge / Burning Steppes / Tanaris / Feralas",
+        dungeonName = "",
+        details = { "BRD Taste of Flame: Searing Gorge, Cyrus Therepentous (starts at level 47).", "BRD Incendius!: Burning Steppes SE, Jalinda Sprig.", "BRD Kharan Mighthammer chain.", "ST The Sunken Temple: Stone Circle chain.", "ST The Ancient Eggs: Tanaris, Yeh'kinya -> top of Jintha'Alor -> The God Hakkar.", "ST Haze of Evil: Un'Goro Crater, Muigin -> Feralas." },
+        note = "",
+        links = {},
+        mapID = 32,
+        x = 0.5000,
+        y = 0.5000,
+    },
+    {
+        id = "horde-28",
+        stepNumber = 28,
+        levelBadge = "55",
+        title = "Hit Level 55 Milestone",
+        type = "milestone",
+        location = "",
+        dungeonName = "",
+        details = {},
+        note = "Level 55 is the baseline for entering the endgame dungeon cycle.",
+        links = {},
+        mapID = 0,
+        x = 0.0000,
+        y = 0.0000,
+    },
+    {
+        id = "horde-29",
+        stepNumber = 29,
+        levelBadge = "50–55",
+        title = "Get Sunken Temple Quests & Do Sunken Temple",
+        type = "dungeon",
+        location = "Swamp of Sorrows",
+        dungeonName = "Sunken Temple",
+        details = { "Jammal'an the Prophet: Hinterlands southern troll temple.", "Into the Temple of Atal'Hakkar.", "Shrine order: South, North, Southwest, Southeast, Northwest, Northeast -> then center large snake statue." },
+        note = "",
+        links = {},
+        mapID = 51,
+        x = 0.6980,
+        y = 0.5360,
+    },
+    {
+        id = "horde-30",
+        stepNumber = 30,
+        levelBadge = "52–56",
+        title = "Get BRD Quests & Run BRD (First Half)",
+        type = "dungeon",
+        location = "Blackrock Mountain",
+        dungeonName = "Blackrock Depths",
+        details = { "Heart of the Mountain: Burning Steppes far north camp, Maxwort Uberglint.", "Dark Iron Legacy (Shadowforge Key): Franclorn Forgewright ghost at tomb.", "Incendius!: Burning Steppes, Jalinda Sprig.", "The Good Stuff: Burning Steppes, Jalinda Sprig." },
+        note = "Stop halfway through on initial run (Prison, Arena, Key). Save Princess and Emperor runs for second trip.",
+        links = {},
+        mapID = 32,
+        x = 0.3520,
+        y = 0.8440,
+    },
+    {
+        id = "horde-31",
+        stepNumber = 31,
+        levelBadge = "55–58",
+        title = "Get LBRS Quests & Run Lower Blackrock Spire",
+        type = "dungeon",
+        location = "Blackrock Mountain",
+        dungeonName = "Lower Blackrock Spire",
+        details = { "En-Ay-Es-Tee-Why: Burning Steppes far north camp, Kibler (level 55).", "Kibler's Exotic Pets: Burning Steppes far north camp, Kibler (level 55).", "Final Tablets of Mosh'aru: Tanaris, Yeh'kinya.", "Put Her Down: Burning Steppes Helendis Riverhorn.", "Use the cage on a Worg Pup during Halycon encounter while pup is alive!" },
+        note = "",
+        links = {},
+        mapID = 32,
+        x = 0.3550,
+        y = 0.8400,
+    },
+    {
+        id = "horde-32",
+        stepNumber = 32,
+        levelBadge = "56–60",
+        title = "Get Scholomance Quests & Run Scholomance",
+        type = "dungeon",
+        location = "Western Plaguelands (Caer Darrow)",
+        dungeonName = "Scholomance",
+        details = { "Plagued Hatchlings: Light's Hope Chapel, Betina Bigglezink.", "Doctor Theolen Krastinov: Caer Darrow, Eva Sarkhoff.", "Barov Family Fortune: Bulwark, Alexi Barov.", "Collect all 4 Barov Deeds in their designated rooms." },
+        note = "",
+        links = {},
+        mapID = 22,
+        x = 0.6920,
+        y = 0.7300,
+    },
+    {
+        id = "horde-33",
+        stepNumber = 33,
+        levelBadge = "58–60",
+        title = "Get Stratholme Quests & Run Living & Undead Wings",
+        type = "dungeon",
+        location = "Eastern Plaguelands",
+        dungeonName = "Stratholme",
+        details = { "Houses of the Holy: Light's Hope Chapel, Leonid Barthalomew.", "The Restless Souls: Light's Hope Chapel, Caretaker Alen.", "The Great Fras Siabi: Light's Hope Chapel, Smokey LaRue.", "The Archivist: Light's Hope Chapel, Duke Nicholas Zverenhoff.", "Pick up Medallion of Faith from Aurius at entrance of UD church side. Run living side first, turn in Medallion, then push Undead Baron Rivendare side." },
+        note = "",
+        links = {},
+        mapID = 23,
+        x = 0.2720,
+        y = 0.1160,
+    },
+    {
+        id = "horde-34",
+        stepNumber = 34,
+        levelBadge = "60",
+        title = "GRATS ON 60! Enter Phase 1 Raids & Endgame Progression",
+        type = "milestone",
+        location = "Azeroth",
+        dungeonName = "",
+        details = {},
+        note = "Congratulations on reaching Level 60 in World of Warcraft: Forever!",
+        links = {},
+        mapID = 0,
+        x = 0.0000,
+        y = 0.0000,
+    }
+    },
+}
+
+WoWEternityAddon.CADBERRY_ALLIANCE_GUIDE = CADBERRY_ALLIANCE_GUIDE
+WoWEternityAddon.CADBERRY_HORDE_GUIDE = CADBERRY_HORDE_GUIDE
+
+local QUESTIE_GUIDE_ENRICHMENT = {
+    ["ally-2"] = { questId = 2201, questName = "Find the Gems", starter = "Remains of a Paladin" },
+    ["ally-3"] = { starter = "Westfall Campfire", custom = true, coords = { x = 37.2, y = 46.6 } },
+    ["ally-4"] = { starter = "Old Ironforge Questgivers", custom = true, coords = { x = 50, y = 50 } },
+    ["ally-5"] = { starter = "Custom Objective", custom = true, coords = { x = 64.8, y = 58.4 } },
+    ["ally-6"] = { starter = "Custom Objective", custom = true, coords = { x = 61.2, y = 67.2 } },
+    ["ally-7"] = { questId = 65, questName = "The Defias Brotherhood", starter = "Gryan Stoutmantle", coords = { x = 56.33, y = 47.52 } },
+    ["ally-8"] = { questId = 155, questName = "The Defias Brotherhood", starter = "The Defias Traitor", coords = { x = 55.68, y = 47.5 } },
+    ["ally-11"] = { questId = 391, questName = "The Stockade Riots", starter = "Warden Thelwater", coords = { x = 41.11, y = 58.09 } },
+    ["ally-12"] = { starter = "Custom Objective", custom = true, coords = { x = 38.6, y = 52.4 } },
+    ["ally-13"] = { questId = 1200, questName = "Blackfathom Villainy", starter = "Argent Guard Thaelrid" },
+    ["ally-14"] = { questId = 1200, questName = "Blackfathom Villainy", starter = "Argent Guard Thaelrid" },
+    ["ally-15"] = { starter = "Custom Objective", custom = true, coords = { x = 19.4, y = 78.4 } },
+    ["ally-16"] = { questId = 2841, questName = "Rig Wars", starter = "Nogg", coords = { x = 75.99, y = 25.41 } },
+    ["ally-17"] = { questId = 2841, questName = "Rig Wars", starter = "Nogg", coords = { x = 75.99, y = 25.41 } },
+    ["ally-18"] = { questId = 2841, questName = "Rig Wars", starter = "Nogg", coords = { x = 75.99, y = 25.41 } },
+    ["ally-19"] = { questId = 1053, questName = "In the Name of the Light", starter = "Raleigh the Devout", coords = { x = 51.47, y = 58.35 } },
+    ["ally-20"] = { questId = 1053, questName = "In the Name of the Light", starter = "Raleigh the Devout", coords = { x = 51.47, y = 58.35 } },
+    ["ally-21"] = { questId = 1108, questName = "Indurium", starter = "Martek the Exiled", coords = { x = 42.22, y = 52.69 } },
+    ["ally-22"] = { questId = 1108, questName = "Indurium", starter = "Martek the Exiled", coords = { x = 42.22, y = 52.69 } },
+    ["ally-23"] = { questId = 1053, questName = "In the Name of the Light", starter = "Raleigh the Devout", coords = { x = 51.47, y = 58.35 } },
+    ["ally-24"] = { starter = "Custom Objective", custom = true, coords = { x = 42, y = 70 } },
+    ["ally-26"] = { starter = "Custom Objective", custom = true, coords = { x = 71.2, y = 56.4 } },
+    ["ally-27"] = { questId = 1104, questName = "Salt Flat Venom", starter = "Fizzle Brassbolts", coords = { x = 78.06, y = 77.13 } },
+    ["ally-28"] = { questId = 1104, questName = "Salt Flat Venom", starter = "Fizzle Brassbolts", coords = { x = 78.06, y = 77.13 } },
+    ["ally-29"] = { questId = 17, questName = "Uldaman Reagent Run", starter = "Ghak Healtouch", coords = { x = 37.07, y = 49.38 } },
+    ["ally-30"] = { questId = 17, questName = "Uldaman Reagent Run", starter = "Ghak Healtouch", coords = { x = 37.07, y = 49.38 } },
+    ["ally-31"] = { questId = 17, questName = "Uldaman Reagent Run", starter = "Ghak Healtouch", coords = { x = 37.07, y = 49.38 } },
+    ["ally-32"] = { questId = 2768, questName = "Divino-matic Rod", starter = "Chief Engineer Bilgewhizzle", coords = { x = 52.46, y = 28.51 } },
+    ["ally-33"] = { questId = 2768, questName = "Divino-matic Rod", starter = "Chief Engineer Bilgewhizzle", coords = { x = 52.46, y = 28.51 } },
+    ["ally-34"] = { questId = 2768, questName = "Divino-matic Rod", starter = "Chief Engineer Bilgewhizzle", coords = { x = 52.46, y = 28.51 } },
+    ["ally-35"] = { questId = 7044, questName = "Legends of Maraudon", starter = "Cavindra", coords = { x = 32.1, y = 63.96 } },
+    ["ally-36"] = { starter = "Custom Objective", custom = true, coords = { x = 77, y = 16 } },
+    ["ally-37"] = { questId = 1448, questName = "In Search of The Temple", starter = "Brohann Caskbelly", coords = { x = 64.33, y = 20.63 } },
+    ["ally-39"] = { questId = 1448, questName = "In Search of The Temple", starter = "Brohann Caskbelly", coords = { x = 64.33, y = 20.63 } },
+    ["ally-40"] = { questId = 3821, questName = "Dreadmaul Rock", starter = "Thal'trak Proudtusk", coords = { x = 3.36, y = 48.06 } },
+    ["ally-41"] = { questId = 4722, questName = "Beached Sea Turtle", starter = "Gwennyth Bly'Leggonde", coords = { x = 36.62, y = 45.59 } },
+    ["ally-42"] = { questId = 5381, questName = "Hand of Iruxos", starter = "Taiga Wisemane", coords = { x = 25.82, y = 68.21 } },
+    ["ally-43"] = { questId = 5123, questName = "The Final Piece", starter = "Donova Snowden", coords = { x = 31.27, y = 45.16 } },
+    ["horde-2"] = { questId = 842, questName = "Crossroads Conscription", starter = "Kargal Battlescar", coords = { x = 62.26, y = 19.38 } },
+    ["horde-3"] = { starter = "Westfall Campfire", custom = true, coords = { x = 37.2, y = 46.6 } },
+    ["horde-4"] = { questId = 5722, questName = "Searching for the Lost Satchel", starter = "Rahauro", coords = { x = 70.14, y = 29.52 } },
+    ["horde-5"] = { questId = 5722, questName = "Searching for the Lost Satchel", starter = "Rahauro", coords = { x = 70.14, y = 29.52 } },
+    ["horde-6"] = { starter = "Custom Objective", custom = true, coords = { x = 61.2, y = 67.2 } },
+    ["horde-7"] = { questId = 903, questName = "Prowlers of the Barrens", starter = "Sergra Darkthorn", coords = { x = 52.23, y = 31.01 } },
+    ["horde-8"] = { questId = 903, questName = "Prowlers of the Barrens", starter = "Sergra Darkthorn", coords = { x = 52.23, y = 31.01 } },
+    ["horde-10"] = { questId = 1014, questName = "Arugal Must Die", starter = "Dalar Dawnweaver", coords = { x = 44.2, y = 39.81 } },
+    ["horde-12"] = { questId = 1205, questName = "Deadmire", starter = "Melor Stonehoof", coords = { x = 61.54, y = 80.92 } },
+    ["horde-13"] = { starter = "Custom Objective", custom = true, coords = { x = 38.6, y = 52.4 } },
+    ["horde-14"] = { starter = "Custom Objective", custom = true, coords = { x = 19.4, y = 78.4 } },
+    ["horde-15"] = { questId = 2841, questName = "Rig Wars", starter = "Nogg", coords = { x = 75.99, y = 25.41 } },
+    ["horde-16"] = { questId = 1108, questName = "Indurium", starter = "Martek the Exiled", coords = { x = 42.22, y = 52.69 } },
+    ["horde-17"] = { questId = 1053, questName = "In the Name of the Light", starter = "Raleigh the Devout", coords = { x = 51.47, y = 58.35 } },
+    ["horde-18"] = { questId = 1053, questName = "In the Name of the Light", starter = "Raleigh the Devout", coords = { x = 51.47, y = 58.35 } },
+    ["horde-19"] = { starter = "Custom Objective", custom = true, coords = { x = 42, y = 70 } },
+    ["horde-21"] = { starter = "Custom Objective", custom = true, coords = { x = 71.2, y = 56.4 } },
+    ["horde-22"] = { questId = 1104, questName = "Salt Flat Venom", starter = "Fizzle Brassbolts", coords = { x = 78.06, y = 77.13 } },
+    ["horde-23"] = { questId = 17, questName = "Uldaman Reagent Run", starter = "Ghak Healtouch", coords = { x = 37.07, y = 49.38 } },
+    ["horde-24"] = { questId = 2768, questName = "Divino-matic Rod", starter = "Chief Engineer Bilgewhizzle", coords = { x = 52.46, y = 28.51 } },
+    ["horde-25"] = { questId = 7044, questName = "Legends of Maraudon", starter = "Cavindra", coords = { x = 32.1, y = 63.96 } },
+    ["horde-26"] = { starter = "Custom Objective", custom = true, coords = { x = 77, y = 16 } },
+    ["horde-27"] = { questId = 1448, questName = "In Search of The Temple", starter = "Brohann Caskbelly", coords = { x = 64.33, y = 20.63 } },
+    ["horde-29"] = { questId = 1448, questName = "In Search of The Temple", starter = "Brohann Caskbelly", coords = { x = 64.33, y = 20.63 } },
+    ["horde-30"] = { questId = 3821, questName = "Dreadmaul Rock", starter = "Thal'trak Proudtusk", coords = { x = 3.36, y = 48.06 } },
+    ["horde-31"] = { questId = 4722, questName = "Beached Sea Turtle", starter = "Gwennyth Bly'Leggonde", coords = { x = 36.62, y = 45.59 } },
+    ["horde-32"] = { questId = 5381, questName = "Hand of Iruxos", starter = "Taiga Wisemane", coords = { x = 25.82, y = 68.21 } },
+    ["horde-33"] = { questId = 5123, questName = "The Final Piece", starter = "Donova Snowden", coords = { x = 31.27, y = 45.16 } },
+}
+
+function WoWEternityAddon:EnrichGuideWithQuestieData()
+    local guides = { self.CADBERRY_ALLIANCE_GUIDE, self.CADBERRY_HORDE_GUIDE }
+    for _, guide in ipairs(guides) do
+        if guide and guide.steps then
+            for _, step in ipairs(guide.steps) do
+                local meta = QUESTIE_GUIDE_ENRICHMENT[step.id]
+                if meta then
+                    step.questieQuestId = meta.questId
+                    step.questieQuestName = meta.questName
+                    step.questieStarter = meta.starter
+                    step.questieCustom = meta.custom
+                    step.questieCoords = meta.coords
+                    if meta.coords and (step.x == 0.5 and step.y == 0.5) then
+                        step.x = meta.coords.x / 100
+                        step.y = meta.coords.y / 100
+                    end
+                end
+            end
+        end
+    end
+end
+WoWEternityAddon.QUESTIE_GUIDE_ENRICHMENT = QUESTIE_GUIDE_ENRICHMENT
+WoWEternityAddon:EnrichGuideWithQuestieData()
+
 local TABS = {
     { id = "Account", label = "Account" },
     { id = "Char", label = "Char" },
     { id = "Gear Planner", label = "Gear Planner" },
     { id = "BIS-Lists", label = "BIS-Lists" },
+    { id = "Leveling", label = "Leveling" },
     { id = "Settings", label = "Settings" },
 }
 
@@ -2361,7 +3651,7 @@ function WoWEternityAddon:CreateSettingsTab(parent)
     local prefCard = CreateCard(tab)
     prefCard:SetPoint("TOPLEFT", 0, 0)
     prefCard:SetPoint("TOPRIGHT", 0, 0)
-    prefCard:SetHeight(205)
+    prefCard:SetHeight(238)
 
     local title1 = prefCard:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     title1:SetPoint("TOPLEFT", 12, -10)
@@ -2411,15 +3701,32 @@ function WoWEternityAddon:CreateSettingsTab(parent)
     end)
     tab.cbVerbose:SetPoint("TOPLEFT", 14, -162)
 
+    tab.cbTracker = CreateCheckbox(prefCard, "WoWEternityAddonOptTracker", "Show Floating Quest Tracker HUD (Questie Style)", true, function(checked)
+        WoWEternityAddonDB = WoWEternityAddonDB or {}
+        WoWEternityAddonDB.tracker = WoWEternityAddonDB.tracker or {}
+        WoWEternityAddonDB.tracker.shown = checked
+        if WoWEternityAddon.trackerFrame then
+            if checked then
+                WoWEternityAddon.trackerFrame:Show()
+                WoWEternityAddon:UpdateTrackerHUD()
+            else
+                WoWEternityAddon.trackerFrame:Hide()
+            end
+        elseif checked then
+            WoWEternityAddon:CreateTrackerHUD()
+        end
+    end)
+    tab.cbTracker:SetPoint("TOPLEFT", 14, -194)
+
     local dbPath = prefCard:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    dbPath:SetPoint("TOPLEFT", 14, -192)
+    dbPath:SetPoint("TOPLEFT", 14, -222)
     dbPath:SetText("SavedVariables: |cff9ca3afWTF/Account/<Account>/SavedVariables/WoW Eternity Addon.lua|r")
 
     -- Card 2: Slash Commands Reference
     local slashCard = CreateCard(tab)
-    slashCard:SetPoint("TOPLEFT", 0, -225)
-    slashCard:SetPoint("TOPRIGHT", 0, -225)
-    slashCard:SetHeight(120)
+    slashCard:SetPoint("TOPLEFT", 0, -250)
+    slashCard:SetPoint("TOPRIGHT", 0, -250)
+    slashCard:SetHeight(158)
 
     local title2 = slashCard:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     title2:SetPoint("TOPLEFT", 12, -10)
@@ -2430,7 +3737,10 @@ function WoWEternityAddon:CreateSettingsTab(parent)
     ref:SetPoint("TOPRIGHT", -12, -30)
     ref:SetJustifyH("LEFT")
     ref:SetText(
-        "|cffffd100/wea|r - Toggle this 5-tab main control window\n" ..
+        "|cffffd100/wea|r - Toggle this 6-tab main control window\n" ..
+        "|cffffd100/wea leveling|r - Open Cadberry Leveling Guide\n" ..
+        "|cffffd100/wea tracker|r - Toggle Questie-style floating tracker HUD\n" ..
+        "|cffffd100/wea arrow|r - Toggle waypoint navigation arrow\n" ..
         "|cffffd100/wea sync|r - Export gear, unbuffed stats, and talents to desktop client\n" ..
         "|cffffd100/wea spec <name>|r - Set active BiS spec filter (e.g. paladin_ret, all)\n" ..
         "|cffffd100/wea verify|r - Verify database Adler-32 checksum integrity\n" ..
@@ -2478,6 +3788,1281 @@ function WoWEternityAddon:UpdateSettingsTab()
     if tab.cbVerbose then
         tab.cbVerbose:SetChecked(WoWEternityAddonDB and WoWEternityAddonDB.verboseLogs == true)
     end
+    if tab.cbTracker then
+        tab.cbTracker:SetChecked(WoWEternityAddonDB and WoWEternityAddonDB.tracker and WoWEternityAddonDB.tracker.shown ~= false)
+    end
+end
+
+-- ============================================================================
+-- Tab 5: Cadberry Leveling Guide Implementation
+-- ============================================================================
+
+local function ShowLinkCopyDialog(url, text)
+    if StaticPopupDialogs and not StaticPopupDialogs["WEA_COPY_URL"] then
+        StaticPopupDialogs["WEA_COPY_URL"] = {
+            text = "|cffe6cc80[WoW Eternity]|r Guide Link (Ctrl+C to copy):",
+            button1 = "Close",
+            hasEditBox = true,
+            hasWideEditBox = true,
+            editBoxWidth = 350,
+            OnShow = function(dialog, data)
+                local editBox = dialog.editBox or _G[dialog:GetName().."EditBox"]
+                if editBox then
+                    editBox:SetText(data or "")
+                    editBox:HighlightText()
+                    editBox:SetFocus()
+                end
+            end,
+            EditBoxOnEnterPressed = function(dialog)
+                dialog:GetParent():Hide()
+            end,
+            EditBoxOnEscapePressed = function(dialog)
+                dialog:GetParent():Hide()
+            end,
+            timeout = 0,
+            whileDead = true,
+            hideOnEscape = true,
+            preferredIndex = 3,
+        }
+    end
+    if StaticPopup_Show then
+        StaticPopup_Show("WEA_COPY_URL", nil, nil, url)
+    else
+        WoWEternityAddon:Print(string.format("|cffe6cc80%s:|r |cff38bdf8%s|r", text or "Guide Link", url))
+    end
+end
+
+local function MatchesCategory(step, category)
+    if not category or category == "All" then
+        return true
+    elseif category == "Dungeons" then
+        return step.type == "dungeon" or (step.dungeonName and step.dungeonName ~= "")
+    elseif category == "Quests" then
+        return step.type == "quest"
+    elseif category == "Prerequisites" then
+        return step.type == "prep"
+    elseif category == "Leveling" then
+        return step.type == "leveling" or step.type == "milestone" or step.type == "info"
+    end
+    return true
+end
+
+function WoWEternityAddon:CreateLevelingTab(parent)
+    local tab = CreateFrame("Frame", nil, parent)
+    tab:SetAllPoints(parent)
+    tab:Hide()
+    self.tabFrames["Leveling"] = tab
+    self.levelingTab = tab
+
+    -- Auto-detect player faction default
+    if not self.levelingFaction then
+        local factionGroup = UnitFactionGroup and UnitFactionGroup("player")
+        if factionGroup and factionGroup:lower() == "horde" then
+            self.levelingFaction = "horde"
+        else
+            self.levelingFaction = "alliance"
+        end
+    end
+    self.levelingCategory = self.levelingCategory or "All"
+
+    -- Header Control Card
+    local headerCard = CreateCard(tab)
+    headerCard:SetPoint("TOPLEFT", 0, 0)
+    headerCard:SetPoint("TOPRIGHT", 0, 0)
+    headerCard:SetHeight(76)
+
+    -- Faction Selector Buttons
+    local allyBtn = CreateFrame("Button", nil, headerCard, GetBackdropTemplate())
+    allyBtn:SetSize(110, 24)
+    allyBtn:SetPoint("TOPLEFT", 10, -8)
+    ApplyBackdrop(allyBtn, 0.08, 0.14, 0.28, 0.9, 0.28, 0.45, 0.75, 1)
+    local allyBtnText = allyBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    allyBtnText:SetPoint("CENTER")
+    allyBtnText:SetText("|cff38bdf8Alliance|r (44)")
+    allyBtn.text = allyBtnText
+    allyBtn:SetScript("OnClick", function()
+        WoWEternityAddon.levelingFaction = "alliance"
+        WoWEternityAddon:UpdateLevelingTab()
+        WoWEternityAddon:UpdateWaypointArrow()
+        WoWEternityAddon:UpdateWorldMapPins()
+    end)
+    tab.allyBtn = allyBtn
+
+    local hordeBtn = CreateFrame("Button", nil, headerCard, GetBackdropTemplate())
+    hordeBtn:SetSize(110, 24)
+    hordeBtn:SetPoint("LEFT", allyBtn, "RIGHT", 6, 0)
+    ApplyBackdrop(hordeBtn, 0.22, 0.08, 0.08, 0.9, 0.65, 0.22, 0.22, 1)
+    local hordeBtnText = hordeBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    hordeBtnText:SetPoint("CENTER")
+    hordeBtnText:SetText("|cffef4444Horde|r (34)")
+    hordeBtn.text = hordeBtnText
+    hordeBtn:SetScript("OnClick", function()
+        WoWEternityAddon.levelingFaction = "horde"
+        WoWEternityAddon:UpdateLevelingTab()
+        WoWEternityAddon:UpdateWaypointArrow()
+        WoWEternityAddon:UpdateWorldMapPins()
+    end)
+    tab.hordeBtn = hordeBtn
+
+    -- Progress Bar
+    local progressBg = CreateFrame("Frame", nil, headerCard, GetBackdropTemplate())
+    progressBg:SetSize(160, 18)
+    progressBg:SetPoint("LEFT", hordeBtn, "RIGHT", 10, 0)
+    ApplyBackdrop(progressBg, 0.02, 0.03, 0.05, 0.9, 0.18, 0.22, 0.32, 1)
+    tab.progressBg = progressBg
+
+    local progressBar = progressBg:CreateTexture(nil, "ARTWORK")
+    progressBar:SetPoint("TOPLEFT", 1, -1)
+    progressBar:SetPoint("BOTTOMLEFT", 1, 1)
+    progressBar:SetWidth(1)
+    progressBar:SetColorTexture(0.12, 0.68, 0.38, 0.95)
+    tab.progressBar = progressBar
+
+    local progressText = progressBg:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    progressText:SetPoint("CENTER", progressBg, "CENTER", 0, 0)
+    progressText:SetText("0 / 44 (0%)")
+    tab.progressText = progressText
+
+    -- Quick Arrow Toggle Button
+    local arrowBtn = CreateStyledButton(headerCard, "Arrow: ON", 74, 22, function()
+        WoWEternityAddon:ToggleWaypointArrow()
+    end)
+    arrowBtn:SetPoint("TOPRIGHT", -154, -9)
+    tab.arrowBtn = arrowBtn
+
+    -- Quick Tracker Toggle Button
+    local trackerBtn = CreateStyledButton(headerCard, "Tracker: ON", 84, 22, function()
+        WoWEternityAddon:ToggleTrackerHUD()
+    end)
+    trackerBtn:SetPoint("TOPRIGHT", -66, -9)
+    tab.trackerBtn = trackerBtn
+
+    -- Reset Progress Button
+    local resetBtn = CreateStyledButton(headerCard, "Reset", 52, 22, function()
+        WoWEternityAddon:ResetLevelingGuide()
+    end)
+    resetBtn:SetPoint("TOPRIGHT", -10, -9)
+    tab.resetBtn = resetBtn
+
+    -- Row 2: Category Filter Bar
+    local filterCategories = { "All", "Dungeons", "Quests", "Prerequisites", "Leveling" }
+    tab.filterButtons = {}
+    local startX = 10
+    for _, cat in ipairs(filterCategories) do
+        local fBtn = CreateFrame("Button", nil, headerCard, GetBackdropTemplate())
+        fBtn:SetSize(116, 22)
+        fBtn:SetPoint("BOTTOMLEFT", startX, 9)
+        ApplyBackdrop(fBtn, 0.06, 0.08, 0.12, 0.85, 0.18, 0.22, 0.32, 0.8)
+
+        local fText = fBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        fText:SetPoint("CENTER")
+        fText:SetText(cat)
+        fBtn.text = fText
+
+        local thisCat = cat
+        fBtn:SetScript("OnClick", function()
+            WoWEternityAddon.levelingCategory = thisCat
+            WoWEternityAddon:UpdateLevelingTab()
+        end)
+
+        tab.filterButtons[cat] = fBtn
+        startX = startX + 120
+    end
+
+    -- ScrollFrame for Step Cards
+    local scrollFrame = CreateFrame("ScrollFrame", "WoWEternityAddonLevelingScrollFrame", tab, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT", 0, -82)
+    scrollFrame:SetPoint("BOTTOMRIGHT", -22, 38)
+
+    local scrollChild = CreateFrame("Frame", nil, scrollFrame)
+    scrollChild:SetSize(590, 400)
+    scrollFrame:SetScrollChild(scrollChild)
+    tab.scrollChild = scrollChild
+    tab.scrollFrame = scrollFrame
+
+    tab.stepCards = {}
+
+    -- Bottom Action Bar
+    CreateStyledButton(tab, "Waypoint Arrow Controls", 280, 28, function()
+        WoWEternityAddon:ToggleWaypointArrow()
+    end):SetPoint("BOTTOMLEFT", 0, 0)
+
+    CreateStyledButton(tab, "Reset Leveling Progress", 280, 28, function()
+        WoWEternityAddon:ResetLevelingGuide()
+    end):SetPoint("BOTTOMRIGHT", 0, 0)
+end
+
+local function GetOrCreateStepCard(tab, index)
+    local card = tab.stepCards[index]
+    if card then return card end
+
+    card = CreateFrame("Frame", nil, tab.scrollChild, GetBackdropTemplate())
+    card:SetWidth(585)
+    ApplyBackdrop(card, 0.04, 0.05, 0.08, 0.85, 0.16, 0.20, 0.30, 0.85)
+
+    -- Checkbox
+    local cb = CreateFrame("CheckButton", "WEA_StepCB_" .. index, card, "UICheckButtonTemplate")
+    cb:SetSize(22, 22)
+    cb:SetPoint("TOPLEFT", 8, -8)
+    card.cb = cb
+
+    -- Badges & Header
+    local badge = card:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    badge:SetPoint("LEFT", cb, "RIGHT", 6, 0)
+    card.badge = badge
+
+    local lvlBadge = card:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    lvlBadge:SetPoint("LEFT", badge, "RIGHT", 8, 0)
+    card.lvlBadge = lvlBadge
+
+    local typeBadge = card:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    typeBadge:SetPoint("LEFT", lvlBadge, "RIGHT", 8, 0)
+    card.typeBadge = typeBadge
+
+    -- Title
+    local title = card:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    title:SetPoint("TOPLEFT", 12, -32)
+    title:SetPoint("RIGHT", -12, 0)
+    title:SetJustifyH("LEFT")
+    title:SetWordWrap(false)
+    card.title = title
+
+    -- Location
+    local location = card:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    location:SetPoint("TOPLEFT", 12, -48)
+    location:SetPoint("RIGHT", -12, 0)
+    location:SetJustifyH("LEFT")
+    card.location = location
+
+    -- Details container text
+    local details = card:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    details:SetPoint("TOPLEFT", 12, -66)
+    details:SetPoint("RIGHT", -12, 0)
+    details:SetJustifyH("LEFT")
+    details:SetTextColor(0.85, 0.88, 0.92, 1)
+    card.details = details
+
+    -- Tactical Note text
+    local note = card:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    note:SetPoint("TOPLEFT", details, "BOTTOMLEFT", 0, -4)
+    note:SetPoint("RIGHT", -12, 0)
+    note:SetJustifyH("LEFT")
+    note:SetTextColor(1.0, 0.82, 0.0, 1)
+    card.note = note
+
+    -- Links button
+    local linkBtn = CreateStyledButton(card, "Guide Link", 160, 18)
+    linkBtn:SetPoint("TOPLEFT", note, "BOTTOMLEFT", 0, -4)
+    card.linkBtn = linkBtn
+
+    tab.stepCards[index] = card
+    return card
+end
+
+function WoWEternityAddon:UpdateLevelingTab()
+    local tab = self.tabFrames and self.tabFrames["Leveling"]
+    if not tab or not tab:IsShown() then return end
+
+    local faction = self.levelingFaction or "alliance"
+    local category = self.levelingCategory or "All"
+    local guide = (faction == "horde") and self.CADBERRY_HORDE_GUIDE or self.CADBERRY_ALLIANCE_GUIDE
+    if not guide or not guide.steps then return end
+
+    -- Update Faction Button Highlights
+    if faction == "alliance" then
+        ApplyBackdrop(tab.allyBtn, 0.12, 0.25, 0.50, 1, 0.90, 0.80, 0.50, 1)
+        ApplyBackdrop(tab.hordeBtn, 0.08, 0.06, 0.08, 0.7, 0.22, 0.18, 0.22, 0.7)
+        tab.allyBtn.text:SetTextColor(1.0, 0.85, 0.2, 1)
+        tab.hordeBtn.text:SetTextColor(0.6, 0.6, 0.6, 1)
+    else
+        ApplyBackdrop(tab.allyBtn, 0.06, 0.08, 0.12, 0.7, 0.18, 0.22, 0.32, 0.7)
+        ApplyBackdrop(tab.hordeBtn, 0.45, 0.10, 0.10, 1, 0.90, 0.80, 0.50, 1)
+        tab.allyBtn.text:SetTextColor(0.6, 0.6, 0.6, 1)
+        tab.hordeBtn.text:SetTextColor(1.0, 0.85, 0.2, 1)
+    end
+
+    -- Update Category Filter Highlights
+    for catName, btn in pairs(tab.filterButtons) do
+        if catName == category then
+            ApplyBackdrop(btn, 0.18, 0.22, 0.35, 1, 0.90, 0.80, 0.50, 1)
+            btn.text:SetTextColor(1.0, 0.82, 0.0, 1)
+        else
+            ApplyBackdrop(btn, 0.06, 0.08, 0.12, 0.85, 0.18, 0.22, 0.32, 0.8)
+            btn.text:SetTextColor(0.61, 0.64, 0.69, 1)
+        end
+    end
+
+    -- Update Progress Bar
+    local completedTable = WoWEternityAddonCharDB and WoWEternityAddonCharDB.cadberryCompleted or {}
+    local totalSteps = #guide.steps
+    local completedCount = 0
+    for _, s in ipairs(guide.steps) do
+        if completedTable[s.id] then
+            completedCount = completedCount + 1
+        end
+    end
+    local pct = (totalSteps > 0) and math.floor((completedCount / totalSteps) * 100) or 0
+    tab.progressText:SetText(string.format("%d / %d Steps (%d%%)", completedCount, totalSteps, pct))
+    local barW = math.max(1, math.floor((completedCount / totalSteps) * 218))
+    tab.progressBar:SetWidth(barW)
+
+    -- Update Arrow Toggle button text
+    if tab.arrowBtn then
+        local arrowShown = self.waypointArrow and self.waypointArrow:IsShown()
+        tab.arrowBtn:SetText(arrowShown and "Arrow: |cff00ff00ON|r" or "Arrow: |cffff2020OFF|r")
+    end
+    if tab.trackerBtn then
+        local trackerShown = self.trackerFrame and self.trackerFrame:IsShown()
+        tab.trackerBtn:SetText(trackerShown and "Tracker: |cff00ff00ON|r" or "Tracker: |cffff2020OFF|r")
+    end
+
+    -- Render Step Cards
+    local totalOffset = 0
+    local cardIndex = 0
+
+    for _, step in ipairs(guide.steps) do
+        if MatchesCategory(step, category) then
+            cardIndex = cardIndex + 1
+            local card = GetOrCreateStepCard(tab, cardIndex)
+            local isDone = completedTable[step.id] == true
+
+            -- Completion Checkbox
+            card.cb:SetChecked(isDone)
+            local stepId = step.id
+            card.cb:SetScript("OnClick", function(selfBtn)
+                local checked = selfBtn:GetChecked()
+                WoWEternityAddonCharDB = WoWEternityAddonCharDB or {}
+                WoWEternityAddonCharDB.cadberryCompleted = WoWEternityAddonCharDB.cadberryCompleted or {}
+                if checked then
+                    WoWEternityAddonCharDB.cadberryCompleted[stepId] = true
+                else
+                    WoWEternityAddonCharDB.cadberryCompleted[stepId] = nil
+                end
+                WoWEternityAddon:UpdateLevelingTab()
+                WoWEternityAddon:UpdateWaypointArrow()
+                WoWEternityAddon:UpdateWorldMapPins()
+                WoWEternityAddon:UpdateTrackerHUD()
+            end)
+
+            -- Header Badges
+            card.badge:SetText(string.format("|cffe6cc80Step %d|r", step.stepNumber))
+            card.lvlBadge:SetText(string.format("|cff38bdf8[%s]|r", step.levelBadge))
+
+            local typeColor = "|cff9ca3af"
+            if step.type == "dungeon" then typeColor = "|cffa855f7"
+            elseif step.type == "prep" then typeColor = "|cfff97316"
+            elseif step.type == "quest" then typeColor = "|cff38bdf8"
+            elseif step.type == "leveling" then typeColor = "|cff22c55e"
+            elseif step.type == "milestone" then typeColor = "|cffffd700" end
+            card.typeBadge:SetText(string.format("%s[%s]|r", typeColor, step.type:upper()))
+
+            -- Title & Location
+            if isDone then
+                card.title:SetText(string.format("|cff9ca3af%s (Completed)|r", step.title))
+                ApplyBackdrop(card, 0.03, 0.04, 0.05, 0.6, 0.10, 0.14, 0.20, 0.6)
+            else
+                card.title:SetText(string.format("|cffffffff%s|r", step.title))
+                ApplyBackdrop(card, 0.04, 0.05, 0.08, 0.85, 0.16, 0.20, 0.30, 0.85)
+            end
+
+            local locStr = ""
+            if step.location and step.location ~= "" then
+                locStr = string.format("|cff9ca3afLocation:|r |cff38bdf8%s|r", step.location)
+            elseif step.dungeonName and step.dungeonName ~= "" then
+                locStr = string.format("|cff9ca3afDungeon:|r |cffa855f7%s|r", step.dungeonName)
+            end
+            card.location:SetText(locStr)
+
+            -- Details & Notes
+            local cardHeight = 56
+            if locStr ~= "" then cardHeight = cardHeight + 14 end
+
+            if step.details and #step.details > 0 then
+                local bullets = {}
+                for _, d in ipairs(step.details) do
+                    table.insert(bullets, "• " .. d)
+                end
+                card.details:SetText(table.concat(bullets, "\n"))
+                card.details:Show()
+                cardHeight = cardHeight + (#step.details * 14) + 6
+            else
+                card.details:SetText("")
+                card.details:Hide()
+            end
+
+            if step.note and step.note ~= "" then
+                card.note:SetText("|cffe6cc80Tactical Note:|r " .. step.note)
+                card.note:Show()
+                cardHeight = cardHeight + 22
+            else
+                card.note:SetText("")
+                card.note:Hide()
+            end
+
+            if step.links and #step.links > 0 then
+                local linkData = step.links[1]
+                card.linkBtn:SetText(linkData.text or "Guide Link")
+                card.linkBtn:SetScript("OnClick", function()
+                    ShowLinkCopyDialog(linkData.url, linkData.text)
+                end)
+                card.linkBtn:Show()
+                cardHeight = cardHeight + 24
+            else
+                card.linkBtn:Hide()
+            end
+
+            card:SetHeight(cardHeight)
+            card:ClearAllPoints()
+            card:SetPoint("TOPLEFT", tab.scrollChild, "TOPLEFT", 0, -totalOffset)
+            card:SetPoint("TOPRIGHT", tab.scrollChild, "TOPRIGHT", -4, -totalOffset)
+            card:Show()
+
+            totalOffset = totalOffset + cardHeight + 8
+        end
+    end
+
+    -- Hide unused cards
+    for k = cardIndex + 1, #tab.stepCards do
+        tab.stepCards[k]:Hide()
+    end
+
+    tab.scrollChild:SetHeight(math.max(totalOffset, 320))
+end
+
+function WoWEternityAddon:GetActiveLevelingStep(faction)
+    faction = faction or self.levelingFaction or "alliance"
+    local guide = (faction == "horde") and self.CADBERRY_HORDE_GUIDE or self.CADBERRY_ALLIANCE_GUIDE
+    if not guide or not guide.steps then return nil end
+
+    local completed = WoWEternityAddonCharDB and WoWEternityAddonCharDB.cadberryCompleted
+    for _, step in ipairs(guide.steps) do
+        if not (completed and completed[step.id]) then
+            return step
+        end
+    end
+    return nil
+end
+
+function WoWEternityAddon:GetUpcomingLevelingSteps(faction, count)
+    count = count or 2
+    faction = faction or self.levelingFaction or "alliance"
+    local guide = (faction == "horde") and self.CADBERRY_HORDE_GUIDE or self.CADBERRY_ALLIANCE_GUIDE
+    if not guide or not guide.steps then return {} end
+
+    local completed = WoWEternityAddonCharDB and WoWEternityAddonCharDB.cadberryCompleted
+    local upcoming = {}
+    local skippedFirst = false
+    for _, step in ipairs(guide.steps) do
+        if not (completed and completed[step.id]) then
+            if not skippedFirst then
+                skippedFirst = true
+            else
+                table.insert(upcoming, step)
+                if #upcoming >= count then
+                    break
+                end
+            end
+        end
+    end
+    return upcoming
+end
+
+function WoWEternityAddon:GetDistanceToStep(step)
+    if not step or not step.x or not step.y or not step.mapID or step.x <= 0 or step.y <= 0 then
+        return nil, false
+    end
+    local playerMap
+    if C_Map and C_Map.GetBestMapForUnit then
+        playerMap = C_Map.GetBestMapForUnit("player")
+    end
+    if not playerMap or playerMap ~= step.mapID then
+        return nil, false
+    end
+    if C_Map and C_Map.GetPlayerMapPosition then
+        local pos = C_Map.GetPlayerMapPosition(playerMap, "player")
+        if pos and pos.GetXY then
+            local px, py = pos:GetXY()
+            if px and py then
+                local dx = step.x - px
+                local dy = step.y - py
+                local distYards = math.sqrt(dx * dx + dy * dy) * 1500
+                return distYards, true
+            end
+        end
+    end
+    return nil, false
+end
+
+-- ============================================================================
+-- Waypoint Navigation Arrow (Strict Linear Auto-Tracking)
+-- ============================================================================
+
+function WoWEternityAddon:CreateWaypointArrow()
+    if not CreateFrame then return end
+    if self.waypointArrow then return end
+
+    local frame = CreateFrame("Button", "WoWEternityAddonWaypointArrow", UIParent, GetBackdropTemplate())
+    self.waypointArrow = frame
+
+    frame:SetSize(160, 68)
+    frame:SetFrameStrata("HIGH")
+    frame:SetClampedToScreen(true)
+    frame:SetMovable(true)
+    frame:EnableMouse(true)
+    frame:RegisterForDrag("LeftButton")
+
+    -- Restore saved position
+    local db = WoWEternityAddonDB and WoWEternityAddonDB.waypointArrow
+    local pt = (db and db.point) or "CENTER"
+    local x = (db and db.x) or 0
+    local y = (db and db.y) or 140
+    frame:SetPoint(pt, UIParent, pt, x, y)
+
+    ApplyBackdrop(frame, 0.04, 0.05, 0.08, 0.88, 0.22, 0.26, 0.38, 0.95)
+
+    -- Draggable
+    frame:SetScript("OnDragStart", function(f)
+        if not (WoWEternityAddonDB and WoWEternityAddonDB.waypointArrow and WoWEternityAddonDB.waypointArrow.locked) then
+            f:StartMoving()
+        end
+    end)
+    frame:SetScript("OnDragStop", function(f)
+        f:StopMovingOrSizing()
+        local point, _, _, xOfs, yOfs = f:GetPoint()
+        WoWEternityAddonDB = WoWEternityAddonDB or {}
+        WoWEternityAddonDB.waypointArrow = WoWEternityAddonDB.waypointArrow or {}
+        WoWEternityAddonDB.waypointArrow.point = point or "CENTER"
+        WoWEternityAddonDB.waypointArrow.x = xOfs or 0
+        WoWEternityAddonDB.waypointArrow.y = yOfs or 140
+    end)
+
+    -- Left click opens leveling tab
+    frame:SetScript("OnClick", function()
+        WoWEternityAddon:ToggleSettingsFrame("Leveling")
+    end)
+
+    -- Directional Arrow Texture
+    local arrowTex = frame:CreateTexture(nil, "ARTWORK")
+    arrowTex:SetSize(36, 36)
+    arrowTex:SetPoint("LEFT", 10, 0)
+    arrowTex:SetTexture("Interface\Minimap\Minimap_Arrow")
+    frame.arrowTex = arrowTex
+
+    -- Header / Step Title
+    local titleText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    titleText:SetPoint("TOPLEFT", arrowTex, "TOPRIGHT", 8, -6)
+    titleText:SetPoint("RIGHT", -8, 0)
+    titleText:SetJustifyH("LEFT")
+    titleText:SetWordWrap(false)
+    frame.titleText = titleText
+
+    -- Distance / Zone Readout
+    local distText = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    distText:SetPoint("BOTTOMLEFT", arrowTex, "BOTTOMRIGHT", 8, 8)
+    distText:SetPoint("RIGHT", -8, 0)
+    distText:SetJustifyH("LEFT")
+    distText:SetWordWrap(false)
+    frame.distText = distText
+
+    -- Throttled OnUpdate
+    local elapsedTotal = 0
+    frame:SetScript("OnUpdate", function(f, elapsed)
+        elapsedTotal = elapsedTotal + (elapsed or 0)
+        if elapsedTotal >= 0.05 then
+            elapsedTotal = 0
+            WoWEternityAddon:UpdateWaypointArrow()
+        end
+    end)
+
+    -- Initial visibility check
+    if db and db.shown == false then
+        frame:Hide()
+    else
+        frame:Show()
+    end
+
+    self:UpdateWaypointArrow()
+end
+
+function WoWEternityAddon:UpdateWaypointArrow()
+    local frame = self.waypointArrow
+    if not frame or not frame:IsShown() then return end
+
+    local faction = self.levelingFaction or "alliance"
+    local step = self:GetActiveLevelingStep(faction)
+
+    if not step then
+        frame.titleText:SetText("|cff00ff00All Steps Completed!|r")
+        frame.distText:SetText("|cffe6cc80Level 60 Reached|r")
+        if frame.arrowTex.SetRotation then frame.arrowTex:SetRotation(0) end
+        return
+    end
+
+    frame.titleText:SetText(string.format("|cffe6cc80#%d:|r %s", step.stepNumber, step.title))
+
+    -- Target Coordinates & MapID
+    local tx, ty, tMap = step.x, step.y, step.mapID
+    local px, py, playerMap
+
+    if C_Map and C_Map.GetBestMapForUnit then
+        playerMap = C_Map.GetBestMapForUnit("player")
+        if playerMap and C_Map.GetPlayerMapPosition then
+            local pos = C_Map.GetPlayerMapPosition(playerMap, "player")
+            if pos and pos.GetXY then
+                px, py = pos:GetXY()
+            end
+        end
+    end
+
+    if px and py and tx and ty and tx > 0 and ty > 0 and playerMap and tMap and playerMap == tMap then
+        -- In same zone: calculate dynamic bearing and distance
+        local dx = tx - px
+        local dy = ty - py
+        -- angle = atan2(targetX - px, -(targetY - py)) - GetPlayerFacing()
+        local angle = math.atan2(dx, -dy)
+        local facing = (GetPlayerFacing and GetPlayerFacing()) or 0
+        local bearing = angle - facing
+
+        if frame.arrowTex.SetRotation then
+            frame.arrowTex:SetRotation(bearing)
+        end
+
+        local mapDist = math.sqrt(dx * dx + dy * dy)
+        local distYards = mapDist * 1500 -- approx yards per zone map unit
+
+        if distYards < 15 then
+            frame.distText:SetText("|cff00ff00Arrived! (< 15 yds)|r")
+        elseif distYards >= 1000 then
+            frame.distText:SetText(string.format("|cff38bdf8%.1fk yds|r", distYards / 1000))
+        else
+            frame.distText:SetText(string.format("|cff38bdf8%d yds|r", math.floor(distYards)))
+        end
+    else
+        -- Different zone or no coords
+        if frame.arrowTex.SetRotation then frame.arrowTex:SetRotation(0) end
+        local loc = (step.location and step.location ~= "") and step.location or (step.dungeonName and step.dungeonName ~= "" and step.dungeonName) or "Different Zone"
+        frame.distText:SetText(string.format("|cff9ca3af%s|r", loc))
+    end
+end
+
+function WoWEternityAddon:ToggleWaypointArrow()
+    if not self.waypointArrow then
+        self:CreateWaypointArrow()
+    end
+    if not self.waypointArrow then return end
+
+    WoWEternityAddonDB = WoWEternityAddonDB or {}
+    WoWEternityAddonDB.waypointArrow = WoWEternityAddonDB.waypointArrow or {}
+
+    if self.waypointArrow:IsShown() then
+        self.waypointArrow:Hide()
+        WoWEternityAddonDB.waypointArrow.shown = false
+        self:Print("|cffe6cc80[WoW Eternity Addon]|r Waypoint arrow hidden.")
+    else
+        self.waypointArrow:Show()
+        WoWEternityAddonDB.waypointArrow.shown = true
+        self:UpdateWaypointArrow()
+        self:Print("|cffe6cc80[WoW Eternity Addon]|r Waypoint arrow shown.")
+    end
+
+    if self.levelingTab and self.levelingTab.arrowBtn then
+        self.levelingTab.arrowBtn:SetText(self.waypointArrow:IsShown() and "Arrow: |cff00ff00ON|r" or "Arrow: |cffff2020OFF|r")
+    end
+end
+
+function WoWEternityAddon:ResetLevelingGuide()
+    WoWEternityAddonCharDB = WoWEternityAddonCharDB or {}
+    WoWEternityAddonCharDB.cadberryCompleted = {}
+    self:Print("|cffe6cc80[WoW Eternity Addon]|r Cadberry Leveling Guide steps reset for this character.")
+    if self.UpdateLevelingTab then
+        self:UpdateLevelingTab()
+    end
+    if self.UpdateWaypointArrow then
+        self:UpdateWaypointArrow()
+    end
+    if self.UpdateWorldMapPins then
+        self:UpdateWorldMapPins()
+    end
+    if self.UpdateTrackerHUD then
+        self:UpdateTrackerHUD()
+    end
+end
+
+-- ============================================================================
+-- World Map Pin Overlay
+-- ============================================================================
+
+function WoWEternityAddon:InitWorldMapPins()
+    if not WorldMapFrame then return end
+    if self.worldMapPinsInitialized then return end
+    self.worldMapPinsInitialized = true
+    self.worldMapPins = {}
+
+    if WorldMapFrame.HookScript then
+        WorldMapFrame:HookScript("OnShow", function()
+            WoWEternityAddon:UpdateWorldMapPins()
+        end)
+    end
+
+    local mapEvents = CreateFrame and CreateFrame("Frame")
+    if mapEvents and mapEvents.RegisterEvent then
+        mapEvents:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+        mapEvents:RegisterEvent("ZONE_CHANGED")
+        mapEvents:SetScript("OnEvent", function()
+            if WorldMapFrame and WorldMapFrame:IsShown() then
+                WoWEternityAddon:UpdateWorldMapPins()
+            end
+        end)
+    end
+end
+
+function WoWEternityAddon:UpdateWorldMapPins()
+    if not WorldMapFrame or not WorldMapFrame:IsShown() then return end
+
+    local currentMapID = 0
+    if WorldMapFrame.GetMapID then
+        currentMapID = WorldMapFrame:GetMapID() or 0
+    elseif C_Map and C_Map.GetBestMapForUnit then
+        currentMapID = C_Map.GetBestMapForUnit("player") or 0
+    end
+
+    self.worldMapPins = self.worldMapPins or {}
+    for _, pin in ipairs(self.worldMapPins) do
+        pin:Hide()
+    end
+
+    if currentMapID == 0 then return end
+
+    local faction = self.levelingFaction or "alliance"
+    local guide = (faction == "horde") and self.CADBERRY_HORDE_GUIDE or self.CADBERRY_ALLIANCE_GUIDE
+    if not guide or not guide.steps then return end
+
+    local canvas = (WorldMapFrame.ScrollContainer and WorldMapFrame.ScrollContainer.Child)
+        or WorldMapButton
+        or WorldMapFrame
+
+    local canvasW, canvasH = 1002, 668
+    if canvas.GetSize then
+        local w, h = canvas:GetSize()
+        if w and w > 0 and h and h > 0 then
+            canvasW, canvasH = w, h
+        end
+    end
+
+    local completed = WoWEternityAddonCharDB and WoWEternityAddonCharDB.cadberryCompleted or {}
+    local pinIndex = 0
+
+    for _, step in ipairs(guide.steps) do
+        if step.mapID == currentMapID and step.x and step.x > 0 and step.y and step.y > 0 then
+            pinIndex = pinIndex + 1
+            local pin = self.worldMapPins[pinIndex]
+            if not pin then
+                pin = CreateFrame("Button", "WEA_MapPin_" .. pinIndex, canvas)
+                pin:SetSize(22, 22)
+
+                local icon = pin:CreateTexture(nil, "ARTWORK")
+                icon:SetAllPoints(pin)
+                pin.icon = icon
+
+                local numText = pin:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                numText:SetPoint("CENTER", 0, 0)
+                pin.numText = numText
+
+                pin:SetScript("OnEnter", function(p)
+                    if not GameTooltip or not p.step then return end
+                    GameTooltip:SetOwner(p, "ANCHOR_RIGHT")
+                    local s = p.step
+                    local isDone = WoWEternityAddonCharDB and WoWEternityAddonCharDB.cadberryCompleted and WoWEternityAddonCharDB.cadberryCompleted[s.id]
+                    GameTooltip:AddLine(string.format("|cffe6cc80[Cadberry Step %d]|r %s", s.stepNumber, s.title), 1, 1, 1)
+                    GameTooltip:AddLine(string.format("Level: |cff38bdf8%s|r  ·  Type: |cffffd100%s|r", s.levelBadge, s.type:upper()), 0.8, 0.8, 0.8)
+                    if s.location and s.location ~= "" then
+                        GameTooltip:AddLine(string.format("Location: |cff9ca3af%s|r", s.location), 0.7, 0.7, 0.7)
+                    end
+                    if s.note and s.note ~= "" then
+                        GameTooltip:AddLine(string.format("|cffe6cc80Note:|r %s", s.note), 1, 0.82, 0, true)
+                    end
+                    if isDone then
+                        GameTooltip:AddLine("|cff00ff00✔ Step Completed|r", 0, 1, 0)
+                    else
+                        GameTooltip:AddLine("|cffffcc00Incomplete (Click to view in guide)|r", 1, 0.8, 0)
+                    end
+                    GameTooltip:Show()
+                end)
+
+                pin:SetScript("OnLeave", function()
+                    if GameTooltip then GameTooltip:Hide() end
+                end)
+
+                pin:SetScript("OnClick", function()
+                    WoWEternityAddon:ToggleSettingsFrame("Leveling")
+                end)
+
+                self.worldMapPins[pinIndex] = pin
+            end
+
+            pin.step = step
+            local isDone = completed[step.id]
+            if isDone then
+                pin.icon:SetTexture("Interface\RaidFrame\ReadyCheck-Ready")
+                pin.numText:SetText("")
+            else
+                pin.icon:SetTexture("Interface\Minimap\Tracking\None")
+                pin.numText:SetText(tostring(step.stepNumber))
+            end
+
+            pin:ClearAllPoints()
+            pin:SetPoint("CENTER", canvas, "TOPLEFT", step.x * canvasW, -step.y * canvasH)
+            pin:Show()
+        end
+    end
+end
+
+-- ============================================================================
+-- Questie-Style On-Screen Tracker HUD (Multi-Step Focused)
+-- ============================================================================
+
+function WoWEternityAddon:CreateTrackerHUD()
+    if not CreateFrame then return end
+    if self.trackerFrame then return end
+
+    local frame = CreateFrame("Button", "WoWEternityAddonTrackerFrame", UIParent, GetBackdropTemplate())
+    self.trackerFrame = frame
+
+    frame:SetClampedToScreen(true)
+    frame:SetFrameStrata("MEDIUM")
+    frame:SetFrameLevel(0)
+    frame:EnableMouse(true)
+    frame:SetMovable(true)
+    frame:RegisterForDrag("LeftButton")
+
+    -- Load saved tracker settings
+    local db = WoWEternityAddonDB and WoWEternityAddonDB.tracker
+    local pt = (db and db.point) or "TOPRIGHT"
+    local x = (db and db.x) or -40
+    local y = (db and db.y) or -220
+    local width = (db and db.width) or 280
+    frame:SetSize(width, 160)
+    frame:SetPoint(pt, UIParent, pt, x, y)
+
+    -- Questie-style Semi-Transparent Dark Tooltip Backdrop
+    ApplyBackdrop(frame, 0.05, 0.05, 0.08, 0.85, 0.35, 0.38, 0.45, 0.90)
+
+    -- Draggable
+    frame:SetScript("OnDragStart", function(f)
+        if not (WoWEternityAddonDB and WoWEternityAddonDB.tracker and WoWEternityAddonDB.tracker.locked) then
+            f:StartMoving()
+        end
+    end)
+    frame:SetScript("OnDragStop", function(f)
+        f:StopMovingOrSizing()
+        local point, _, _, xOfs, yOfs = f:GetPoint()
+        WoWEternityAddonDB = WoWEternityAddonDB or {}
+        WoWEternityAddonDB.tracker = WoWEternityAddonDB.tracker or {}
+        WoWEternityAddonDB.tracker.point = point or "TOPRIGHT"
+        WoWEternityAddonDB.tracker.x = xOfs or -40
+        WoWEternityAddonDB.tracker.y = yOfs or -220
+    end)
+
+    -- Header Bar
+    local headerBar = CreateFrame("Button", nil, frame)
+    headerBar:SetPoint("TOPLEFT", 4, -4)
+    headerBar:SetPoint("TOPRIGHT", -4, -4)
+    headerBar:SetHeight(22)
+    headerBar:EnableMouse(true)
+    headerBar:RegisterForDrag("LeftButton")
+    headerBar:SetScript("OnDragStart", function() frame:StartMoving() end)
+    headerBar:SetScript("OnDragStop", function()
+        frame:StopMovingOrSizing()
+        local point, _, _, xOfs, yOfs = frame:GetPoint()
+        WoWEternityAddonDB = WoWEternityAddonDB or {}
+        WoWEternityAddonDB.tracker = WoWEternityAddonDB.tracker or {}
+        WoWEternityAddonDB.tracker.point = point or "TOPRIGHT"
+        WoWEternityAddonDB.tracker.x = xOfs or -40
+        WoWEternityAddonDB.tracker.y = yOfs or -220
+    end)
+    frame.headerBar = headerBar
+
+    -- Icon (Questie / Book style)
+    local iconBtn = CreateFrame("Button", nil, headerBar)
+    iconBtn:SetSize(16, 16)
+    iconBtn:SetPoint("LEFT", 4, 0)
+    local iconTex = iconBtn:CreateTexture(nil, "ARTWORK")
+    iconTex:SetAllPoints(iconBtn)
+    iconTex:SetTexture("Interface\\Icons\\INV_Misc_Book_09")
+    iconBtn.tex = iconTex
+    iconBtn:SetScript("OnEnter", function(btn)
+        if not GameTooltip then return end
+        GameTooltip:SetOwner(btn, "ANCHOR_RIGHT")
+        GameTooltip:AddLine("|cffe6cc80WoW Eternity Quest Tracker|r")
+        GameTooltip:AddLine("|cffffffffLeft-Click:|r Open Cadberry Leveling Guide", 0.8, 0.8, 0.8)
+        GameTooltip:AddLine("|cffffffffRight-Click:|r Toggle Waypoint Navigation Arrow", 0.8, 0.8, 0.8)
+        GameTooltip:Show()
+    end)
+    iconBtn:SetScript("OnLeave", function()
+        if GameTooltip then GameTooltip:Hide() end
+    end)
+    iconBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    iconBtn:SetScript("OnClick", function(_, mouseBtn)
+        if mouseBtn == "RightButton" then
+            WoWEternityAddon:ToggleWaypointArrow()
+        else
+            WoWEternityAddon:ToggleSettingsFrame("Leveling")
+        end
+    end)
+    frame.iconBtn = iconBtn
+
+    -- Zone / Guide Title in Header
+    local zoneTitle = headerBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    zoneTitle:SetPoint("LEFT", iconBtn, "RIGHT", 6, 0)
+    zoneTitle:SetPoint("RIGHT", -26, 0)
+    zoneTitle:SetJustifyH("LEFT")
+    zoneTitle:SetWordWrap(false)
+    zoneTitle:SetText("|cffe6cc80Leveling Guide|r")
+    frame.zoneTitle = zoneTitle
+
+    -- Collapse / Expand Button [-] / [+]
+    local collapseBtn = CreateFrame("Button", nil, headerBar, GetBackdropTemplate())
+    collapseBtn:SetSize(16, 16)
+    collapseBtn:SetPoint("RIGHT", -4, 0)
+    ApplyBackdrop(collapseBtn, 0.08, 0.10, 0.16, 0.9, 0.28, 0.32, 0.45, 0.9)
+    local collapseText = collapseBtn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    collapseText:SetPoint("CENTER", 0, 0)
+    collapseText:SetText("[-]")
+    collapseBtn.text = collapseText
+    collapseBtn:SetScript("OnClick", function()
+        WoWEternityAddonDB = WoWEternityAddonDB or {}
+        WoWEternityAddonDB.tracker = WoWEternityAddonDB.tracker or {}
+        WoWEternityAddonDB.tracker.collapsed = not WoWEternityAddonDB.tracker.collapsed
+        WoWEternityAddon:UpdateTrackerHUD()
+    end)
+    frame.collapseBtn = collapseBtn
+
+    -- Content Container (Collapsible)
+    local contentFrame = CreateFrame("Frame", nil, frame)
+    contentFrame:SetPoint("TOPLEFT", 8, -26)
+    contentFrame:SetPoint("BOTTOMRIGHT", -8, 6)
+    frame.contentFrame = contentFrame
+
+    -- === Active Step Section ===
+    local activeContainer = CreateFrame("Frame", nil, contentFrame)
+    activeContainer:SetPoint("TOPLEFT", 0, 0)
+    activeContainer:SetPoint("TOPRIGHT", 0, 0)
+    activeContainer:SetHeight(80)
+    frame.activeContainer = activeContainer
+
+    -- Active Step Title (Gold with cyan level badge)
+    local activeTitle = activeContainer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    activeTitle:SetPoint("TOPLEFT", 0, -2)
+    activeTitle:SetPoint("TOPRIGHT", 0, -2)
+    activeTitle:SetJustifyH("LEFT")
+    activeTitle:SetWordWrap(true)
+    frame.activeTitle = activeTitle
+
+    -- Active Step Subline (Location & Real-time Distance)
+    local activeSub = activeContainer:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    activeSub:SetPoint("TOPLEFT", activeTitle, "BOTTOMLEFT", 0, -2)
+    activeSub:SetPoint("TOPRIGHT", 0, -2)
+    activeSub:SetJustifyH("LEFT")
+    activeSub:SetWordWrap(false)
+    frame.activeSub = activeSub
+
+    -- Active Step Interactive Checkbox
+    local activeCB = CreateFrame("CheckButton", "WEA_TrackerActiveCB", activeContainer, "UICheckButtonTemplate")
+    activeCB:SetSize(18, 18)
+    activeCB:SetPoint("TOPLEFT", activeSub, "BOTTOMLEFT", 0, -4)
+    activeCB:SetScript("OnClick", function(cb)
+        local faction = WoWEternityAddon.levelingFaction or "alliance"
+        local step = WoWEternityAddon:GetActiveLevelingStep(faction)
+        if step then
+            WoWEternityAddonCharDB = WoWEternityAddonCharDB or {}
+            WoWEternityAddonCharDB.cadberryCompleted = WoWEternityAddonCharDB.cadberryCompleted or {}
+            local isChecked = cb:GetChecked()
+            WoWEternityAddonCharDB.cadberryCompleted[step.id] = isChecked
+            if PlaySound and SOUNDKIT and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON then
+                pcall(PlaySound, SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+            end
+            if isChecked then
+                WoWEternityAddon:Print(string.format("|cffe6cc80[WoW Eternity Addon]|r Completed Step #%d: |cffffd100%s|r", step.stepNumber, step.title))
+            end
+            if WoWEternityAddon.UpdateLevelingTab then WoWEternityAddon:UpdateLevelingTab() end
+            if WoWEternityAddon.UpdateWaypointArrow then WoWEternityAddon:UpdateWaypointArrow() end
+            if WoWEternityAddon.UpdateWorldMapPins then WoWEternityAddon:UpdateWorldMapPins() end
+            WoWEternityAddon:UpdateTrackerHUD()
+        end
+    end)
+    frame.activeCB = activeCB
+
+    local activeCBText = activeContainer:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    activeCBText:SetPoint("LEFT", activeCB, "RIGHT", 4, 0)
+    activeCBText:SetPoint("RIGHT", 0, 0)
+    activeCBText:SetJustifyH("LEFT")
+    activeCBText:SetWordWrap(false)
+    activeCBText:SetText("|cffd1d5dbMark Step Complete|r")
+    frame.activeCBText = activeCBText
+
+    -- Objectives / Details (Bullet 1 & 2)
+    local activeObj1 = activeContainer:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    activeObj1:SetPoint("TOPLEFT", activeCB, "BOTTOMLEFT", 4, -3)
+    activeObj1:SetPoint("TOPRIGHT", 0, -3)
+    activeObj1:SetJustifyH("LEFT")
+    activeObj1:SetWordWrap(true)
+    frame.activeObj1 = activeObj1
+
+    local activeObj2 = activeContainer:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    activeObj2:SetPoint("TOPLEFT", activeObj1, "BOTTOMLEFT", 0, -2)
+    activeObj2:SetPoint("TOPRIGHT", 0, -2)
+    activeObj2:SetJustifyH("LEFT")
+    activeObj2:SetWordWrap(true)
+    frame.activeObj2 = activeObj2
+
+    -- Tactical Note
+    local activeNote = activeContainer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    activeNote:SetPoint("TOPLEFT", activeObj2, "BOTTOMLEFT", 0, -2)
+    activeNote:SetPoint("TOPRIGHT", 0, -2)
+    activeNote:SetJustifyH("LEFT")
+    activeNote:SetWordWrap(true)
+    frame.activeNote = activeNote
+
+    -- Clicking active step opens leveling tab
+    activeContainer:EnableMouse(true)
+    activeContainer:SetScript("OnMouseDown", function()
+        WoWEternityAddon:ToggleSettingsFrame("Leveling")
+    end)
+
+    -- === Upcoming Steps Section ===
+    local upcomingContainer = CreateFrame("Frame", nil, contentFrame)
+    upcomingContainer:SetPoint("TOPLEFT", activeContainer, "BOTTOMLEFT", 0, -6)
+    upcomingContainer:SetPoint("TOPRIGHT", activeContainer, "BOTTOMRIGHT", 0, -6)
+    upcomingContainer:SetHeight(48)
+    frame.upcomingContainer = upcomingContainer
+
+    local upcomingDivider = upcomingContainer:CreateTexture(nil, "ARTWORK")
+    upcomingDivider:SetPoint("TOPLEFT", 0, 0)
+    upcomingDivider:SetPoint("TOPRIGHT", 0, 0)
+    upcomingDivider:SetHeight(1)
+    upcomingDivider:SetColorTexture(0.25, 0.28, 0.35, 0.6)
+    frame.upcomingDivider = upcomingDivider
+
+    local upcomingHeader = upcomingContainer:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    upcomingHeader:SetPoint("TOPLEFT", 0, -4)
+    upcomingHeader:SetText("|cff6b7280UPCOMING STEPS|r")
+    frame.upcomingHeader = upcomingHeader
+
+    local upcomingBtn1 = CreateFrame("Button", nil, upcomingContainer)
+    upcomingBtn1:SetPoint("TOPLEFT", 0, -18)
+    upcomingBtn1:SetPoint("TOPRIGHT", 0, -18)
+    upcomingBtn1:SetHeight(16)
+    local upcomingText1 = upcomingBtn1:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    upcomingText1:SetAllPoints(upcomingBtn1)
+    upcomingText1:SetJustifyH("LEFT")
+    upcomingText1:SetWordWrap(false)
+    upcomingBtn1.text = upcomingText1
+    upcomingBtn1:SetScript("OnClick", function()
+        WoWEternityAddon:ToggleSettingsFrame("Leveling")
+    end)
+    frame.upcomingBtn1 = upcomingBtn1
+
+    local upcomingBtn2 = CreateFrame("Button", nil, upcomingContainer)
+    upcomingBtn2:SetPoint("TOPLEFT", upcomingBtn1, "BOTTOMLEFT", 0, -2)
+    upcomingBtn2:SetPoint("TOPRIGHT", upcomingBtn1, "BOTTOMRIGHT", 0, -2)
+    upcomingBtn2:SetHeight(16)
+    local upcomingText2 = upcomingBtn2:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    upcomingText2:SetAllPoints(upcomingBtn2)
+    upcomingText2:SetJustifyH("LEFT")
+    upcomingText2:SetWordWrap(false)
+    upcomingBtn2.text = upcomingText2
+    upcomingBtn2:SetScript("OnClick", function()
+        WoWEternityAddon:ToggleSettingsFrame("Leveling")
+    end)
+    frame.upcomingBtn2 = upcomingBtn2
+
+    -- Throttled OnUpdate for live distance & coords
+    local trackerElapsed = 0
+    frame:SetScript("OnUpdate", function(_, elapsed)
+        trackerElapsed = trackerElapsed + (elapsed or 0)
+        if trackerElapsed >= 0.25 then
+            trackerElapsed = 0
+            if frame.contentFrame:IsShown() and frame.currentStep then
+                local distYards, inSameZone = WoWEternityAddon:GetDistanceToStep(frame.currentStep)
+                if distYards and inSameZone then
+                    local distStr
+                    if distYards < 15 then
+                        distStr = "|cff00ff00Arrived! (< 15 yds)|r"
+                    elseif distYards >= 1000 then
+                        distStr = string.format("|cff38bdf8%.1fk yds|r", distYards / 1000)
+                    else
+                        distStr = string.format("|cff38bdf8%d yds|r", math.floor(distYards))
+                    end
+                    local loc = (frame.currentStep.location and frame.currentStep.location ~= "") and frame.currentStep.location or (frame.currentStep.dungeonName and frame.currentStep.dungeonName ~= "" and frame.currentStep.dungeonName) or "Current Zone"
+                    frame.activeSub:SetText(string.format("|cff9ca3af%s|r  ·  %s", loc, distStr))
+                end
+            end
+        end
+    end)
+
+    -- Initial visibility check
+    if db and db.shown == false then
+        frame:Hide()
+    else
+        frame:Show()
+    end
+
+    self:UpdateTrackerHUD()
+end
+
+function WoWEternityAddon:UpdateTrackerHUD()
+    local frame = self.trackerFrame
+    if not frame then return end
+
+    local db = WoWEternityAddonDB and WoWEternityAddonDB.tracker
+    local isCollapsed = db and db.collapsed
+
+    if isCollapsed then
+        frame.collapseBtn.text:SetText("[+]")
+        frame.contentFrame:Hide()
+        frame:SetHeight(28)
+        return
+    end
+
+    frame.collapseBtn.text:SetText("[-]")
+    frame.contentFrame:Show()
+
+    local faction = self.levelingFaction or "alliance"
+    local activeStep = self:GetActiveLevelingStep(faction)
+    frame.currentStep = activeStep
+
+    if not activeStep then
+        -- All steps finished
+        frame.zoneTitle:SetText("|cffe6cc80All Steps Complete!|r")
+        frame.activeTitle:SetText("|cff00ff00✔ Level 60 Milestone Reached!|r")
+        frame.activeSub:SetText("|cffe6cc80Ready for Endgame Raids & Pre-BiS|r")
+        frame.activeCB:Hide()
+        frame.activeCBText:Hide()
+        frame.activeObj1:Hide()
+        frame.activeObj2:Hide()
+        frame.activeNote:Hide()
+        frame.upcomingContainer:Hide()
+        frame:SetHeight(75)
+        return
+    end
+
+    -- Zone in header
+    local zone = (activeStep.location and activeStep.location ~= "" and activeStep.location:match("^([^,(/]+)")) or (activeStep.dungeonName and activeStep.dungeonName ~= "" and activeStep.dungeonName) or "Cadberry Guide"
+    frame.zoneTitle:SetText(string.format("|cffe6cc80%s|r", zone:match("^%s*(.-)%s*$")))
+
+    -- Active Step Title: [Badge] Title
+    frame.activeTitle:SetText(string.format("|cff38bdf8[%s]|r |cffffd100#%d: %s|r", activeStep.levelBadge, activeStep.stepNumber, activeStep.title))
+
+    -- Distance & Subline
+    local distYards, inSameZone = self:GetDistanceToStep(activeStep)
+    local distStr = ""
+    if distYards and inSameZone then
+        if distYards < 15 then
+            distStr = "  ·  |cff00ff00Arrived! (< 15 yds)|r"
+        elseif distYards >= 1000 then
+            distStr = string.format("  ·  |cff38bdf8%.1fk yds|r", distYards / 1000)
+        else
+            distStr = string.format("  ·  |cff38bdf8%d yds|r", math.floor(distYards))
+        end
+    elseif activeStep.location and activeStep.location ~= "" then
+        distStr = ""
+    end
+    local loc = (activeStep.location and activeStep.location ~= "") and activeStep.location or (activeStep.dungeonName and activeStep.dungeonName ~= "" and activeStep.dungeonName) or "Cadberry Route"
+    frame.activeSub:SetText(string.format("|cff9ca3af%s|r%s", loc, distStr))
+
+    -- Checkbox
+    frame.activeCB:Show()
+    frame.activeCBText:Show()
+    local isDone = WoWEternityAddonCharDB and WoWEternityAddonCharDB.cadberryCompleted and WoWEternityAddonCharDB.cadberryCompleted[activeStep.id]
+    frame.activeCB:SetChecked(isDone == true)
+
+    -- Objectives / Details
+    local contentH = 46
+    local details = activeStep.details or {}
+    if #details >= 1 then
+        frame.activeObj1:SetText(string.format("|cff93c5fd•|r %s", details[1]))
+        frame.activeObj1:Show()
+        contentH = contentH + 16
+    else
+        frame.activeObj1:Hide()
+    end
+
+    if #details >= 2 then
+        frame.activeObj2:SetText(string.format("|cff93c5fd•|r %s", details[2]))
+        frame.activeObj2:Show()
+        contentH = contentH + 16
+    else
+        frame.activeObj2:Hide()
+    end
+
+    -- Tactical Note
+    if activeStep.note and activeStep.note ~= "" then
+        frame.activeNote:SetText(string.format("|cffe6cc80Note:|r %s", activeStep.note))
+        frame.activeNote:Show()
+        contentH = contentH + 16
+    else
+        frame.activeNote:Hide()
+    end
+
+    frame.activeContainer:SetHeight(contentH + 20)
+
+    -- Upcoming Steps
+    local upcoming = self:GetUpcomingLevelingSteps(faction, 2)
+    if #upcoming > 0 then
+        frame.upcomingContainer:Show()
+        frame.upcomingContainer:ClearAllPoints()
+        frame.upcomingContainer:SetPoint("TOPLEFT", frame.activeContainer, "BOTTOMLEFT", 0, -4)
+        frame.upcomingContainer:SetPoint("TOPRIGHT", frame.activeContainer, "BOTTOMRIGHT", 0, -4)
+
+        -- Upcoming 1
+        local u1 = upcoming[1]
+        local u1Loc = (u1.location and u1.location ~= "" and u1.location:match("^([^,(/]+)")) or (u1.dungeonName and u1.dungeonName ~= "" and u1.dungeonName) or ""
+        u1Loc = u1Loc:match("^%s*(.-)%s*$")
+        frame.upcomingBtn1.text:SetText(string.format("|cff38bdf8[%s]|r |cffd1d5db#%d %s|r |cff6b7280(%s)|r", u1.levelBadge, u1.stepNumber, u1.title, u1Loc))
+        frame.upcomingBtn1:Show()
+
+        if #upcoming >= 2 then
+            local u2 = upcoming[2]
+            local u2Loc = (u2.location and u2.location ~= "" and u2.location:match("^([^,(/]+)")) or (u2.dungeonName and u2.dungeonName ~= "" and u2.dungeonName) or ""
+            u2Loc = u2Loc:match("^%s*(.-)%s*$")
+            frame.upcomingBtn2.text:SetText(string.format("|cff38bdf8[%s]|r |cffd1d5db#%d %s|r |cff6b7280(%s)|r", u2.levelBadge, u2.stepNumber, u2.title, u2Loc))
+            frame.upcomingBtn2:Show()
+            frame.upcomingContainer:SetHeight(48)
+            frame:SetHeight(contentH + 20 + 54 + 32)
+        else
+            frame.upcomingBtn2:Hide()
+            frame.upcomingContainer:SetHeight(32)
+            frame:SetHeight(contentH + 20 + 38 + 32)
+        end
+    else
+        frame.upcomingContainer:Hide()
+        frame:SetHeight(contentH + 20 + 34)
+    end
+end
+
+function WoWEternityAddon:ToggleTrackerHUD()
+    if not self.trackerFrame then
+        self:CreateTrackerHUD()
+    end
+    if not self.trackerFrame then return end
+
+    WoWEternityAddonDB = WoWEternityAddonDB or {}
+    WoWEternityAddonDB.tracker = WoWEternityAddonDB.tracker or {}
+
+    if self.trackerFrame:IsShown() then
+        self.trackerFrame:Hide()
+        WoWEternityAddonDB.tracker.shown = false
+        self:Print("|cffe6cc80[WoW Eternity Addon]|r Quest Tracker HUD hidden.")
+    else
+        self.trackerFrame:Show()
+        WoWEternityAddonDB.tracker.shown = true
+        self:UpdateTrackerHUD()
+        self:Print("|cffe6cc80[WoW Eternity Addon]|r Quest Tracker HUD shown.")
+    end
+
+    if self.levelingTab and self.levelingTab.trackerBtn then
+        self.levelingTab.trackerBtn:SetText(self.trackerFrame:IsShown() and "Tracker: |cff00ff00ON|r" or "Tracker: |cffff2020OFF|r")
+    end
 end
 
 function WoWEternityAddon:CreateMainFrame()
@@ -2487,7 +5072,7 @@ function WoWEternityAddon:CreateMainFrame()
     local frame = CreateFrame("Frame", "WoWEternityAddonMainFrame", UIParent, GetBackdropTemplate())
     self.mainFrame = frame
 
-    frame:SetSize(520, 480)
+    frame:SetSize(640, 520)
     frame:SetPoint("CENTER")
     frame:SetMovable(true)
     frame:EnableMouse(true)
@@ -2527,8 +5112,8 @@ function WoWEternityAddon:CreateMainFrame()
 
     for i, t in ipairs(TABS) do
         local btn = CreateFrame("Button", nil, tabArea, GetBackdropTemplate())
-        btn:SetSize(95, 26)
-        btn:SetPoint("LEFT", (i - 1) * 99, 0)
+        btn:SetSize(98, 26)
+        btn:SetPoint("LEFT", (i - 1) * 103, 0)
         ApplyBackdrop(btn, 0.06, 0.08, 0.12, 0.85, 0.18, 0.22, 0.32, 0.8)
 
         local btnText = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -2550,11 +5135,12 @@ function WoWEternityAddon:CreateMainFrame()
     contentArea:SetPoint("BOTTOMRIGHT", -12, 12)
     self.contentArea = contentArea
 
-    -- Create all 5 Tab Frames inside contentArea
+    -- Create all 6 Tab Frames inside contentArea
     self:CreateAccountTab(contentArea)
     self:CreateCharTab(contentArea)
     self:CreateGearPlannerTab(contentArea)
     self:CreateBisListsTab(contentArea)
+    self:CreateLevelingTab(contentArea)
     self:CreateSettingsTab(contentArea)
 
     -- Default select Char tab
@@ -2573,6 +5159,8 @@ function WoWEternityAddon:UpdateMainFrameView(tabId)
         self:UpdateGearPlannerTab()
     elseif target == "BIS-Lists" then
         self:UpdateBisListsTab()
+    elseif target == "Leveling" then
+        self:UpdateLevelingTab()
     elseif target == "Settings" then
         self:UpdateSettingsTab()
     end
@@ -3994,6 +6582,27 @@ function WoWEternityAddon:OnInitialize()
     if WoWEternityAddonDB.autoExport == nil then WoWEternityAddonDB.autoExport = true end
     if WoWEternityAddonDB.verboseLogs == nil then WoWEternityAddonDB.verboseLogs = false end
 
+    -- Cadberry Leveling Guide & Navigation Arrow Persistence
+    WoWEternityAddonCharDB = WoWEternityAddonCharDB or {}
+    WoWEternityAddonCharDB.cadberryCompleted = WoWEternityAddonCharDB.cadberryCompleted or {}
+
+    WoWEternityAddonDB.waypointArrow = WoWEternityAddonDB.waypointArrow or {
+        shown = true,
+        locked = false,
+        point = "CENTER",
+        x = 0,
+        y = 140,
+    }
+
+    WoWEternityAddonDB.tracker = WoWEternityAddonDB.tracker or {
+        shown = true,
+        collapsed = false,
+        point = "TOPRIGHT",
+        x = -40,
+        y = -220,
+        width = 280,
+    }
+
     self:InitAddonComms()
     self:StartProximityScanner()
 
@@ -4017,9 +6626,14 @@ function WoWEternityAddon:OnInitialize()
         self:Print(string.format("|cffff2020[WoW Eternity Addon] SECURITY ALERT: %d tampered player record(s) detected! Manipulated stats have been suppressed.|r", tamperedPlayerCount))
     end
 
-    -- Create Minimap Button
+    -- Create Minimap Button & Waypoint Navigation & Tracker HUD
     if CreateFrame and Minimap then
         self:CreateMinimapButton()
+    end
+    if CreateFrame then
+        self:CreateWaypointArrow()
+        self:InitWorldMapPins()
+        self:CreateTrackerHUD()
     end
 end
 
@@ -4253,6 +6867,9 @@ function WoWEternityAddon:HandleSlashCommand(msg)
         self:Print("  |cffffd100/wea count|r - Show count of synced BiS items")
         self:Print("  |cffffd100/wea minimap|r - Toggle minimap button visibility")
         self:Print("  |cffffd100/wea inspect|r - Inspect currently targeted player character")
+        self:Print("  |cffffd100/wea leveling|r - Open Cadberry Leveling Guide")
+        self:Print("  |cffffd100/wea arrow|r - Toggle waypoint navigation arrow")
+        self:Print("  |cffffd100/wea resetguide|r - Reset leveling guide completed steps")
     elseif cmd == "sync" or cmd == "export" then
         self:ExportCharacter()
     elseif cmd == "inspect" then
@@ -4299,6 +6916,14 @@ function WoWEternityAddon:HandleSlashCommand(msg)
         self:ToggleSettingsFrame("BIS-Lists")
     elseif cmd == "settings" or cmd == "config" or cmd == "options" then
         self:ToggleSettingsFrame("Settings")
+    elseif cmd == "leveling" or cmd == "guide" then
+        self:ToggleSettingsFrame("Leveling")
+    elseif cmd == "tracker" or cmd == "hud" then
+        self:ToggleTrackerHUD()
+    elseif cmd == "arrow" then
+        self:ToggleWaypointArrow()
+    elseif cmd == "resetguide" or cmd == "resetleveling" then
+        self:ResetLevelingGuide()
     else
         self:ToggleSettingsFrame()
     end

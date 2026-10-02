@@ -31,8 +31,9 @@ jobs:
 
       - name: Validate TOC Metadata
         run: |
-          grep -E "## Interface:\s*11506" "WoW Eternity Addon.toc"
+          grep -E "## Interface:\s*16001" "WoW Eternity Addon.toc"
           grep -E "## Title:\s*WoW Eternity Addon" "WoW Eternity Addon.toc"
+          grep -E "## Version:\s*1\.2\.0" "WoW Eternity Addon.toc"
           grep -E "## SavedVariables:\s*WoWEternityAddonDB" "WoW Eternity Addon.toc"
           grep -E "WoWEternityAddon\.lua" "WoW Eternity Addon.toc"
 
