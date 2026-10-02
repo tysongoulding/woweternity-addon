@@ -3733,6 +3733,15 @@ function WoWEternityAddon:CreateSettingsTab(parent)
     end)
     tab.cbSkipOutleveled:SetPoint("TOPLEFT", 14, -244)
 
+    tab.cbMapOverlays = CreateCheckbox(prefCard, "WoWEternityAddonOptMapOverlays", "Show Map Zone Level Overlays", true, function(checked)
+        WoWEternityAddonDB = WoWEternityAddonDB or {}
+        WoWEternityAddonDB.showMapOverlays = checked
+        if WoWEternityAddon.UpdateMapZoneOverlays then
+            WoWEternityAddon:UpdateMapZoneOverlays()
+        end
+    end)
+    tab.cbMapOverlays:SetPoint("TOPLEFT", 330, -214)
+
     local dbPath = prefCard:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     dbPath:SetPoint("TOPLEFT", 14, -276)
     dbPath:SetText("SavedVariables: |cff9ca3afWTF/Account/<Account>/SavedVariables/WoW Eternity Addon.lua|r")
@@ -3752,9 +3761,9 @@ function WoWEternityAddon:CreateSettingsTab(parent)
     ref:SetPoint("TOPRIGHT", -12, -26)
     ref:SetJustifyH("LEFT")
     ref:SetText(
-        "|cffffd100/wea|r - Toggle main panel | |cffffd100/wea leveling|r - Open Guide | |cffffd100/wea synclevel|r - Dynamic Level Sync\n" ..
-        "|cffffd100/wea tracker|r - Toggle Questie HUD | |cffffd100/wea arrow|r - Waypoint Arrow | |cffffd100/wea resetguide|r - Reset Steps\n" ..
-        "|cffffd100/wea sync|r - Export Character | |cffffd100/wea spec <name>|r - BiS Spec | |cffffd100/wea minimap|r - Toggle Icon\n" ..
+        "|cffffd100/wea|r - Toggle main panel | |cffffd100/wea leveling|r - Open Guide | |cffffd100/wea map|r - Map Overlays\n" ..
+        "|cffffd100/wea tracker|r - Toggle Questie HUD | |cffffd100/wea arrow|r - Waypoint Arrow | |cffffd100/wea synclevel|r - Level Sync\n" ..
+        "|cffffd100/wea sync|r - Export Character | |cffffd100/wea spec <name>|r - BiS Spec | |cffffd100/wea resetguide|r - Reset Steps\n" ..
         "|cffffd100/wea verify|r - Verify Adler-32 integrity & cryptographic player signatures"
     )
 
@@ -3768,9 +3777,13 @@ function WoWEternityAddon:CreateSettingsTab(parent)
         WoWEternityAddonDB.verboseLogs = false
         WoWEternityAddonDB.autoAdvanceGuide = true
         WoWEternityAddonDB.skipOutleveled = true
+        WoWEternityAddonDB.showMapOverlays = true
         WoWEternityAddonDB.minimapPos = 45
         WoWEternityAddon:UpdateSettingsTab()
         WoWEternityAddon:UpdateMinimapVisibility()
+        if WoWEternityAddon.UpdateMapZoneOverlays then
+            WoWEternityAddon:UpdateMapZoneOverlays()
+        end
         if WoWEternityAddon.RepositionMinimapButton then
             WoWEternityAddon:RepositionMinimapButton()
         end
@@ -3809,6 +3822,9 @@ function WoWEternityAddon:UpdateSettingsTab()
     end
     if tab.cbSkipOutleveled then
         tab.cbSkipOutleveled:SetChecked(WoWEternityAddonDB and WoWEternityAddonDB.skipOutleveled ~= false)
+    end
+    if tab.cbMapOverlays then
+        tab.cbMapOverlays:SetChecked(WoWEternityAddonDB and WoWEternityAddonDB.showMapOverlays ~= false)
     end
 end
 
@@ -4805,9 +4821,397 @@ function WoWEternityAddon:UpdateWorldMapPins()
 
             pin:ClearAllPoints()
             pin:SetPoint("CENTER", canvas, "TOPLEFT", step.x * canvasW, -step.y * canvasH)
-            pin:Show()
         end
     end
+
+    if self.UpdateMapZoneOverlays then
+        self:UpdateMapZoneOverlays()
+    end
+end
+
+-- ============================================================================
+-- World Map Zone Level Range Overlay (Top-Right Zone Badge & Continent Overlays)
+-- ============================================================================
+
+local ZONE_LEVEL_RANGES = {
+    -- Kalimdor (18 zones)
+    { name = "Teldrassil", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.28, y = 0.10, uiMapID = 1438, faction = "Alliance" },
+    { name = "Darkshore", continent = "kalimdor", minLvl = 10, maxLvl = 20, x = 0.38, y = 0.22, uiMapID = 1439, faction = "Alliance" },
+    { name = "Moonglade", continent = "kalimdor", minLvl = 1, maxLvl = 60, x = 0.54, y = 0.20, uiMapID = 1450, faction = "Neutral" },
+    { name = "Winterspring", continent = "kalimdor", minLvl = 55, maxLvl = 60, x = 0.56, y = 0.29, uiMapID = 1452, faction = "Contested" },
+    { name = "Felwood", continent = "kalimdor", minLvl = 48, maxLvl = 55, x = 0.44, y = 0.31, uiMapID = 1448, faction = "Contested" },
+    { name = "Ashenvale", continent = "kalimdor", minLvl = 18, maxLvl = 30, x = 0.42, y = 0.39, uiMapID = 1440, faction = "Contested", dungeons = { "Blackfathom Deeps (24–32)" } },
+    { name = "Azshara", continent = "kalimdor", minLvl = 45, maxLvl = 55, x = 0.58, y = 0.38, uiMapID = 1447, faction = "Contested" },
+    { name = "Durotar", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.54, y = 0.50, uiMapID = 1411, faction = "Horde", dungeons = { "Ragefire Chasm (13–18)" } },
+    { name = "The Barrens", continent = "kalimdor", minLvl = 10, maxLvl = 30, x = 0.44, y = 0.53, uiMapID = 1413, faction = "Horde", dungeons = { "Wailing Caverns (17–24)", "Razorfen Kraul (29–38)", "Razorfen Downs (37–46)" } },
+    { name = "Mulgore", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.37, y = 0.57, uiMapID = 1412, faction = "Horde" },
+    { name = "Stonetalon Mountains", continent = "kalimdor", minLvl = 15, maxLvl = 25, x = 0.35, y = 0.45, uiMapID = 1442, faction = "Contested" },
+    { name = "Desolace", continent = "kalimdor", minLvl = 30, maxLvl = 40, x = 0.30, y = 0.58, uiMapID = 1443, faction = "Contested", dungeons = { "Maraudon (46–55)" } },
+    { name = "Dustwallow Marsh", continent = "kalimdor", minLvl = 35, maxLvl = 45, x = 0.54, y = 0.65, uiMapID = 1445, faction = "Contested", dungeons = { "Onyxia's Lair (60+)" } },
+    { name = "Thousand Needles", continent = "kalimdor", minLvl = 25, maxLvl = 35, x = 0.46, y = 0.69, uiMapID = 1441, faction = "Contested" },
+    { name = "Feralas", continent = "kalimdor", minLvl = 40, maxLvl = 50, x = 0.33, y = 0.70, uiMapID = 1444, faction = "Contested", dungeons = { "Dire Maul (55–60)" } },
+    { name = "Tanaris", continent = "kalimdor", minLvl = 40, maxLvl = 50, x = 0.51, y = 0.81, uiMapID = 1446, faction = "Contested", dungeons = { "Zul'Farrak (44–54)" } },
+    { name = "Un'Goro Crater", continent = "kalimdor", minLvl = 50, maxLvl = 55, x = 0.43, y = 0.80, uiMapID = 1449, faction = "Contested" },
+    { name = "Silithus", continent = "kalimdor", minLvl = 55, maxLvl = 60, x = 0.32, y = 0.81, uiMapID = 1451, faction = "Contested", dungeons = { "Temple of Ahn'Qiraj (60+)", "Ruins of Ahn'Qiraj (60+)" } },
+
+    -- Eastern Kingdoms (22 zones)
+    { name = "Tirisfal Glades", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.40, y = 0.22, uiMapID = 1420, faction = "Horde", dungeons = { "Scarlet Monastery (32–45)" } },
+    { name = "Silverpine Forest", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.37, y = 0.31, uiMapID = 1421, faction = "Horde", dungeons = { "Shadowfang Keep (22–30)" } },
+    { name = "Hillsbrad Foothills", continent = "eastern_kingdoms", minLvl = 20, maxLvl = 30, x = 0.46, y = 0.37, uiMapID = 1424, faction = "Contested" },
+    { name = "Alterac Mountains", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 40, x = 0.45, y = 0.31, uiMapID = 1416, faction = "Contested" },
+    { name = "Western Plaguelands", continent = "eastern_kingdoms", minLvl = 51, maxLvl = 58, x = 0.51, y = 0.27, uiMapID = 1422, faction = "Contested", dungeons = { "Scholomance (58–60)" } },
+    { name = "Eastern Plaguelands", continent = "eastern_kingdoms", minLvl = 53, maxLvl = 60, x = 0.60, y = 0.24, uiMapID = 1423, faction = "Contested", dungeons = { "Stratholme (58–60)" } },
+    { name = "The Hinterlands", continent = "eastern_kingdoms", minLvl = 40, maxLvl = 50, x = 0.58, y = 0.36, uiMapID = 1425, faction = "Contested" },
+    { name = "Arathi Highlands", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 40, x = 0.55, y = 0.43, uiMapID = 1417, faction = "Contested" },
+    { name = "Wetlands", continent = "eastern_kingdoms", minLvl = 20, maxLvl = 30, x = 0.50, y = 0.51, uiMapID = 1437, faction = "Contested" },
+    { name = "Dun Morogh", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.44, y = 0.57, uiMapID = 1426, faction = "Alliance", dungeons = { "Gnomeregan (29–38)" } },
+    { name = "Loch Modan", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.54, y = 0.58, uiMapID = 1432, faction = "Alliance" },
+    { name = "Badlands", continent = "eastern_kingdoms", minLvl = 35, maxLvl = 45, x = 0.55, y = 0.64, uiMapID = 1418, faction = "Contested", dungeons = { "Uldaman (41–51)" } },
+    { name = "Searing Gorge", continent = "eastern_kingdoms", minLvl = 43, maxLvl = 50, x = 0.47, y = 0.64, uiMapID = 1427, faction = "Contested", dungeons = { "Blackrock Depths (52–60)", "Molten Core (60+)" } },
+    { name = "Burning Steppes", continent = "eastern_kingdoms", minLvl = 50, maxLvl = 58, x = 0.50, y = 0.69, uiMapID = 1428, faction = "Contested", dungeons = { "Lower Blackrock Spire (55–60)", "Blackwing Lair (60+)" } },
+    { name = "Redridge Mountains", continent = "eastern_kingdoms", minLvl = 15, maxLvl = 25, x = 0.55, y = 0.72, uiMapID = 1433, faction = "Contested" },
+    { name = "Elwynn Forest", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.42, y = 0.68, uiMapID = 1429, faction = "Alliance", dungeons = { "Stockade (24–32)" } },
+    { name = "Westfall", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.37, y = 0.74, uiMapID = 1436, faction = "Alliance", dungeons = { "The Deadmines (17–26)" } },
+    { name = "Duskwood", continent = "eastern_kingdoms", minLvl = 18, maxLvl = 30, x = 0.46, y = 0.75, uiMapID = 1431, faction = "Contested" },
+    { name = "Swamp of Sorrows", continent = "eastern_kingdoms", minLvl = 35, maxLvl = 45, x = 0.55, y = 0.78, uiMapID = 1435, faction = "Contested", dungeons = { "Sunken Temple (50–60)" } },
+    { name = "Deadwind Pass", continent = "eastern_kingdoms", minLvl = 55, maxLvl = 60, x = 0.50, y = 0.76, uiMapID = 1430, faction = "Contested", dungeons = { "Karazhan (70+)" } },
+    { name = "Blasted Lands", continent = "eastern_kingdoms", minLvl = 45, maxLvl = 55, x = 0.56, y = 0.85, uiMapID = 1419, faction = "Contested" },
+    { name = "Stranglethorn Vale", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 45, x = 0.44, y = 0.88, uiMapID = 1434, faction = "Contested", dungeons = { "Zul'Gurub (60+)" } },
+}
+
+WoWEternityAddon.ZONE_LEVEL_RANGES = ZONE_LEVEL_RANGES
+
+local ZONE_BY_MAPID = {}
+local ZONE_BY_NAME = {}
+for _, z in ipairs(ZONE_LEVEL_RANGES) do
+    if z.uiMapID then
+        ZONE_BY_MAPID[z.uiMapID] = z
+    end
+    local clean = z.name:lower():gsub("%s+", "")
+    ZONE_BY_NAME[clean] = z
+end
+WoWEternityAddon.ZONE_BY_MAPID = ZONE_BY_MAPID
+WoWEternityAddon.ZONE_BY_NAME = ZONE_BY_NAME
+
+function WoWEternityAddon:GetZoneLevelColor(minLvl, maxLvl, playerLevel)
+    playerLevel = playerLevel or ((UnitLevel and UnitLevel("player")) or 1)
+    minLvl = minLvl or 1
+    maxLvl = maxLvl or minLvl
+    if playerLevel < minLvl - 4 then
+        return "|cffff3333", "Deadly", 1.0, 0.20, 0.20
+    elseif playerLevel < minLvl then
+        return "|cffff8822", "Challenging", 1.0, 0.53, 0.13
+    elseif playerLevel <= maxLvl then
+        return "|cff44ff44", "Ideal", 0.27, 1.0, 0.27
+    elseif playerLevel <= maxLvl + 4 then
+        return "|cffffd100", "Easy", 1.0, 0.82, 0.0
+    else
+        return "|cff888888", "Trivial", 0.55, 0.55, 0.55
+    end
+end
+
+function WoWEternityAddon:IsContinentMap(mapID)
+    if mapID == 1414 or mapID == 12 then return "kalimdor" end
+    if mapID == 1415 or mapID == 13 then return "eastern_kingdoms" end
+    if C_Map and C_Map.GetMapInfo then
+        local info = C_Map.GetMapInfo(mapID)
+        if info and info.name then
+            local n = info.name:lower()
+            if n:find("kalimdor") then return "kalimdor" end
+            if n:find("eastern") or n:find("kingdom") then return "eastern_kingdoms" end
+        end
+    end
+    if GetCurrentMapContinent then
+        local c = GetCurrentMapContinent()
+        local z = (GetCurrentMapZone and GetCurrentMapZone()) or 0
+        if z == 0 then
+            if c == 1 then return "kalimdor" end
+            if c == 2 then return "eastern_kingdoms" end
+        end
+    end
+    return nil
+end
+
+function WoWEternityAddon:GetCurrentZoneData(mapID)
+    if not mapID or mapID == 0 then return nil end
+    if self.ZONE_BY_MAPID and self.ZONE_BY_MAPID[mapID] then
+        return self.ZONE_BY_MAPID[mapID]
+    end
+    if C_Map and C_Map.GetMapInfo then
+        local info = C_Map.GetMapInfo(mapID)
+        if info and info.name and self.ZONE_BY_NAME then
+            local clean = info.name:lower():gsub("%s+", "")
+            if self.ZONE_BY_NAME[clean] then return self.ZONE_BY_NAME[clean] end
+        end
+    end
+    local currentText = (GetZoneText and GetZoneText()) or (GetRealZoneText and GetRealZoneText())
+    if currentText and self.ZONE_BY_NAME then
+        local clean = currentText:lower():gsub("%s+", "")
+        if self.ZONE_BY_NAME[clean] then return self.ZONE_BY_NAME[clean] end
+    end
+    return nil
+end
+
+function WoWEternityAddon:GetOrCreateMapZoneBadge(canvas)
+    if self.mapZoneBadge then return self.mapZoneBadge end
+    if not CreateFrame then return nil end
+
+    local badge = CreateFrame("Button", "WoWEternity_MapZoneBadge", canvas)
+    badge:SetSize(160, 44)
+    badge:SetFrameStrata("HIGH")
+
+    -- Subtle dark backdrop matching WoWEternity_PaperDollIlvlBadge
+    local bg = badge:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints(badge)
+    bg:SetColorTexture(0.04, 0.04, 0.07, 0.78)
+    badge.bg = bg
+
+    -- Clean gold border accent matching PaperDoll badge
+    local border = badge:CreateTexture(nil, "BORDER")
+    border:SetPoint("TOPLEFT", -1, 1)
+    border:SetPoint("BOTTOMRIGHT", 1, -1)
+    border:SetColorTexture(0.90, 0.80, 0.50, 0.32)
+    badge.border = border
+
+    local title = badge:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    title:SetPoint("TOPLEFT", badge, "TOPLEFT", 8, -6)
+    title:SetPoint("TOPRIGHT", badge, "TOPRIGHT", -8, -6)
+    title:SetJustifyH("LEFT")
+    title:SetTextColor(0.90, 0.80, 0.50, 1)
+    badge.title = title
+
+    local subText = badge:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    subText:SetPoint("BOTTOMLEFT", badge, "BOTTOMLEFT", 8, 6)
+    subText:SetPoint("BOTTOMRIGHT", badge, "BOTTOMRIGHT", -8, 6)
+    subText:SetJustifyH("LEFT")
+    badge.subText = subText
+
+    badge:SetScript("OnEnter", function(b)
+        if not GameTooltip or not b.zoneData then return end
+        GameTooltip:SetOwner(b, "ANCHOR_BOTTOMRIGHT", 0, -4)
+        local z = b.zoneData
+        local playerLvl = (UnitLevel and UnitLevel("player")) or 1
+        local hex, diffLabel = WoWEternityAddon:GetZoneLevelColor(z.minLvl, z.maxLvl, playerLvl)
+        GameTooltip:AddLine(string.format("|cffe6cc80%s|r  |cffffffff[Level %d–%d]|r", z.name, z.minLvl, z.maxLvl), 1, 1, 1)
+        GameTooltip:AddLine(string.format("Difficulty: %s%s|r  ·  Your Level: |cffffd100%d|r", hex, diffLabel, playerLvl), 0.9, 0.9, 0.9)
+        if z.faction then
+            local fHex = (z.faction == "Horde" and "|cffff4444") or (z.faction == "Alliance" and "|cff38bdf8") or "|cffffd100"
+            GameTooltip:AddLine(string.format("Territory: %s%s|r", fHex, z.faction), 0.8, 0.8, 0.8)
+        end
+        if z.dungeons and #z.dungeons > 0 then
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine("|cffffd100Dungeons in Zone:|r", 1, 0.82, 0)
+            for _, d in ipairs(z.dungeons) do
+                GameTooltip:AddLine(string.format("  • |cffffffff%s|r", d), 0.9, 0.9, 0.9)
+            end
+        end
+        local faction = WoWEternityAddon.levelingFaction or WoWEternityAddon:GetPlayerFaction()
+        local activeStep = WoWEternityAddon:GetActiveLevelingStep(faction)
+        if activeStep and activeStep.location and activeStep.location:lower():find(z.name:lower(), 1, true) then
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine(string.format("|cff00ff00Active Guide Objective:|r Step #%d (%s)", activeStep.stepNumber, activeStep.title), 0.2, 1.0, 0.2)
+        end
+        GameTooltip:Show()
+    end)
+
+    badge:SetScript("OnLeave", function()
+        if GameTooltip then GameTooltip:Hide() end
+    end)
+
+    self.mapZoneBadge = badge
+    return badge
+end
+
+function WoWEternityAddon:InitMapZoneOverlays()
+    if not WorldMapFrame then return end
+    if self.mapOverlaysInitialized then return end
+    self.mapOverlaysInitialized = true
+    self.continentZonePills = {}
+
+    if WorldMapFrame.HookScript then
+        WorldMapFrame:HookScript("OnShow", function()
+            WoWEternityAddon:UpdateMapZoneOverlays()
+        end)
+    end
+
+    local overlayWatcher = CreateFrame and CreateFrame("Frame")
+    if overlayWatcher and overlayWatcher.SetScript then
+        overlayWatcher.elapsed = 0
+        overlayWatcher:SetScript("OnUpdate", function(_, dt)
+            if not WorldMapFrame or not WorldMapFrame:IsShown() then return end
+            overlayWatcher.elapsed = overlayWatcher.elapsed + (dt or 0)
+            if overlayWatcher.elapsed >= 0.2 then
+                overlayWatcher.elapsed = 0
+                local currentMap = 0
+                if WorldMapFrame.GetMapID then
+                    currentMap = WorldMapFrame:GetMapID() or 0
+                elseif C_Map and C_Map.GetBestMapForUnit then
+                    currentMap = C_Map.GetBestMapForUnit("player") or 0
+                end
+                if currentMap ~= WoWEternityAddon.lastMapOverlayMapID then
+                    WoWEternityAddon.lastMapOverlayMapID = currentMap
+                    WoWEternityAddon:UpdateMapZoneOverlays()
+                end
+            end
+        end)
+    end
+end
+
+function WoWEternityAddon:UpdateMapZoneOverlays()
+    if not WorldMapFrame or not WorldMapFrame:IsShown() then return end
+
+    local show = (WoWEternityAddonDB and WoWEternityAddonDB.showMapOverlays ~= false)
+    if not show then
+        if self.mapZoneBadge then self.mapZoneBadge:Hide() end
+        if self.continentZonePills then
+            for _, p in ipairs(self.continentZonePills) do p:Hide() end
+        end
+        return
+    end
+
+    local canvas = (WorldMapFrame.ScrollContainer and WorldMapFrame.ScrollContainer.Child)
+        or WorldMapButton
+        or WorldMapFrame
+
+    local canvasW, canvasH = 1002, 668
+    if canvas.GetSize then
+        local w, h = canvas:GetSize()
+        if w and w > 0 and h and h > 0 then
+            canvasW, canvasH = w, h
+        end
+    end
+
+    local currentMapID = 0
+    if WorldMapFrame.GetMapID then
+        currentMapID = WorldMapFrame:GetMapID() or 0
+    elseif C_Map and C_Map.GetBestMapForUnit then
+        currentMapID = C_Map.GetBestMapForUnit("player") or 0
+    end
+
+    local playerLevel = (UnitLevel and UnitLevel("player")) or 1
+    local contKey = self:IsContinentMap(currentMapID)
+
+    self.continentZonePills = self.continentZonePills or {}
+
+    if contKey then
+        -- Continent Map (Kalimdor or Eastern Kingdoms)
+        if self.mapZoneBadge then self.mapZoneBadge:Hide() end
+
+        local pIndex = 0
+        for _, z in ipairs(ZONE_LEVEL_RANGES) do
+            if z.continent == contKey then
+                pIndex = pIndex + 1
+                local pill = self.continentZonePills[pIndex]
+                if not pill then
+                    pill = CreateFrame("Button", "WEA_ContZonePill_" .. pIndex, canvas)
+                    pill:SetSize(46, 18)
+                    pill:SetFrameStrata("HIGH")
+
+                    local bg = pill:CreateTexture(nil, "BACKGROUND")
+                    bg:SetAllPoints(pill)
+                    bg:SetColorTexture(0.04, 0.04, 0.07, 0.82)
+                    pill.bg = bg
+
+                    local border = pill:CreateTexture(nil, "BORDER")
+                    border:SetPoint("TOPLEFT", -1, 1)
+                    border:SetPoint("BOTTOMRIGHT", 1, -1)
+                    border:SetColorTexture(0.90, 0.80, 0.50, 0.30)
+                    pill.border = border
+
+                    local text = pill:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                    text:SetAllPoints(pill)
+                    text:SetJustifyH("CENTER")
+                    text:SetJustifyV("MIDDLE")
+                    pill.text = text
+
+                    pill:SetScript("OnEnter", function(p)
+                        if not GameTooltip or not p.zoneData then return end
+                        GameTooltip:SetOwner(p, "ANCHOR_RIGHT")
+                        local zd = p.zoneData
+                        local pLvl = (UnitLevel and UnitLevel("player")) or 1
+                        local hex, diffLabel = WoWEternityAddon:GetZoneLevelColor(zd.minLvl, zd.maxLvl, pLvl)
+                        GameTooltip:AddLine(string.format("|cffe6cc80%s|r  |cffffffff[Level %d–%d]|r", zd.name, zd.minLvl, zd.maxLvl), 1, 1, 1)
+                        GameTooltip:AddLine(string.format("Difficulty: %s%s|r  ·  Your Level: |cffffd100%d|r", hex, diffLabel, pLvl), 0.9, 0.9, 0.9)
+                        if zd.faction then
+                            local fHex = (zd.faction == "Horde" and "|cffff4444") or (zd.faction == "Alliance" and "|cff38bdf8") or "|cffffd100"
+                            GameTooltip:AddLine(string.format("Territory: %s%s|r", fHex, zd.faction), 0.8, 0.8, 0.8)
+                        end
+                        if zd.dungeons and #zd.dungeons > 0 then
+                            GameTooltip:AddLine(" ")
+                            GameTooltip:AddLine("|cffffd100Dungeons:|r", 1, 0.82, 0)
+                            for _, d in ipairs(zd.dungeons) do
+                                GameTooltip:AddLine(string.format("  • |cffffffff%s|r", d), 0.9, 0.9, 0.9)
+                            end
+                        end
+                        GameTooltip:AddLine(" ")
+                        GameTooltip:AddLine("|cff38bdf8Click to zoom into zone map|r", 0.4, 0.8, 1.0)
+                        GameTooltip:Show()
+                    end)
+
+                    pill:SetScript("OnLeave", function()
+                        if GameTooltip then GameTooltip:Hide() end
+                    end)
+
+                    pill:SetScript("OnClick", function(p)
+                        if p.zoneData and p.zoneData.uiMapID then
+                            if WorldMapFrame and WorldMapFrame.SetMapID then
+                                WorldMapFrame:SetMapID(p.zoneData.uiMapID)
+                            elseif SetMapByID then
+                                SetMapByID(p.zoneData.uiMapID)
+                            end
+                        end
+                    end)
+
+                    self.continentZonePills[pIndex] = pill
+                end
+
+                pill.zoneData = z
+                local hex, _, r, g, b = self:GetZoneLevelColor(z.minLvl, z.maxLvl, playerLevel)
+                pill.text:SetText(string.format("%s%d–%d|r", hex, z.minLvl, z.maxLvl))
+                if pill.border then
+                    pill.border:SetColorTexture(r, g, b, 0.45)
+                end
+                pill:ClearAllPoints()
+                pill:SetPoint("CENTER", canvas, "TOPLEFT", z.x * canvasW, -z.y * canvasH)
+                pill:Show()
+            end
+        end
+
+        for i = pIndex + 1, #self.continentZonePills do
+            self.continentZonePills[i]:Hide()
+        end
+    else
+        -- Zone Map
+        for _, p in ipairs(self.continentZonePills) do
+            p:Hide()
+        end
+
+        local zoneData = self:GetCurrentZoneData(currentMapID)
+        if zoneData then
+            local badge = self:GetOrCreateMapZoneBadge(canvas)
+            if badge then
+                badge.zoneData = zoneData
+                badge.title:SetText(zoneData.name)
+                local hex, diffLabel, r, g, b = self:GetZoneLevelColor(zoneData.minLvl, zoneData.maxLvl, playerLevel)
+                badge.subText:SetText(string.format("%sLevel %d–%d|r  ·  %s%s|r", hex, zoneData.minLvl, zoneData.maxLvl, hex, diffLabel))
+                if badge.border then
+                    badge.border:SetColorTexture(r, g, b, 0.45)
+                end
+                badge:ClearAllPoints()
+                badge:SetPoint("TOPRIGHT", canvas, "TOPRIGHT", -12, -12)
+                badge:Show()
+            end
+        else
+            if self.mapZoneBadge then self.mapZoneBadge:Hide() end
+        end
+    end
+end
+
+function WoWEternityAddon:ToggleMapZoneOverlays()
+    WoWEternityAddonDB = WoWEternityAddonDB or {}
+    WoWEternityAddonDB.showMapOverlays = not (WoWEternityAddonDB.showMapOverlays ~= false)
+    self:UpdateMapZoneOverlays()
+    self:Print(string.format("|cffe6cc80[WoW Eternity Addon]|r Map Zone Level Overlays: %s", WoWEternityAddonDB.showMapOverlays and "|cff00ff00Enabled|r" or "|cffff2020Disabled|r"))
 end
 
 -- ============================================================================
@@ -6781,6 +7185,7 @@ function WoWEternityAddon:OnInitialize()
     if WoWEternityAddonDB.playBiSSound == nil then WoWEternityAddonDB.playBiSSound = true end
     if WoWEternityAddonDB.autoExport == nil then WoWEternityAddonDB.autoExport = true end
     if WoWEternityAddonDB.verboseLogs == nil then WoWEternityAddonDB.verboseLogs = false end
+    if WoWEternityAddonDB.showMapOverlays == nil then WoWEternityAddonDB.showMapOverlays = true end
 
     -- Cadberry Leveling Guide & Navigation Arrow Persistence
     WoWEternityAddonCharDB = WoWEternityAddonCharDB or {}
@@ -6837,6 +7242,7 @@ function WoWEternityAddon:OnInitialize()
     if CreateFrame then
         self:CreateWaypointArrow()
         self:InitWorldMapPins()
+        self:InitMapZoneOverlays()
         self:CreateTrackerHUD()
     end
 end
@@ -7155,6 +7561,8 @@ function WoWEternityAddon:HandleSlashCommand(msg)
         self:ToggleTrackerHUD()
     elseif cmd == "arrow" then
         self:ToggleWaypointArrow()
+    elseif cmd == "map" or cmd == "mapoverlay" or cmd == "zoneoverlay" then
+        self:ToggleMapZoneOverlays()
     elseif cmd == "resetguide" or cmd == "resetleveling" then
         self:ResetLevelingGuide()
     else

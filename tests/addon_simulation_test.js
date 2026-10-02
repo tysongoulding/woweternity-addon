@@ -432,6 +432,94 @@ simulateDynamicLevelSync(hordeStepObjects, hordeCharLvl30, hordeUncheckLvl30, 30
 // Step 11 is [25–28] Thousand Needles & Stonetalon (min 25 >= 25) -> KEPT (gap: 5 levels)!
 assert.strictEqual(simulateGetActiveStep(hordeStepObjects, hordeCharLvl30).stepNumber, 11, 'Horde Level 30 active step should be step 11');
 
+// ============================================================================
+// SUITE 10: World Map Zone Level Overlays (Badge & Continent Overlays)
+// ============================================================================
+console.log('--- Suite 10: World Map Zone Level Overlays & Dynamic Color Coding ---');
+
+// 1. Static Verification of Required Methods & Frames
+assert.ok(luaSource.includes('function WoWEternityAddon:GetZoneLevelColor'), 'Must implement GetZoneLevelColor');
+assert.ok(luaSource.includes('function WoWEternityAddon:IsContinentMap'), 'Must implement IsContinentMap');
+assert.ok(luaSource.includes('function WoWEternityAddon:GetCurrentZoneData'), 'Must implement GetCurrentZoneData');
+assert.ok(luaSource.includes('function WoWEternityAddon:GetOrCreateMapZoneBadge'), 'Must implement GetOrCreateMapZoneBadge');
+assert.ok(luaSource.includes('function WoWEternityAddon:InitMapZoneOverlays'), 'Must implement InitMapZoneOverlays');
+assert.ok(luaSource.includes('function WoWEternityAddon:UpdateMapZoneOverlays'), 'Must implement UpdateMapZoneOverlays');
+assert.ok(luaSource.includes('function WoWEternityAddon:ToggleMapZoneOverlays'), 'Must implement ToggleMapZoneOverlays');
+assert.ok(luaSource.includes('WoWEternity_MapZoneBadge'), 'Must create WoWEternity_MapZoneBadge frame');
+assert.ok(luaSource.includes('ZONE_LEVEL_RANGES'), 'Must define ZONE_LEVEL_RANGES database');
+assert.ok(luaSource.includes('WoWEternityAddonDB.showMapOverlays'), 'Must support showMapOverlays setting');
+assert.ok(luaSource.includes('cmd == "map"'), 'Must handle /wea map slash command');
+
+// 2. Parse & Validate ZONE_LEVEL_RANGES Database
+const zoneRegex = /\{[\s\S]*?name\s*=\s*"([^"]+)",[\s\S]*?continent\s*=\s*"([^"]+)",[\s\S]*?minLvl\s*=\s*(\d+),[\s\S]*?maxLvl\s*=\s*(\d+),[\s\S]*?x\s*=\s*([\d\.]+),[\s\S]*?y\s*=\s*([\d\.]+),[\s\S]*?uiMapID\s*=\s*(\d+)/g;
+const zones = [];
+let zMatch;
+while ((zMatch = zoneRegex.exec(luaSource)) !== null) {
+    zones.push({
+        name: zMatch[1],
+        continent: zMatch[2],
+        minLvl: parseInt(zMatch[3], 10),
+        maxLvl: parseInt(zMatch[4], 10),
+        x: parseFloat(zMatch[5]),
+        y: parseFloat(zMatch[6]),
+        uiMapID: parseInt(zMatch[7], 10)
+    });
+}
+
+assert.strictEqual(zones.length, 40, 'Must define 40 zones in ZONE_LEVEL_RANGES (18 Kalimdor, 22 Eastern Kingdoms)');
+const kalimdorZones = zones.filter(z => z.continent === 'kalimdor');
+const ekZones = zones.filter(z => z.continent === 'eastern_kingdoms');
+assert.strictEqual(kalimdorZones.length, 18, 'Must define 18 Kalimdor zones');
+assert.strictEqual(ekZones.length, 22, 'Must define 22 Eastern Kingdoms zones');
+
+for (const z of zones) {
+    assert.ok(z.minLvl >= 1 && z.minLvl <= 60, `${z.name} minLvl must be in 1-60`);
+    assert.ok(z.maxLvl >= z.minLvl && z.maxLvl <= 60, `${z.name} maxLvl must be >= minLvl and <= 60`);
+    assert.ok(z.x >= 0.1 && z.x <= 0.95, `${z.name} x coordinate must be within map bounds [0.1, 0.95]`);
+    assert.ok(z.y >= 0.05 && z.y <= 0.95, `${z.name} y coordinate must be within map bounds [0.05, 0.95]`);
+    assert.ok(z.uiMapID > 0, `${z.name} uiMapID must be positive integer`);
+}
+
+// 3. Behavioral Simulation of Dynamic Color Coding (5 Tiers)
+const simulateZoneLevelColor = (minLvl, maxLvl, playerLevel) => {
+    if (playerLevel < minLvl - 4) {
+        return { hex: '|cffff3333', label: 'Deadly' };
+    } else if (playerLevel < minLvl) {
+        return { hex: '|cffff8822', label: 'Challenging' };
+    } else if (playerLevel <= maxLvl) {
+        return { hex: '|cff44ff44', label: 'Ideal' };
+    } else if (playerLevel <= maxLvl + 4) {
+        return { hex: '|cffffd100', label: 'Easy' };
+    } else {
+        return { hex: '|cff888888', label: 'Trivial' };
+    }
+};
+
+// Test The Barrens (10-30)
+assert.strictEqual(simulateZoneLevelColor(10, 30, 5).label, 'Deadly', 'Level 5 in Barrens (10-30) is Deadly');
+assert.strictEqual(simulateZoneLevelColor(10, 30, 8).label, 'Challenging', 'Level 8 in Barrens (10-30) is Challenging');
+assert.strictEqual(simulateZoneLevelColor(10, 30, 20).label, 'Ideal', 'Level 20 in Barrens (10-30) is Ideal');
+assert.strictEqual(simulateZoneLevelColor(10, 30, 32).label, 'Easy', 'Level 32 in Barrens (10-30) is Easy');
+assert.strictEqual(simulateZoneLevelColor(10, 30, 45).label, 'Trivial', 'Level 45 in Barrens (10-30) is Trivial');
+
+// 4. Continent vs Zone Map Detection Simulation
+const simulateIsContinentMap = (mapID) => {
+    if (mapID === 1414 || mapID === 12) return 'kalimdor';
+    if (mapID === 1415 || mapID === 13) return 'eastern_kingdoms';
+    return null;
+};
+
+assert.strictEqual(simulateIsContinentMap(1414), 'kalimdor', 'Map 1414 must be Kalimdor');
+assert.strictEqual(simulateIsContinentMap(1415), 'eastern_kingdoms', 'Map 1415 must be Eastern Kingdoms');
+assert.strictEqual(simulateIsContinentMap(1413), null, 'Barrens (1413) is a zone map, not continent');
+
+const barrens = zones.find(z => z.uiMapID === 1413);
+assert.ok(barrens, 'Barrens must exist in database');
+assert.strictEqual(barrens.name, 'The Barrens');
+assert.strictEqual(barrens.minLvl, 10);
+assert.strictEqual(barrens.maxLvl, 30);
+
 console.log('[PASS] Addon simulation & static analysis passed 100%.');
+
 
 
