@@ -4871,7 +4871,7 @@ local ZONE_LEVEL_RANGES = {
     { name = "Searing Gorge", continent = "eastern_kingdoms", minLvl = 43, maxLvl = 50, x = 0.491, y = 0.608, uiMapID = 1427, faction = "Contested", dungeons = { "Blackrock Depths (52–60)", "Molten Core (60+)" } },
     { name = "Burning Steppes", continent = "eastern_kingdoms", minLvl = 50, maxLvl = 58, x = 0.506, y = 0.656, uiMapID = 1428, faction = "Contested", dungeons = { "Lower Blackrock Spire (55–60)", "Blackwing Lair (60+)" } },
     { name = "Redridge Mountains", continent = "eastern_kingdoms", minLvl = 15, maxLvl = 25, x = 0.532, y = 0.714, uiMapID = 1433, faction = "Contested" },
-    { name = "Elwynn Forest", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.470, y = 0.706, uiMapID = 1429, faction = "Alliance", dungeons = { "Stockade (24–32)" } },
+    { name = "Elwynn Forest", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.473, y = 0.706, uiMapID = 1429, faction = "Alliance", dungeons = { "Stockade (24–32)" } },
     { name = "Westfall", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.407, y = 0.774, uiMapID = 1436, faction = "Alliance", dungeons = { "The Deadmines (17–26)" } },
     { name = "Duskwood", continent = "eastern_kingdoms", minLvl = 18, maxLvl = 30, x = 0.468, y = 0.772, uiMapID = 1431, faction = "Contested" },
     { name = "Swamp of Sorrows", continent = "eastern_kingdoms", minLvl = 35, maxLvl = 45, x = 0.548, y = 0.755, uiMapID = 1435, faction = "Contested", dungeons = { "Sunken Temple (50–60)" } },
