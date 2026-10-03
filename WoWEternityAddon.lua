@@ -4837,7 +4837,7 @@ end
 local ZONE_LEVEL_RANGES = {
     -- Kalimdor (18 zones)
     { name = "Teldrassil", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.426, y = 0.084, uiMapID = 1438, faction = "Alliance" },
-    { name = "Darkshore", continent = "kalimdor", minLvl = 10, maxLvl = 20, x = 0.452, y = 0.241, uiMapID = 1439, faction = "Alliance" },
+    { name = "Darkshore", continent = "kalimdor", minLvl = 10, maxLvl = 20, x = 0.452, y = 0.2365, uiMapID = 1439, faction = "Alliance" },
     { name = "Moonglade", continent = "kalimdor", minLvl = 1, maxLvl = 60, x = 0.544, y = 0.170, uiMapID = 1450, faction = "Neutral" },
     { name = "Winterspring", continent = "kalimdor", minLvl = 55, maxLvl = 60, x = 0.577, y = 0.243, uiMapID = 1452, faction = "Contested" },
     { name = "Felwood", continent = "kalimdor", minLvl = 48, maxLvl = 55, x = 0.495, y = 0.268, uiMapID = 1448, faction = "Contested" },
