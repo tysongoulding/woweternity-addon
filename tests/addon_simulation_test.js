@@ -451,6 +451,8 @@ assert.ok(luaSource.includes('GameTooltip:AddLine("|cffe6cc80WoW Eternity Addon|
 assert.ok(luaSource.includes('ZONE_LEVEL_RANGES'), 'Must define ZONE_LEVEL_RANGES database');
 assert.ok(luaSource.includes('WoWEternityAddonDB.showMapOverlays'), 'Must support showMapOverlays setting');
 assert.ok(luaSource.includes('cmd == "map"'), 'Must handle /wea map slash command');
+assert.ok(luaSource.includes('cmd == "cursor"'), 'Must handle /wea cursor slash command');
+assert.ok(luaSource.includes('function WoWEternityAddon:PrintMapCursorPosition'), 'Must implement PrintMapCursorPosition');
 
 // 2. Parse & Validate ZONE_LEVEL_RANGES Database
 const zoneRegex = /\{[\s\S]*?name\s*=\s*"([^"]+)",[\s\S]*?continent\s*=\s*"([^"]+)",[\s\S]*?minLvl\s*=\s*(\d+),[\s\S]*?maxLvl\s*=\s*(\d+),[\s\S]*?x\s*=\s*([\d\.]+),[\s\S]*?y\s*=\s*([\d\.]+),[\s\S]*?uiMapID\s*=\s*(\d+)/g;

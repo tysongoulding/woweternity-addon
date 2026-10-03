@@ -5244,6 +5244,38 @@ function WoWEternityAddon:ToggleMapZoneOverlays()
     self:Print(string.format("|cffe6cc80[WoW Eternity Addon]|r Map Zone Level Overlays: %s", WoWEternityAddonDB.showMapOverlays and "|cff00ff00Enabled|r" or "|cffff2020Disabled|r"))
 end
 
+function WoWEternityAddon:PrintMapCursorPosition()
+    if not WorldMapFrame or not WorldMapFrame:IsShown() then
+        self:Print("|cffff2020[WoW Eternity Addon]|r Please open your World Map first.")
+        return
+    end
+
+    local canvas = (WorldMapFrame.GetCanvas and WorldMapFrame:GetCanvas())
+        or (WorldMapFrame.ScrollContainer and WorldMapFrame.ScrollContainer.Child)
+        or WorldMapButton
+        or WorldMapFrame
+
+    if not GetCursorPosition or not canvas.GetLeft or not canvas.GetTop then
+        self:Print("|cffff2020[WoW Eternity Addon]|r Cursor position unavailable.")
+        return
+    end
+
+    local mx, my = GetCursorPosition()
+    local scale = (canvas.GetEffectiveScale and canvas:GetEffectiveScale()) or 1
+    local left = (canvas.GetLeft and canvas:GetLeft()) or 0
+    local top = (canvas.GetTop and canvas:GetTop()) or 0
+    local width = (canvas.GetWidth and canvas:GetWidth()) or 1
+    local height = (canvas.GetHeight and canvas:GetHeight()) or 1
+
+    mx = mx / scale
+    my = my / scale
+
+    local x = (mx - left) / width
+    local y = (top - my) / height
+
+    self:Print(string.format("|cffe6cc80[WoW Eternity Addon]|r Map Cursor: |cff00ff00x = %.2f, y = %.2f|r (Cursor: %.1f, %.1f)", x, y, x * 100, y * 100))
+end
+
 -- ============================================================================
 -- Questie-Style On-Screen Tracker HUD (Multi-Step Focused)
 -- ============================================================================
@@ -7593,6 +7625,8 @@ function WoWEternityAddon:HandleSlashCommand(msg)
         self:ToggleWaypointArrow()
     elseif cmd == "map" or cmd == "mapoverlay" or cmd == "zoneoverlay" then
         self:ToggleMapZoneOverlays()
+    elseif cmd == "cursor" or cmd == "coord" or cmd == "mapcoord" or cmd == "mappos" then
+        self:PrintMapCursorPosition()
     elseif cmd == "resetguide" or cmd == "resetleveling" then
         self:ResetLevelingGuide()
     else
