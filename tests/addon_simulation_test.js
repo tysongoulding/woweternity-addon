@@ -538,7 +538,8 @@ assert.ok(luaSource.includes('name = "Skywatcher Plateau"'), 'Must define Skywat
 assert.ok(luaSource.includes('contX = 0.457') && luaSource.includes('contY = 0.540'), 'Skywatcher Plateau dot marker must be at 45.7, 54.0');
 assert.ok(luaSource.includes('area_overlay_oval'), 'Must use area_overlay_oval texture');
 assert.ok(luaSource.includes('areaFrame.bg:SetVertexColor(r, g, b, 0.50)'), 'Must render 50% transparent area overlay');
-assert.ok(luaSource.includes('circleBorder:SetVertexColor'), 'Must dynamically tint circleBorder with level difficulty color');
+assert.ok(luaSource.includes('pill.border:SetColorTexture(r, g, b, 0.45)'), 'Must render soft colored background wash and 1px border');
+assert.ok(luaSource.includes('w = (sz.minLvl == sz.maxLvl) and 26 or 46'), 'Must use compact square badge (26x18) for single-level subzones');
 
 const mediaFiles = [
     'circle_bg.png', 'circle_bg.tga',

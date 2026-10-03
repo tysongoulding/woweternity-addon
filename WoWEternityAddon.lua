@@ -4893,7 +4893,7 @@ local SUBZONE_LEVEL_OVERLAYS = {
         maxLvl = 28,
         contX = 0.457,
         contY = 0.540,
-        shape = "circle",
+        shape = "square",
         faction = "Horde",
         uiMapID = 1412,
         zoneArea = {
@@ -5360,7 +5360,8 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         end
                         pill.text:SetText(string.format("%s%d|r", hex, sz.minLvl))
                     else
-                        pill:SetSize(46, 18)
+                        local w = (sz.minLvl == sz.maxLvl) and 26 or 46
+                        pill:SetSize(w, 18)
                         if pill.circleBg then pill.circleBg:Hide() end
                         if pill.circleBorder then pill.circleBorder:Hide() end
                         if pill.bg then pill.bg:Show() end
@@ -5368,7 +5369,11 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                             pill.border:Show()
                             pill.border:SetColorTexture(r, g, b, 0.45)
                         end
-                        pill.text:SetText(string.format("%s%d–%d|r", hex, sz.minLvl, sz.maxLvl))
+                        if sz.minLvl == sz.maxLvl then
+                            pill.text:SetText(string.format("%s%d|r", hex, sz.minLvl))
+                        else
+                            pill.text:SetText(string.format("%s%d–%d|r", hex, sz.minLvl, sz.maxLvl))
+                        end
                     end
                     pill:ClearAllPoints()
                     local px = sz.contX or sz.x or 0.5
@@ -5438,18 +5443,20 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         areaFrame.border = areaBorder
 
                         local dot = CreateFrame("Button", "WEA_SubzoneMarker_" .. areaIndex, areaFrame)
-                        dot:SetSize(24, 24)
+                        local dw = (sz.minLvl == sz.maxLvl) and 26 or 46
+                        dot:SetSize(dw, 18)
                         dot:SetFrameStrata("HIGH")
                         dot:SetPoint("CENTER", areaFrame, "CENTER", 0, 0)
 
                         local dotBg = dot:CreateTexture(nil, "BACKGROUND")
                         dotBg:SetAllPoints(dot)
-                        dotBg:SetTexture("Interface\\AddOns\\WoW Eternity Addon\\media\\circle_bg")
+                        dotBg:SetColorTexture(0.04, 0.04, 0.07, 0.82)
                         dot.bg = dotBg
 
                         local dotBorder = dot:CreateTexture(nil, "BORDER")
-                        dotBorder:SetAllPoints(dot)
-                        dotBorder:SetTexture("Interface\\AddOns\\WoW Eternity Addon\\media\\circle_border")
+                        dotBorder:SetPoint("TOPLEFT", -1, 1)
+                        dotBorder:SetPoint("BOTTOMRIGHT", 1, -1)
+                        dotBorder:SetColorTexture(0.90, 0.80, 0.50, 0.30)
                         dot.border = dotBorder
 
                         local dotText = dot:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -5501,8 +5508,14 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         areaFrame.border:SetVertexColor(r, g, b, 0.80)
                     end
                     if areaFrame.dot then
-                        areaFrame.dot.border:SetVertexColor(r, g, b, 0.95)
-                        areaFrame.dot.text:SetText(string.format("%s%d|r", hex, sz.minLvl))
+                        if areaFrame.dot.border then
+                            areaFrame.dot.border:SetColorTexture(r, g, b, 0.45)
+                        end
+                        if sz.minLvl == sz.maxLvl then
+                            areaFrame.dot.text:SetText(string.format("%s%d|r", hex, sz.minLvl))
+                        else
+                            areaFrame.dot.text:SetText(string.format("%s%d–%d|r", hex, sz.minLvl, sz.maxLvl))
+                        end
                     end
 
                     areaFrame:SetSize(sz.zoneArea.width * canvasW, sz.zoneArea.height * canvasH)
