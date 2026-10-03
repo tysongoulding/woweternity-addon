@@ -4850,7 +4850,7 @@ local ZONE_LEVEL_RANGES = {
     { name = "Desolace", continent = "kalimdor", minLvl = 30, maxLvl = 40, x = 0.416, y = 0.558, uiMapID = 1443, faction = "Contested", dungeons = { "Maraudon (46–55)" } },
     { name = "Dustwallow Marsh", continent = "kalimdor", minLvl = 35, maxLvl = 45, x = 0.565, y = 0.679, uiMapID = 1445, faction = "Contested", dungeons = { "Onyxia's Lair (60+)" } },
     { name = "Thousand Needles", continent = "kalimdor", minLvl = 25, maxLvl = 35, x = 0.571, y = 0.760, uiMapID = 1441, faction = "Contested" },
-    { name = "Feralas", continent = "kalimdor", minLvl = 40, maxLvl = 50, x = 0.42, y = 0.73, uiMapID = 1444, faction = "Contested", dungeons = { "Dire Maul (55–60)" } },
+    { name = "Feralas", continent = "kalimdor", minLvl = 40, maxLvl = 50, x = 0.437, y = 0.703, uiMapID = 1444, faction = "Contested", dungeons = { "Dire Maul (55–60)" } },
     { name = "Tanaris", continent = "kalimdor", minLvl = 40, maxLvl = 50, x = 0.556, y = 0.861, uiMapID = 1446, faction = "Contested", dungeons = { "Zul'Farrak (44–54)" } },
     { name = "Un'Goro Crater", continent = "kalimdor", minLvl = 50, maxLvl = 55, x = 0.496, y = 0.805, uiMapID = 1449, faction = "Contested" },
     { name = "Silithus", continent = "kalimdor", minLvl = 55, maxLvl = 60, x = 0.426, y = 0.863, uiMapID = 1451, faction = "Contested", dungeons = { "Temple of Ahn'Qiraj (60+)", "Ruins of Ahn'Qiraj (60+)" } },
