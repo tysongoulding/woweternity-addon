@@ -470,11 +470,11 @@ while ((zMatch = zoneRegex.exec(luaSource)) !== null) {
     });
 }
 
-assert.strictEqual(zones.length, 40, 'Must define 40 zones in ZONE_LEVEL_RANGES (18 Kalimdor, 22 Eastern Kingdoms)');
+assert.strictEqual(zones.length, 39, 'Must define 39 zones in ZONE_LEVEL_RANGES (18 Kalimdor, 21 Eastern Kingdoms)');
 const kalimdorZones = zones.filter(z => z.continent === 'kalimdor');
 const ekZones = zones.filter(z => z.continent === 'eastern_kingdoms');
 assert.strictEqual(kalimdorZones.length, 18, 'Must define 18 Kalimdor zones');
-assert.strictEqual(ekZones.length, 22, 'Must define 22 Eastern Kingdoms zones');
+assert.strictEqual(ekZones.length, 21, 'Must define 21 Eastern Kingdoms zones');
 
 for (const z of zones) {
     assert.ok(z.minLvl >= 1 && z.minLvl <= 60, `${z.name} minLvl must be in 1-60`);

@@ -4855,7 +4855,7 @@ local ZONE_LEVEL_RANGES = {
     { name = "Un'Goro Crater", continent = "kalimdor", minLvl = 50, maxLvl = 55, x = 0.496, y = 0.805, uiMapID = 1449, faction = "Contested" },
     { name = "Silithus", continent = "kalimdor", minLvl = 55, maxLvl = 60, x = 0.426, y = 0.863, uiMapID = 1451, faction = "Contested", dungeons = { "Temple of Ahn'Qiraj (60+)", "Ruins of Ahn'Qiraj (60+)" } },
 
-    -- Eastern Kingdoms (22 zones)
+    -- Eastern Kingdoms (21 zones)
     { name = "Tirisfal Glades", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.447, y = 0.215, uiMapID = 1420, faction = "Horde", dungeons = { "Scarlet Monastery (32–45)" } },
     { name = "Silverpine Forest", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.397, y = 0.293, uiMapID = 1421, faction = "Horde", dungeons = { "Shadowfang Keep (22–30)" } },
     { name = "Hillsbrad Foothills", continent = "eastern_kingdoms", minLvl = 20, maxLvl = 30, x = 0.472, y = 0.348, uiMapID = 1424, faction = "Contested" },
@@ -4875,7 +4875,6 @@ local ZONE_LEVEL_RANGES = {
     { name = "Westfall", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.407, y = 0.774, uiMapID = 1436, faction = "Alliance", dungeons = { "The Deadmines (17–26)" } },
     { name = "Duskwood", continent = "eastern_kingdoms", minLvl = 18, maxLvl = 30, x = 0.468, y = 0.772, uiMapID = 1431, faction = "Contested" },
     { name = "Swamp of Sorrows", continent = "eastern_kingdoms", minLvl = 35, maxLvl = 45, x = 0.548, y = 0.755, uiMapID = 1435, faction = "Contested", dungeons = { "Sunken Temple (50–60)" } },
-    { name = "Deadwind Pass", continent = "eastern_kingdoms", minLvl = 55, maxLvl = 60, x = 0.509, y = 0.775, uiMapID = 1430, faction = "Contested", dungeons = { "Karazhan (70+)" } },
     { name = "Blasted Lands", continent = "eastern_kingdoms", minLvl = 45, maxLvl = 55, x = 0.542, y = 0.814, uiMapID = 1419, faction = "Contested" },
     { name = "Stranglethorn Vale", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 45, x = 0.480, y = 0.844, uiMapID = 1434, faction = "Contested", dungeons = { "Zul'Gurub (60+)" } },
 }
