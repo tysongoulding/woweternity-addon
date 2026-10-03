@@ -536,7 +536,7 @@ assert.strictEqual(mulgore.y, 0.613, 'Mulgore y coordinate must be 0.613 (61.3)'
 assert.ok(luaSource.includes('SUBZONE_LEVEL_OVERLAYS'), 'Must define SUBZONE_LEVEL_OVERLAYS');
 assert.ok(luaSource.includes('name = "Skywatcher Plateau"'), 'Must define Skywatcher Plateau in SUBZONE_LEVEL_OVERLAYS');
 assert.ok(luaSource.includes('contX = 0.457') && luaSource.includes('contY = 0.540'), 'Skywatcher Plateau dot marker must be at 45.7, 54.0');
-assert.ok(luaSource.includes('area_overlay_oval'), 'Must use area_overlay_oval texture');
+assert.ok(luaSource.includes('area_overlay_plateau') || luaSource.includes('area_overlay_oval'), 'Must use plateau/oval area overlay texture');
 assert.ok(luaSource.includes('areaFrame.bg:SetVertexColor(r, g, b, 0.50)'), 'Must render 50% transparent area overlay');
 assert.ok(luaSource.includes('pill.border:SetColorTexture(r, g, b, 0.45)'), 'Must render soft colored background wash and 1px border');
 assert.ok(luaSource.includes('w = (sz.minLvl == sz.maxLvl) and 26 or 46'), 'Must use compact square badge (26x18) for single-level subzones');
@@ -547,6 +547,8 @@ const mediaFiles = [
     'circle_dot.png', 'circle_dot.tga',
     'area_overlay_oval.png', 'area_overlay_oval.tga',
     'area_border_oval.png', 'area_border_oval.tga',
+    'area_overlay_plateau.png', 'area_overlay_plateau.tga',
+    'area_border_plateau.png', 'area_border_plateau.tga',
     'icon.png', 'icon.tga'
 ];
 for (const mf of mediaFiles) {

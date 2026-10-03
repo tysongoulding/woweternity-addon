@@ -4898,10 +4898,12 @@ local SUBZONE_LEVEL_OVERLAYS = {
         uiMapID = 1412,
         zoneArea = {
             uiMapID = 1412,
-            x = 0.291,
-            y = 0.168,
-            width = 0.154,
-            height = 0.288,
+            x = 0.328,
+            y = 0.174,
+            width = 0.120,
+            height = 0.280,
+            texture = "area_overlay_plateau",
+            borderTexture = "area_border_plateau",
         },
     },
 }
@@ -5432,14 +5434,17 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         areaFrame = CreateFrame("Button", "WEA_SubzoneArea_" .. areaIndex, canvas)
                         areaFrame:SetFrameStrata("MEDIUM")
 
+                        local texName = (sz.zoneArea and sz.zoneArea.texture) or "area_overlay_plateau"
+                        local borderTexName = (sz.zoneArea and sz.zoneArea.borderTexture) or "area_border_plateau"
+
                         local areaBg = areaFrame:CreateTexture(nil, "BACKGROUND")
                         areaBg:SetAllPoints(areaFrame)
-                        areaBg:SetTexture("Interface\\AddOns\\WoW Eternity Addon\\media\\area_overlay_oval")
+                        areaBg:SetTexture(string.format("Interface\\AddOns\\WoW Eternity Addon\\media\\%s", texName))
                         areaFrame.bg = areaBg
 
                         local areaBorder = areaFrame:CreateTexture(nil, "BORDER")
                         areaBorder:SetAllPoints(areaFrame)
-                        areaBorder:SetTexture("Interface\\AddOns\\WoW Eternity Addon\\media\\area_border_oval")
+                        areaBorder:SetTexture(string.format("Interface\\AddOns\\WoW Eternity Addon\\media\\%s", borderTexName))
                         areaFrame.border = areaBorder
 
                         local dot = CreateFrame("Button", "WEA_SubzoneMarker_" .. areaIndex, areaFrame)
