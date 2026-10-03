@@ -4858,10 +4858,10 @@ local ZONE_LEVEL_RANGES = {
     -- Eastern Kingdoms (22 zones)
     { name = "Tirisfal Glades", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.447, y = 0.215, uiMapID = 1420, faction = "Horde", dungeons = { "Scarlet Monastery (32–45)" } },
     { name = "Silverpine Forest", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.397, y = 0.293, uiMapID = 1421, faction = "Horde", dungeons = { "Shadowfang Keep (22–30)" } },
-    { name = "Hillsbrad Foothills", continent = "eastern_kingdoms", minLvl = 20, maxLvl = 30, x = 0.479, y = 0.348, uiMapID = 1424, faction = "Contested" },
+    { name = "Hillsbrad Foothills", continent = "eastern_kingdoms", minLvl = 20, maxLvl = 30, x = 0.472, y = 0.348, uiMapID = 1424, faction = "Contested" },
     { name = "Alterac Mountains", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 40, x = 0.469, y = 0.286, uiMapID = 1416, faction = "Contested" },
     { name = "Western Plaguelands", continent = "eastern_kingdoms", minLvl = 51, maxLvl = 58, x = 0.505, y = 0.232, uiMapID = 1422, faction = "Contested", dungeons = { "Scholomance (58–60)" } },
-    { name = "Eastern Plaguelands", continent = "eastern_kingdoms", minLvl = 53, maxLvl = 60, x = 0.556, y = 0.223, uiMapID = 1423, faction = "Contested", dungeons = { "Stratholme (58–60)" } },
+    { name = "Eastern Plaguelands", continent = "eastern_kingdoms", minLvl = 53, maxLvl = 60, x = 0.563, y = 0.223, uiMapID = 1423, faction = "Contested", dungeons = { "Stratholme (58–60)" } },
     { name = "The Hinterlands", continent = "eastern_kingdoms", minLvl = 40, maxLvl = 50, x = 0.541, y = 0.315, uiMapID = 1425, faction = "Contested" },
     { name = "Arathi Highlands", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 40, x = 0.532, y = 0.379, uiMapID = 1417, faction = "Contested" },
     { name = "Wetlands", continent = "eastern_kingdoms", minLvl = 20, maxLvl = 30, x = 0.526, y = 0.472, uiMapID = 1437, faction = "Contested" },
@@ -4876,7 +4876,7 @@ local ZONE_LEVEL_RANGES = {
     { name = "Duskwood", continent = "eastern_kingdoms", minLvl = 18, maxLvl = 30, x = 0.468, y = 0.772, uiMapID = 1431, faction = "Contested" },
     { name = "Swamp of Sorrows", continent = "eastern_kingdoms", minLvl = 35, maxLvl = 45, x = 0.548, y = 0.755, uiMapID = 1435, faction = "Contested", dungeons = { "Sunken Temple (50–60)" } },
     { name = "Deadwind Pass", continent = "eastern_kingdoms", minLvl = 55, maxLvl = 60, x = 0.509, y = 0.775, uiMapID = 1430, faction = "Contested", dungeons = { "Karazhan (70+)" } },
-    { name = "Blasted Lands", continent = "eastern_kingdoms", minLvl = 45, maxLvl = 55, x = 0.542, y = 0.799, uiMapID = 1419, faction = "Contested" },
+    { name = "Blasted Lands", continent = "eastern_kingdoms", minLvl = 45, maxLvl = 55, x = 0.542, y = 0.814, uiMapID = 1419, faction = "Contested" },
     { name = "Stranglethorn Vale", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 45, x = 0.480, y = 0.844, uiMapID = 1434, faction = "Contested", dungeons = { "Zul'Gurub (60+)" } },
 }
 
