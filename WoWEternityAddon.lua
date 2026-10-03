@@ -4695,6 +4695,9 @@ function WoWEternityAddon:OnPlayerLevelUp(newLevel)
     if active then
         self:Print(string.format("|cffe6cc80[WoW Eternity Addon]|r Ding level %d! Current leveling objective: Step #%d (|cffffd100%s|r)", newLevel or 0, active.stepNumber, active.title))
     end
+    if self.UpdateMapZoneOverlays then
+        self:UpdateMapZoneOverlays()
+    end
 end
 
 -- ============================================================================
