@@ -4863,7 +4863,7 @@ local ZONE_LEVEL_RANGES = {
     { name = "Western Plaguelands", continent = "eastern_kingdoms", minLvl = 51, maxLvl = 58, x = 0.505, y = 0.232, uiMapID = 1422, faction = "Contested", dungeons = { "Scholomance (58–60)" } },
     { name = "Eastern Plaguelands", continent = "eastern_kingdoms", minLvl = 53, maxLvl = 60, x = 0.556, y = 0.223, uiMapID = 1423, faction = "Contested", dungeons = { "Stratholme (58–60)" } },
     { name = "The Hinterlands", continent = "eastern_kingdoms", minLvl = 40, maxLvl = 50, x = 0.541, y = 0.315, uiMapID = 1425, faction = "Contested" },
-    { name = "Arathi Highlands", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 40, x = 0.62, y = 0.44, uiMapID = 1417, faction = "Contested" },
+    { name = "Arathi Highlands", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 40, x = 0.532, y = 0.379, uiMapID = 1417, faction = "Contested" },
     { name = "Wetlands", continent = "eastern_kingdoms", minLvl = 20, maxLvl = 30, x = 0.526, y = 0.472, uiMapID = 1437, faction = "Contested" },
     { name = "Dun Morogh", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.436, y = 0.531, uiMapID = 1426, faction = "Alliance", dungeons = { "Gnomeregan (29–38)" } },
     { name = "Loch Modan", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.552, y = 0.544, uiMapID = 1432, faction = "Alliance" },
