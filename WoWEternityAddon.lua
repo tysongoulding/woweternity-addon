@@ -4847,7 +4847,7 @@ local ZONE_LEVEL_RANGES = {
     { name = "The Barrens", continent = "kalimdor", minLvl = 10, maxLvl = 30, x = 0.526, y = 0.573, uiMapID = 1413, faction = "Horde", dungeons = { "Wailing Caverns (17–24)", "Razorfen Kraul (29–38)", "Razorfen Downs (37–46)" } },
     { name = "Mulgore", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.474, y = 0.613, uiMapID = 1412, faction = "Horde" },
     { name = "Stonetalon Mountains", continent = "kalimdor", minLvl = 15, maxLvl = 25, x = 0.443, y = 0.476, uiMapID = 1442, faction = "Contested" },
-    { name = "Desolace", continent = "kalimdor", minLvl = 30, maxLvl = 40, x = 0.416, y = 0.558, uiMapID = 1443, faction = "Contested", dungeons = { "Maraudon (46–55)" } },
+    { name = "Desolace", continent = "kalimdor", minLvl = 30, maxLvl = 40, x = 0.416, y = 0.577, uiMapID = 1443, faction = "Contested", dungeons = { "Maraudon (46–55)" } },
     { name = "Dustwallow Marsh", continent = "kalimdor", minLvl = 35, maxLvl = 45, x = 0.565, y = 0.679, uiMapID = 1445, faction = "Contested", dungeons = { "Onyxia's Lair (60+)" } },
     { name = "Thousand Needles", continent = "kalimdor", minLvl = 25, maxLvl = 35, x = 0.571, y = 0.760, uiMapID = 1441, faction = "Contested" },
     { name = "Feralas", continent = "kalimdor", minLvl = 40, maxLvl = 50, x = 0.437, y = 0.703, uiMapID = 1444, faction = "Contested", dungeons = { "Dire Maul (55–60)" } },
