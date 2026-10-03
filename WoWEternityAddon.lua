@@ -4848,7 +4848,7 @@ local ZONE_LEVEL_RANGES = {
     { name = "Mulgore", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.474, y = 0.613, uiMapID = 1412, faction = "Horde" },
     { name = "Stonetalon Mountains", continent = "kalimdor", minLvl = 15, maxLvl = 25, x = 0.43, y = 0.45, uiMapID = 1442, faction = "Contested" },
     { name = "Desolace", continent = "kalimdor", minLvl = 30, maxLvl = 40, x = 0.416, y = 0.558, uiMapID = 1443, faction = "Contested", dungeons = { "Maraudon (46–55)" } },
-    { name = "Dustwallow Marsh", continent = "kalimdor", minLvl = 35, maxLvl = 45, x = 0.60, y = 0.66, uiMapID = 1445, faction = "Contested", dungeons = { "Onyxia's Lair (60+)" } },
+    { name = "Dustwallow Marsh", continent = "kalimdor", minLvl = 35, maxLvl = 45, x = 0.565, y = 0.679, uiMapID = 1445, faction = "Contested", dungeons = { "Onyxia's Lair (60+)" } },
     { name = "Thousand Needles", continent = "kalimdor", minLvl = 25, maxLvl = 35, x = 0.571, y = 0.760, uiMapID = 1441, faction = "Contested" },
     { name = "Feralas", continent = "kalimdor", minLvl = 40, maxLvl = 50, x = 0.42, y = 0.73, uiMapID = 1444, faction = "Contested", dungeons = { "Dire Maul (55–60)" } },
     { name = "Tanaris", continent = "kalimdor", minLvl = 40, maxLvl = 50, x = 0.556, y = 0.861, uiMapID = 1446, faction = "Contested", dungeons = { "Zul'Farrak (44–54)" } },
