@@ -523,6 +523,23 @@ assert.strictEqual(barrens.name, 'The Barrens');
 assert.strictEqual(barrens.minLvl, 10);
 assert.strictEqual(barrens.maxLvl, 30);
 
+// 5. Circle Marker Verification for Mulgore (Level 28 at 45.7, 54.0)
+const mulgore = zones.find(z => z.uiMapID === 1412);
+assert.ok(mulgore, 'Mulgore must exist in database');
+assert.strictEqual(mulgore.name, 'Mulgore');
+assert.strictEqual(mulgore.minLvl, 28, 'Mulgore minLvl must be 28');
+assert.strictEqual(mulgore.maxLvl, 28, 'Mulgore maxLvl must be 28');
+assert.strictEqual(mulgore.x, 0.457, 'Mulgore x coordinate must be 0.457 (45.7)');
+assert.strictEqual(mulgore.y, 0.540, 'Mulgore y coordinate must be 0.540 (54.0)');
+assert.ok(luaSource.includes('shape = "circle"'), 'Must support shape = "circle" in ZONE_LEVEL_RANGES');
+assert.ok(luaSource.includes('z.shape == "circle"'), 'Must branch on z.shape == "circle" in UpdateMapZoneOverlays');
+assert.ok(luaSource.includes('circleBorder:SetVertexColor(r, g, b, 0.95)'), 'Must tint circleBorder with dynamic level difficulty color');
+
+const mediaFiles = ['circle_bg.png', 'circle_bg.tga', 'circle_border.png', 'circle_border.tga', 'circle_dot.png', 'circle_dot.tga', 'icon.png', 'icon.tga'];
+for (const mf of mediaFiles) {
+    assert.ok(fs.existsSync(path.join(ADDON_DIR, 'media', mf)), `Media file ${mf} must exist`);
+}
+
 console.log('[PASS] Addon simulation & static analysis passed 100%.');
 
 

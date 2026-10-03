@@ -4,7 +4,7 @@
 ## Author: WoW Eternity Team
 ## Version: 1.2.0
 ## Category: Quests
-## IconTexture: Interface\AddOns\WoW Eternity Addon\media\icon.png
+## IconTexture: Interface\AddOns\WoW Eternity Addon\media\icon.tga
 ## SavedVariables: WoWEternityAddonDB
 ## SavedVariablesPerCharacter: WoWEternityAddonCharDB
 

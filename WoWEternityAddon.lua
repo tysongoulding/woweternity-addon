@@ -4848,7 +4848,7 @@ local ZONE_LEVEL_RANGES = {
     { name = "Azshara", continent = "kalimdor", minLvl = 45, maxLvl = 55, x = 0.596, y = 0.387, uiMapID = 1447, faction = "Contested" },
     { name = "Durotar", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.588, y = 0.547, uiMapID = 1411, faction = "Horde", dungeons = { "Ragefire Chasm (13–18)" } },
     { name = "The Barrens", continent = "kalimdor", minLvl = 10, maxLvl = 30, x = 0.526, y = 0.573, uiMapID = 1413, faction = "Horde", dungeons = { "Wailing Caverns (17–24)", "Razorfen Kraul (29–38)", "Razorfen Downs (37–46)" } },
-    { name = "Mulgore", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.474, y = 0.613, uiMapID = 1412, faction = "Horde" },
+    { name = "Mulgore", continent = "kalimdor", minLvl = 28, maxLvl = 28, x = 0.457, y = 0.540, uiMapID = 1412, faction = "Horde", shape = "circle" },
     { name = "Stonetalon Mountains", continent = "kalimdor", minLvl = 15, maxLvl = 25, x = 0.443, y = 0.476, uiMapID = 1442, faction = "Contested" },
     { name = "Desolace", continent = "kalimdor", minLvl = 30, maxLvl = 40, x = 0.416, y = 0.577, uiMapID = 1443, faction = "Contested", dungeons = { "Maraudon (46–55)" } },
     { name = "Dustwallow Marsh", continent = "kalimdor", minLvl = 35, maxLvl = 45, x = 0.565, y = 0.679, uiMapID = 1445, faction = "Contested", dungeons = { "Onyxia's Lair (60+)" } },
@@ -5143,6 +5143,18 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                     border:SetColorTexture(0.90, 0.80, 0.50, 0.30)
                     pill.border = border
 
+                    local circleBg = pill:CreateTexture(nil, "BACKGROUND")
+                    circleBg:SetAllPoints(pill)
+                    circleBg:SetTexture("Interface\\AddOns\\WoW Eternity Addon\\media\\circle_bg")
+                    circleBg:Hide()
+                    pill.circleBg = circleBg
+
+                    local circleBorder = pill:CreateTexture(nil, "BORDER")
+                    circleBorder:SetAllPoints(pill)
+                    circleBorder:SetTexture("Interface\\AddOns\\WoW Eternity Addon\\media\\circle_border")
+                    circleBorder:Hide()
+                    pill.circleBorder = circleBorder
+
                     local text = pill:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
                     text:SetAllPoints(pill)
                     text:SetJustifyH("CENTER")
@@ -5156,7 +5168,11 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         local pLvl = (UnitLevel and UnitLevel("player")) or 1
                         local hex, diffLabel = WoWEternityAddon:GetZoneLevelColor(zd.minLvl, zd.maxLvl, pLvl)
                         GameTooltip:AddLine("|cffe6cc80WoW Eternity Addon|r", 1, 1, 1)
-                        GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r  |cffe6cc80[Level %d–%d]|r", zd.name, zd.minLvl, zd.maxLvl), 1, 1, 1)
+                        if zd.minLvl == zd.maxLvl then
+                            GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r  |cffe6cc80[Level %d]|r", zd.name, zd.minLvl), 1, 1, 1)
+                        else
+                            GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r  |cffe6cc80[Level %d–%d]|r", zd.name, zd.minLvl, zd.maxLvl), 1, 1, 1)
+                        end
                         GameTooltip:AddLine(string.format("Difficulty: %s%s|r  ·  Your Level: |cffffd100%d|r", hex, diffLabel, pLvl), 0.9, 0.9, 0.9)
                         if zd.faction then
                             local fHex = (zd.faction == "Horde" and "|cffff4444") or (zd.faction == "Alliance" and "|cff38bdf8") or "|cffffd100"
@@ -5197,9 +5213,26 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
 
                 pill.zoneData = z
                 local hex, _, r, g, b = self:GetZoneLevelColor(z.minLvl, z.maxLvl, playerLevel)
-                pill.text:SetText(string.format("%s%d–%d|r", hex, z.minLvl, z.maxLvl))
-                if pill.border then
-                    pill.border:SetColorTexture(r, g, b, 0.45)
+                if z.shape == "circle" then
+                    pill:SetSize(24, 24)
+                    if pill.bg then pill.bg:Hide() end
+                    if pill.border then pill.border:Hide() end
+                    if pill.circleBg then pill.circleBg:Show() end
+                    if pill.circleBorder then
+                        pill.circleBorder:Show()
+                        pill.circleBorder:SetVertexColor(r, g, b, 0.95)
+                    end
+                    pill.text:SetText(string.format("%s%d|r", hex, z.minLvl))
+                else
+                    pill:SetSize(46, 18)
+                    if pill.circleBg then pill.circleBg:Hide() end
+                    if pill.circleBorder then pill.circleBorder:Hide() end
+                    if pill.bg then pill.bg:Show() end
+                    if pill.border then
+                        pill.border:Show()
+                        pill.border:SetColorTexture(r, g, b, 0.45)
+                    end
+                    pill.text:SetText(string.format("%s%d–%d|r", hex, z.minLvl, z.maxLvl))
                 end
                 pill:ClearAllPoints()
                 pill:SetPoint("CENTER", canvas, "TOPLEFT", z.x * canvasW, -z.y * canvasH)
