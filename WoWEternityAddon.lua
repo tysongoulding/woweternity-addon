@@ -1438,8 +1438,8 @@ function WoWEternityAddon:CreateMinimapButton()
     -- Custom icon texture
     local icon = button:CreateTexture(nil, "BACKGROUND")
     icon:SetSize(20, 20)
-    icon:SetTexture("Interface\\Icons\\Spell_Holy_MagicalSentry")
-    icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    icon:SetTexture("Interface\\AddOns\\WoW Eternity Addon\\media\\icon")
+    icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
     icon:SetPoint("CENTER", 0, 1)
 
     self:RepositionMinimapButton()

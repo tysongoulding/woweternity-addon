@@ -1,8 +1,10 @@
 ## Interface: 16001
-## Title: WoW Eternity Addon
+## Title: WoW Eternity Addon|cFF00FF00 v1.2.0|r
 ## Notes: In-Game Character Exporter, BiS Tooltips, Cadberry Leveling Guide & Sync Companion for WoW Eternity Client (Build 1.60.1.70170)
 ## Author: WoW Eternity Team
 ## Version: 1.2.0
+## Category: Quests
+## IconTexture: Interface\AddOns\WoW Eternity Addon\media\icon.png
 ## SavedVariables: WoWEternityAddonDB
 ## SavedVariablesPerCharacter: WoWEternityAddonCharDB
 
