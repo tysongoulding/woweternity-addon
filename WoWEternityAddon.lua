@@ -4848,7 +4848,7 @@ local ZONE_LEVEL_RANGES = {
     { name = "Azshara", continent = "kalimdor", minLvl = 45, maxLvl = 55, x = 0.596, y = 0.387, uiMapID = 1447, faction = "Contested" },
     { name = "Durotar", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.588, y = 0.547, uiMapID = 1411, faction = "Horde", dungeons = { "Ragefire Chasm (13–18)" } },
     { name = "The Barrens", continent = "kalimdor", minLvl = 10, maxLvl = 30, x = 0.526, y = 0.573, uiMapID = 1413, faction = "Horde", dungeons = { "Wailing Caverns (17–24)", "Razorfen Kraul (29–38)", "Razorfen Downs (37–46)" } },
-    { name = "Mulgore", continent = "kalimdor", minLvl = 28, maxLvl = 28, x = 0.457, y = 0.540, uiMapID = 1412, faction = "Horde", shape = "circle" },
+    { name = "Mulgore", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.474, y = 0.613, uiMapID = 1412, faction = "Horde" },
     { name = "Stonetalon Mountains", continent = "kalimdor", minLvl = 15, maxLvl = 25, x = 0.443, y = 0.476, uiMapID = 1442, faction = "Contested" },
     { name = "Desolace", continent = "kalimdor", minLvl = 30, maxLvl = 40, x = 0.416, y = 0.577, uiMapID = 1443, faction = "Contested", dungeons = { "Maraudon (46–55)" } },
     { name = "Dustwallow Marsh", continent = "kalimdor", minLvl = 35, maxLvl = 45, x = 0.565, y = 0.679, uiMapID = 1445, faction = "Contested", dungeons = { "Onyxia's Lair (60+)" } },
@@ -4883,6 +4883,29 @@ local ZONE_LEVEL_RANGES = {
 }
 
 WoWEternityAddon.ZONE_LEVEL_RANGES = ZONE_LEVEL_RANGES
+
+local SUBZONE_LEVEL_OVERLAYS = {
+    {
+        name = "Skywatcher Plateau",
+        zoneName = "Mulgore",
+        continent = "kalimdor",
+        minLvl = 28,
+        maxLvl = 28,
+        contX = 0.457,
+        contY = 0.540,
+        shape = "circle",
+        faction = "Horde",
+        uiMapID = 1412,
+        zoneArea = {
+            uiMapID = 1412,
+            x = 0.291,
+            y = 0.168,
+            width = 0.154,
+            height = 0.288,
+        },
+    },
+}
+WoWEternityAddon.SUBZONE_LEVEL_OVERLAYS = SUBZONE_LEVEL_OVERLAYS
 
 local ZONE_BY_MAPID = {}
 local ZONE_BY_NAME = {}
@@ -5169,11 +5192,14 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         local hex, diffLabel = WoWEternityAddon:GetZoneLevelColor(zd.minLvl, zd.maxLvl, pLvl)
                         GameTooltip:AddLine("|cffe6cc80WoW Eternity Addon|r", 1, 1, 1)
                         if zd.minLvl == zd.maxLvl then
-                            GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r  |cffe6cc80[Level %d]|r", zd.name, zd.minLvl), 1, 1, 1)
+                            GameTooltip:AddLine(string.format("Area: |cffffffff%s|r  |cffe6cc80[Level %d]|r", zd.name, zd.minLvl), 1, 1, 1)
                         else
                             GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r  |cffe6cc80[Level %d–%d]|r", zd.name, zd.minLvl, zd.maxLvl), 1, 1, 1)
                         end
                         GameTooltip:AddLine(string.format("Difficulty: %s%s|r  ·  Your Level: |cffffd100%d|r", hex, diffLabel, pLvl), 0.9, 0.9, 0.9)
+                        if zd.zoneName then
+                            GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r", zd.zoneName), 0.8, 0.8, 0.8)
+                        end
                         if zd.faction then
                             local fHex = (zd.faction == "Horde" and "|cffff4444") or (zd.faction == "Alliance" and "|cff38bdf8") or "|cffffd100"
                             GameTooltip:AddLine(string.format("Territory: %s%s|r", fHex, zd.faction), 0.8, 0.8, 0.8)
@@ -5220,7 +5246,7 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                     if pill.circleBg then pill.circleBg:Show() end
                     if pill.circleBorder then
                         pill.circleBorder:Show()
-                        pill.circleBorder:SetVertexColor(r, g, b, 0.95)
+                        pill.circleBorder:SetVertexColor(r, g, b, 0.85)
                     end
                     pill.text:SetText(string.format("%s%d|r", hex, z.minLvl))
                 else
@@ -5240,8 +5266,127 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
             end
         end
 
+        if SUBZONE_LEVEL_OVERLAYS then
+            for _, sz in ipairs(SUBZONE_LEVEL_OVERLAYS) do
+                if sz.continent == contKey then
+                    pIndex = pIndex + 1
+                    local pill = self.continentZonePills[pIndex]
+                    if not pill then
+                        pill = CreateFrame("Button", "WEA_ContZonePill_" .. pIndex, canvas)
+                        pill:SetSize(24, 24)
+                        pill:SetFrameStrata("HIGH")
+
+                        local bg = pill:CreateTexture(nil, "BACKGROUND")
+                        bg:SetAllPoints(pill)
+                        bg:SetColorTexture(0.04, 0.04, 0.07, 0.82)
+                        pill.bg = bg
+
+                        local border = pill:CreateTexture(nil, "BORDER")
+                        border:SetPoint("TOPLEFT", -1, 1)
+                        border:SetPoint("BOTTOMRIGHT", 1, -1)
+                        border:SetColorTexture(0.90, 0.80, 0.50, 0.30)
+                        pill.border = border
+
+                        local circleBg = pill:CreateTexture(nil, "BACKGROUND")
+                        circleBg:SetAllPoints(pill)
+                        circleBg:SetTexture("Interface\\AddOns\\WoW Eternity Addon\\media\\circle_bg")
+                        circleBg:Hide()
+                        pill.circleBg = circleBg
+
+                        local circleBorder = pill:CreateTexture(nil, "BORDER")
+                        circleBorder:SetAllPoints(pill)
+                        circleBorder:SetTexture("Interface\\AddOns\\WoW Eternity Addon\\media\\circle_border")
+                        circleBorder:Hide()
+                        pill.circleBorder = circleBorder
+
+                        local text = pill:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                        text:SetAllPoints(pill)
+                        text:SetJustifyH("CENTER")
+                        text:SetJustifyV("MIDDLE")
+                        pill.text = text
+
+                        pill:SetScript("OnEnter", function(p)
+                            if not GameTooltip or not p.zoneData then return end
+                            GameTooltip:SetOwner(p, "ANCHOR_RIGHT")
+                            local zd = p.zoneData
+                            local pLvl = (UnitLevel and UnitLevel("player")) or 1
+                            local hex, diffLabel = WoWEternityAddon:GetZoneLevelColor(zd.minLvl, zd.maxLvl, pLvl)
+                            GameTooltip:AddLine("|cffe6cc80WoW Eternity Addon|r", 1, 1, 1)
+                            GameTooltip:AddLine(string.format("Area: |cffffffff%s|r  |cffe6cc80[Level %d]|r", zd.name, zd.minLvl), 1, 1, 1)
+                            GameTooltip:AddLine(string.format("Difficulty: %s%s|r  ·  Your Level: |cffffd100%d|r", hex, diffLabel, pLvl), 0.9, 0.9, 0.9)
+                            if zd.zoneName then
+                                GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r", zd.zoneName), 0.8, 0.8, 0.8)
+                            end
+                            if zd.faction then
+                                local fHex = (zd.faction == "Horde" and "|cffff4444") or (zd.faction == "Alliance" and "|cff38bdf8") or "|cffffd100"
+                                GameTooltip:AddLine(string.format("Territory: %s%s|r", fHex, zd.faction), 0.8, 0.8, 0.8)
+                            end
+                            GameTooltip:AddLine(" ")
+                            GameTooltip:AddLine("|cff38bdf8Click to zoom into zone map|r", 0.4, 0.8, 1.0)
+                            GameTooltip:Show()
+                        end)
+
+                        pill:SetScript("OnLeave", function()
+                            if GameTooltip then GameTooltip:Hide() end
+                        end)
+
+                        pill:SetScript("OnClick", function(p)
+                            if p.zoneData and p.zoneData.uiMapID then
+                                if WorldMapFrame and WorldMapFrame.SetMapID then
+                                    WorldMapFrame:SetMapID(p.zoneData.uiMapID)
+                                elseif SetMapByID then
+                                    SetMapByID(p.zoneData.uiMapID)
+                                end
+                            end
+                        end)
+
+                        self.continentZonePills[pIndex] = pill
+                    end
+
+                    if pill:GetParent() ~= canvas then
+                        pill:SetParent(canvas)
+                    end
+
+                    pill.zoneData = sz
+                    local hex, _, r, g, b = self:GetZoneLevelColor(sz.minLvl, sz.maxLvl, playerLevel)
+                    if sz.shape == "circle" then
+                        pill:SetSize(24, 24)
+                        if pill.bg then pill.bg:Hide() end
+                        if pill.border then pill.border:Hide() end
+                        if pill.circleBg then pill.circleBg:Show() end
+                        if pill.circleBorder then
+                            pill.circleBorder:Show()
+                            pill.circleBorder:SetVertexColor(r, g, b, 0.85)
+                        end
+                        pill.text:SetText(string.format("%s%d|r", hex, sz.minLvl))
+                    else
+                        pill:SetSize(46, 18)
+                        if pill.circleBg then pill.circleBg:Hide() end
+                        if pill.circleBorder then pill.circleBorder:Hide() end
+                        if pill.bg then pill.bg:Show() end
+                        if pill.border then
+                            pill.border:Show()
+                            pill.border:SetColorTexture(r, g, b, 0.45)
+                        end
+                        pill.text:SetText(string.format("%s%d–%d|r", hex, sz.minLvl, sz.maxLvl))
+                    end
+                    pill:ClearAllPoints()
+                    local px = sz.contX or sz.x or 0.5
+                    local py = sz.contY or sz.y or 0.5
+                    pill:SetPoint("CENTER", canvas, "TOPLEFT", px * canvasW, -py * canvasH)
+                    pill:Show()
+                end
+            end
+        end
+
         for i = pIndex + 1, #self.continentZonePills do
             self.continentZonePills[i]:Hide()
+        end
+
+        if self.subzoneAreaFrames then
+            for _, f in ipairs(self.subzoneAreaFrames) do
+                f:Hide()
+            end
         end
     else
         -- Zone Map
@@ -5268,6 +5413,108 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
             end
         else
             if self.mapZoneBadge then self.mapZoneBadge:Hide() end
+        end
+
+        -- Subzone Area Overlays (e.g. Mulgore: Skywatcher Plateau 50% transparent area overlay)
+        self.subzoneAreaFrames = self.subzoneAreaFrames or {}
+        local areaIndex = 0
+        if SUBZONE_LEVEL_OVERLAYS then
+            for _, sz in ipairs(SUBZONE_LEVEL_OVERLAYS) do
+                if sz.zoneArea and (sz.zoneArea.uiMapID == currentMapID or (zoneData and (zoneData.uiMapID == sz.uiMapID or zoneData.name == sz.zoneName))) then
+                    areaIndex = areaIndex + 1
+                    local areaFrame = self.subzoneAreaFrames[areaIndex]
+                    if not areaFrame then
+                        areaFrame = CreateFrame("Button", "WEA_SubzoneArea_" .. areaIndex, canvas)
+                        areaFrame:SetFrameStrata("MEDIUM")
+
+                        local areaBg = areaFrame:CreateTexture(nil, "BACKGROUND")
+                        areaBg:SetAllPoints(areaFrame)
+                        areaBg:SetTexture("Interface\\AddOns\\WoW Eternity Addon\\media\\area_overlay_oval")
+                        areaFrame.bg = areaBg
+
+                        local areaBorder = areaFrame:CreateTexture(nil, "BORDER")
+                        areaBorder:SetAllPoints(areaFrame)
+                        areaBorder:SetTexture("Interface\\AddOns\\WoW Eternity Addon\\media\\area_border_oval")
+                        areaFrame.border = areaBorder
+
+                        local dot = CreateFrame("Button", "WEA_SubzoneMarker_" .. areaIndex, areaFrame)
+                        dot:SetSize(24, 24)
+                        dot:SetFrameStrata("HIGH")
+                        dot:SetPoint("CENTER", areaFrame, "CENTER", 0, 0)
+
+                        local dotBg = dot:CreateTexture(nil, "BACKGROUND")
+                        dotBg:SetAllPoints(dot)
+                        dotBg:SetTexture("Interface\\AddOns\\WoW Eternity Addon\\media\\circle_bg")
+                        dot.bg = dotBg
+
+                        local dotBorder = dot:CreateTexture(nil, "BORDER")
+                        dotBorder:SetAllPoints(dot)
+                        dotBorder:SetTexture("Interface\\AddOns\\WoW Eternity Addon\\media\\circle_border")
+                        dot.border = dotBorder
+
+                        local dotText = dot:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                        dotText:SetAllPoints(dot)
+                        dotText:SetJustifyH("CENTER")
+                        dotText:SetJustifyV("MIDDLE")
+                        dot.text = dotText
+
+                        areaFrame.dot = dot
+
+                        local onEnter = function(p)
+                            local data = p.subzoneData
+                            if not GameTooltip or not data then return end
+                            GameTooltip:SetOwner(p, "ANCHOR_RIGHT")
+                            local pLvl = (UnitLevel and UnitLevel("player")) or 1
+                            local hex, diffLabel = WoWEternityAddon:GetZoneLevelColor(data.minLvl, data.maxLvl, pLvl)
+                            GameTooltip:AddLine("|cffe6cc80WoW Eternity Addon|r", 1, 1, 1)
+                            GameTooltip:AddLine(string.format("Area: |cffffffff%s|r  |cffe6cc80[Level %d]|r", data.name, data.minLvl), 1, 1, 1)
+                            GameTooltip:AddLine(string.format("Difficulty: %s%s|r  ·  Your Level: |cffffd100%d|r", hex, diffLabel, pLvl), 0.9, 0.9, 0.9)
+                            GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r", data.zoneName), 0.8, 0.8, 0.8)
+                            GameTooltip:Show()
+                        end
+
+                        local onLeave = function()
+                            if GameTooltip then GameTooltip:Hide() end
+                        end
+
+                        areaFrame:SetScript("OnEnter", onEnter)
+                        areaFrame:SetScript("OnLeave", onLeave)
+                        dot:SetScript("OnEnter", onEnter)
+                        dot:SetScript("OnLeave", onLeave)
+
+                        self.subzoneAreaFrames[areaIndex] = areaFrame
+                    end
+
+                    if areaFrame:GetParent() ~= canvas then
+                        areaFrame:SetParent(canvas)
+                    end
+
+                    areaFrame.subzoneData = sz
+                    areaFrame.dot.subzoneData = sz
+
+                    local hex, diffLabel, r, g, b = self:GetZoneLevelColor(sz.minLvl, sz.maxLvl, playerLevel)
+                    -- 50% transparent overlay (alpha 0.50)
+                    if areaFrame.bg then
+                        areaFrame.bg:SetVertexColor(r, g, b, 0.50)
+                    end
+                    if areaFrame.border then
+                        areaFrame.border:SetVertexColor(r, g, b, 0.80)
+                    end
+                    if areaFrame.dot then
+                        areaFrame.dot.border:SetVertexColor(r, g, b, 0.95)
+                        areaFrame.dot.text:SetText(string.format("%s%d|r", hex, sz.minLvl))
+                    end
+
+                    areaFrame:SetSize(sz.zoneArea.width * canvasW, sz.zoneArea.height * canvasH)
+                    areaFrame:ClearAllPoints()
+                    areaFrame:SetPoint("CENTER", canvas, "TOPLEFT", sz.zoneArea.x * canvasW, -sz.zoneArea.y * canvasH)
+                    areaFrame:Show()
+                end
+            end
+        end
+
+        for i = areaIndex + 1, #self.subzoneAreaFrames do
+            self.subzoneAreaFrames[i]:Hide()
         end
     end
 end
