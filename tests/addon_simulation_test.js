@@ -542,6 +542,11 @@ assert.ok(luaSource.includes('areaFrame.bg:SetVertexColor(r, g, b, 0.50)'), 'Mus
 assert.ok(luaSource.includes('pill.border:SetColorTexture(r, g, b, 0.45)'), 'Must render soft colored background wash and 1px border');
 assert.ok(luaSource.includes('w = (sz.minLvl == sz.maxLvl) and 26 or 46'), 'Must use compact square badge (26x18) for single-level subzones');
 assert.ok(luaSource.includes('pill.text:SetShadowOffset(1, -1)'), 'Continent numbers must have shadow for high contrast text');
+assert.ok(luaSource.includes('function WoWEternityAddon:GetFactionDisplay'), 'Must implement GetFactionDisplay helper');
+assert.ok(luaSource.includes('pill.underline'), 'Pill frames must have underline texture');
+assert.ok(luaSource.includes('0.22, 0.74, 0.97') && luaSource.includes('1.0, 0.27, 0.27'), 'Must use Alliance Blue and Horde Red underline colors');
+assert.ok(luaSource.includes('Specific to Alliance') || luaSource.includes('Alliance Only'), 'Tooltip must indicate Alliance-specific zones');
+assert.ok(luaSource.includes('Specific to Horde') || luaSource.includes('Horde Only'), 'Tooltip must indicate Horde-specific zones');
 
 const mediaFiles = [
     'circle_bg.png', 'circle_bg.tga',

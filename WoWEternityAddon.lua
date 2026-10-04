@@ -4867,16 +4867,16 @@ local ZONE_LEVEL_RANGES = {
     { name = "Eastern Plaguelands", continent = "eastern_kingdoms", minLvl = 53, maxLvl = 60, x = 0.563, y = 0.223, uiMapID = 1423, faction = "Contested", dungeons = { "Stratholme (58–60)" } },
     { name = "The Hinterlands", continent = "eastern_kingdoms", minLvl = 40, maxLvl = 50, x = 0.541, y = 0.315, uiMapID = 1425, faction = "Contested" },
     { name = "Arathi Highlands", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 40, x = 0.532, y = 0.379, uiMapID = 1417, faction = "Contested" },
-    { name = "Wetlands", continent = "eastern_kingdoms", minLvl = 20, maxLvl = 30, x = 0.526, y = 0.472, uiMapID = 1437, faction = "Contested" },
+    { name = "Wetlands", continent = "eastern_kingdoms", minLvl = 20, maxLvl = 30, x = 0.526, y = 0.472, uiMapID = 1437, faction = "Alliance" },
     { name = "Dun Morogh", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.436, y = 0.531, uiMapID = 1426, faction = "Alliance", dungeons = { "Gnomeregan (29–38)" } },
     { name = "Loch Modan", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.552, y = 0.544, uiMapID = 1432, faction = "Alliance" },
     { name = "Badlands", continent = "eastern_kingdoms", minLvl = 35, maxLvl = 45, x = 0.546, y = 0.587, uiMapID = 1418, faction = "Contested", dungeons = { "Uldaman (41–51)" } },
     { name = "Searing Gorge", continent = "eastern_kingdoms", minLvl = 43, maxLvl = 50, x = 0.491, y = 0.608, uiMapID = 1427, faction = "Contested", dungeons = { "Blackrock Depths (52–60)", "Molten Core (60+)" } },
     { name = "Burning Steppes", continent = "eastern_kingdoms", minLvl = 50, maxLvl = 58, x = 0.506, y = 0.656, uiMapID = 1428, faction = "Contested", dungeons = { "Lower Blackrock Spire (55–60)", "Blackwing Lair (60+)" } },
-    { name = "Redridge Mountains", continent = "eastern_kingdoms", minLvl = 15, maxLvl = 25, x = 0.532, y = 0.714, uiMapID = 1433, faction = "Contested" },
+    { name = "Redridge Mountains", continent = "eastern_kingdoms", minLvl = 15, maxLvl = 25, x = 0.532, y = 0.714, uiMapID = 1433, faction = "Alliance" },
     { name = "Elwynn Forest", continent = "eastern_kingdoms", minLvl = 1, maxLvl = 10, x = 0.473, y = 0.706, uiMapID = 1429, faction = "Alliance", dungeons = { "Stockade (24–32)" } },
     { name = "Westfall", continent = "eastern_kingdoms", minLvl = 10, maxLvl = 20, x = 0.407, y = 0.774, uiMapID = 1436, faction = "Alliance", dungeons = { "The Deadmines (17–26)" } },
-    { name = "Duskwood", continent = "eastern_kingdoms", minLvl = 18, maxLvl = 30, x = 0.468, y = 0.772, uiMapID = 1431, faction = "Contested" },
+    { name = "Duskwood", continent = "eastern_kingdoms", minLvl = 18, maxLvl = 30, x = 0.468, y = 0.772, uiMapID = 1431, faction = "Alliance" },
     { name = "Swamp of Sorrows", continent = "eastern_kingdoms", minLvl = 35, maxLvl = 45, x = 0.548, y = 0.755, uiMapID = 1435, faction = "Contested", dungeons = { "Sunken Temple (50–60)" } },
     { name = "Blasted Lands", continent = "eastern_kingdoms", minLvl = 45, maxLvl = 55, x = 0.542, y = 0.814, uiMapID = 1419, faction = "Contested" },
     { name = "Stranglethorn Vale", continent = "eastern_kingdoms", minLvl = 30, maxLvl = 45, x = 0.480, y = 0.844, uiMapID = 1434, faction = "Contested", dungeons = { "Zul'Gurub (60+)" } },
@@ -4938,6 +4938,20 @@ function WoWEternityAddon:GetZoneLevelColor(minLvl, maxLvl, playerLevel)
         return "|cffffd100", "Easy", 1.0, 0.82, 0.0
     else
         return "|cff888888", "Trivial", 0.55, 0.55, 0.55
+    end
+end
+
+function WoWEternityAddon:GetFactionDisplay(faction)
+    if faction == "Alliance" then
+        return "|cff38bdf8", "Alliance Only", true, 0.22, 0.74, 0.97
+    elseif faction == "Horde" then
+        return "|cffff4444", "Horde Only", true, 1.0, 0.27, 0.27
+    elseif faction == "Contested" then
+        return "|cffffd100", "Contested (Both Factions)", false, nil, nil, nil
+    elseif faction == "Neutral" then
+        return "|cffffd100", "Neutral (Both Factions)", false, nil, nil, nil
+    else
+        return "|cffffd100", (faction or "Both Factions"), false, nil, nil, nil
     end
 end
 
@@ -5022,6 +5036,11 @@ function WoWEternityAddon:GetOrCreateMapZoneBadge(canvas)
     badge.text = text
     badge.subText = text
 
+    local underline = badge:CreateTexture(nil, "OVERLAY")
+    underline:SetHeight(2)
+    underline:Hide()
+    badge.underline = underline
+
     badge:EnableMouse(true)
     badge:SetScript("OnEnter", function(b)
         local br = b.currentBorderR or 0.90
@@ -5037,8 +5056,13 @@ function WoWEternityAddon:GetOrCreateMapZoneBadge(canvas)
         GameTooltip:AddLine(string.format("Level Range: %s%d–%d|r  (%s%s|r)", hex, z.minLvl, z.maxLvl, hex, diffLabel), 1, 1, 1)
         GameTooltip:AddLine(string.format("Your Level: |cffffd100%d|r", playerLvl), 0.9, 0.9, 0.9)
         if z.faction then
-            local fHex = (z.faction == "Horde" and "|cffff4444") or (z.faction == "Alliance" and "|cff38bdf8") or "|cffffd100"
-            GameTooltip:AddLine(string.format("Territory: %s%s|r", fHex, z.faction), 0.8, 0.8, 0.8)
+            local fHex, fLabel, hasUnderline = WoWEternityAddon:GetFactionDisplay(z.faction)
+            GameTooltip:AddLine(string.format("Faction: %s%s|r", fHex, fLabel), 0.9, 0.9, 0.9)
+            if hasUnderline then
+                GameTooltip:AddLine(string.format("%s• Underlined: Specific to %s|r", fHex, z.faction), 0.75, 0.75, 0.75)
+            else
+                GameTooltip:AddLine("|cffffd100• Both Alliance & Horde (No Underline)|r", 0.75, 0.75, 0.75)
+            end
         end
         if z.dungeons and #z.dungeons > 0 then
             GameTooltip:AddLine(" ")
@@ -5195,6 +5219,11 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                     text:SetJustifyV("MIDDLE")
                     pill.text = text
 
+                    local underline = pill:CreateTexture(nil, "OVERLAY")
+                    underline:SetHeight(2)
+                    underline:Hide()
+                    pill.underline = underline
+
                     pill:SetScript("OnEnter", function(p)
                         if not GameTooltip or not p.zoneData then return end
                         GameTooltip:SetOwner(p, "ANCHOR_RIGHT")
@@ -5212,8 +5241,13 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                             GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r", zd.zoneName), 0.8, 0.8, 0.8)
                         end
                         if zd.faction then
-                            local fHex = (zd.faction == "Horde" and "|cffff4444") or (zd.faction == "Alliance" and "|cff38bdf8") or "|cffffd100"
-                            GameTooltip:AddLine(string.format("Territory: %s%s|r", fHex, zd.faction), 0.8, 0.8, 0.8)
+                            local fHex, fLabel, hasUnderline = WoWEternityAddon:GetFactionDisplay(zd.faction)
+                            GameTooltip:AddLine(string.format("Faction: %s%s|r", fHex, fLabel), 0.9, 0.9, 0.9)
+                            if hasUnderline then
+                                GameTooltip:AddLine(string.format("%s• Underlined: Specific to %s|r", fHex, zd.faction), 0.75, 0.75, 0.75)
+                            else
+                                GameTooltip:AddLine("|cffffd100• Both Alliance & Horde (No Underline)|r", 0.75, 0.75, 0.75)
+                            end
                         end
                         if zd.dungeons and #zd.dungeons > 0 then
                             GameTooltip:AddLine(" ")
@@ -5263,6 +5297,18 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                 end
                 local textW = (pill.text.GetStringWidth and pill.text:GetStringWidth()) or 0
                 pill:SetSize(math.max(textW + 8, 28), 16)
+
+                local fHex, fLabel, hasUnderline, ur, ug, ub = self:GetFactionDisplay(z.faction)
+                if hasUnderline and pill.underline then
+                    pill.underline:ClearAllPoints()
+                    pill.underline:SetPoint("BOTTOM", pill, "BOTTOM", 0, 1)
+                    pill.underline:SetSize(math.max(textW + 2, 14), 2)
+                    pill.underline:SetColorTexture(ur, ug, ub, 0.95)
+                    pill.underline:Show()
+                else
+                    if pill.underline then pill.underline:Hide() end
+                end
+
                 pill:ClearAllPoints()
                 pill:SetPoint("CENTER", canvas, "TOPLEFT", z.x * canvasW, -z.y * canvasH)
                 pill:Show()
@@ -5308,6 +5354,11 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         text:SetJustifyV("MIDDLE")
                         pill.text = text
 
+                        local underline = pill:CreateTexture(nil, "OVERLAY")
+                        underline:SetHeight(2)
+                        underline:Hide()
+                        pill.underline = underline
+
                         pill:SetScript("OnEnter", function(p)
                             if not GameTooltip or not p.zoneData then return end
                             GameTooltip:SetOwner(p, "ANCHOR_RIGHT")
@@ -5321,8 +5372,13 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                                 GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r", zd.zoneName), 0.8, 0.8, 0.8)
                             end
                             if zd.faction then
-                                local fHex = (zd.faction == "Horde" and "|cffff4444") or (zd.faction == "Alliance" and "|cff38bdf8") or "|cffffd100"
-                                GameTooltip:AddLine(string.format("Territory: %s%s|r", fHex, zd.faction), 0.8, 0.8, 0.8)
+                                local fHex, fLabel, hasUnderline = WoWEternityAddon:GetFactionDisplay(zd.faction)
+                                GameTooltip:AddLine(string.format("Faction: %s%s|r", fHex, fLabel), 0.9, 0.9, 0.9)
+                                if hasUnderline then
+                                    GameTooltip:AddLine(string.format("%s• Underlined: Specific to %s|r", fHex, zd.faction), 0.75, 0.75, 0.75)
+                                else
+                                    GameTooltip:AddLine("|cffffd100• Both Alliance & Horde (No Underline)|r", 0.75, 0.75, 0.75)
+                                end
                             end
                             GameTooltip:AddLine(" ")
                             GameTooltip:AddLine("|cff38bdf8Click to zoom into zone map|r", 0.4, 0.8, 1.0)
@@ -5365,6 +5421,18 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                     end
                     local textW = (pill.text.GetStringWidth and pill.text:GetStringWidth()) or 0
                     pill:SetSize(math.max(textW + 8, 20), 16)
+
+                    local fHex, fLabel, hasUnderline, ur, ug, ub = self:GetFactionDisplay(sz.faction)
+                    if hasUnderline and pill.underline then
+                        pill.underline:ClearAllPoints()
+                        pill.underline:SetPoint("BOTTOM", pill, "BOTTOM", 0, 1)
+                        pill.underline:SetSize(math.max(textW + 2, 14), 2)
+                        pill.underline:SetColorTexture(ur, ug, ub, 0.95)
+                        pill.underline:Show()
+                    else
+                        if pill.underline then pill.underline:Hide() end
+                    end
+
                     pill:ClearAllPoints()
                     local px = sz.contX or sz.x or 0.5
                     local py = sz.contY or sz.y or 0.5
@@ -5407,6 +5475,19 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                 if badge.border then
                     badge.border:SetColorTexture(r, g, b, 0.45)
                 end
+
+                local fHex, fLabel, hasUnderline, ur, ug, ub = self:GetFactionDisplay(zoneData.faction)
+                if hasUnderline and badge.underline then
+                    local textW = (badge.text.GetStringWidth and badge.text:GetStringWidth()) or 36
+                    badge.underline:ClearAllPoints()
+                    badge.underline:SetPoint("BOTTOM", badge, "BOTTOM", 0, 4)
+                    badge.underline:SetSize(math.max(textW + 4, 20), 2)
+                    badge.underline:SetColorTexture(ur, ug, ub, 0.95)
+                    badge.underline:Show()
+                else
+                    if badge.underline then badge.underline:Hide() end
+                end
+
                 badge:ClearAllPoints()
                 badge:SetPoint("TOPRIGHT", canvas, "TOPRIGHT", -12, -12)
                 badge:Show()
@@ -5496,6 +5577,11 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         text:SetJustifyV("MIDDLE")
                         pill.text = text
 
+                        local underline = pill:CreateTexture(nil, "OVERLAY")
+                        underline:SetHeight(2)
+                        underline:Hide()
+                        pill.underline = underline
+
                         pill:SetScript("OnEnter", function(p)
                             local data = p.subzoneData
                             if not GameTooltip or not data then return end
@@ -5513,8 +5599,13 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                                 GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r", data.zoneName), 0.8, 0.8, 0.8)
                             end
                             if data.faction then
-                                local fHex = (data.faction == "Horde" and "|cffff4444") or (data.faction == "Alliance" and "|cff38bdf8") or "|cffffd100"
-                                GameTooltip:AddLine(string.format("Territory: %s%s|r", fHex, data.faction), 0.8, 0.8, 0.8)
+                                local fHex, fLabel, hasUnderline = WoWEternityAddon:GetFactionDisplay(data.faction)
+                                GameTooltip:AddLine(string.format("Faction: %s%s|r", fHex, fLabel), 0.9, 0.9, 0.9)
+                                if hasUnderline then
+                                    GameTooltip:AddLine(string.format("%s• Underlined: Specific to %s|r", fHex, data.faction), 0.75, 0.75, 0.75)
+                                else
+                                    GameTooltip:AddLine("|cffffd100• Both Alliance & Horde (No Underline)|r", 0.75, 0.75, 0.75)
+                                end
                             end
                             GameTooltip:Show()
                         end)
@@ -5545,6 +5636,18 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         pill.text:SetText(string.format("%s%d|r", hex, sz.minLvl))
                     else
                         pill.text:SetText(string.format("%s%d–%d|r", hex, sz.minLvl, sz.maxLvl))
+                    end
+
+                    local fHex, fLabel, hasUnderline, ur, ug, ub = self:GetFactionDisplay(sz.faction)
+                    if hasUnderline and pill.underline then
+                        local textW = (pill.text.GetStringWidth and pill.text:GetStringWidth()) or 16
+                        pill.underline:ClearAllPoints()
+                        pill.underline:SetPoint("BOTTOM", pill, "BOTTOM", 0, 2)
+                        pill.underline:SetSize(math.max(textW + 2, 12), 2)
+                        pill.underline:SetColorTexture(ur, ug, ub, 0.95)
+                        pill.underline:Show()
+                    else
+                        if pill.underline then pill.underline:Hide() end
                     end
 
                     pill:ClearAllPoints()
