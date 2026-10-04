@@ -541,6 +541,7 @@ assert.ok(luaSource.includes('area_overlay_plateau') || luaSource.includes('area
 assert.ok(luaSource.includes('areaFrame.bg:SetVertexColor(r, g, b, 0.50)'), 'Must render 50% transparent area overlay');
 assert.ok(luaSource.includes('pill.border:SetColorTexture(r, g, b, 0.45)'), 'Must render soft colored background wash and 1px border');
 assert.ok(luaSource.includes('w = (sz.minLvl == sz.maxLvl) and 26 or 46'), 'Must use compact square badge (26x18) for single-level subzones');
+assert.ok(luaSource.includes('pill.text:SetShadowOffset(1, -1)'), 'Continent numbers must have shadow for high contrast text');
 
 const mediaFiles = [
     'circle_bg.png', 'circle_bg.tga',

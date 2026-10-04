@@ -5250,27 +5250,19 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
 
                 pill.zoneData = z
                 local hex, _, r, g, b = self:GetZoneLevelColor(z.minLvl, z.maxLvl, playerLevel)
-                if z.shape == "circle" then
-                    pill:SetSize(24, 24)
-                    if pill.bg then pill.bg:Hide() end
-                    if pill.border then pill.border:Hide() end
-                    if pill.circleBg then pill.circleBg:Show() end
-                    if pill.circleBorder then
-                        pill.circleBorder:Show()
-                        pill.circleBorder:SetVertexColor(r, g, b, 0.85)
-                    end
-                    pill.text:SetText(string.format("%s%d|r", hex, z.minLvl))
-                else
-                    pill:SetSize(46, 18)
-                    if pill.circleBg then pill.circleBg:Hide() end
-                    if pill.circleBorder then pill.circleBorder:Hide() end
-                    if pill.bg then pill.bg:Show() end
-                    if pill.border then
-                        pill.border:Show()
-                        pill.border:SetColorTexture(r, g, b, 0.45)
-                    end
-                    pill.text:SetText(string.format("%s%d–%d|r", hex, z.minLvl, z.maxLvl))
+                if pill.bg then pill.bg:Hide() end
+                if pill.border then pill.border:Hide() end
+                if pill.circleBg then pill.circleBg:Hide() end
+                if pill.circleBorder then pill.circleBorder:Hide() end
+
+                local textStr = (z.minLvl == z.maxLvl) and string.format("%s%d|r", hex, z.minLvl) or string.format("%s%d–%d|r", hex, z.minLvl, z.maxLvl)
+                pill.text:SetText(textStr)
+                if pill.text.SetShadowColor then
+                    pill.text:SetShadowColor(0, 0, 0, 1)
+                    pill.text:SetShadowOffset(1, -1)
                 end
+                local textW = (pill.text.GetStringWidth and pill.text:GetStringWidth()) or 0
+                pill:SetSize(math.max(textW + 8, 28), 16)
                 pill:ClearAllPoints()
                 pill:SetPoint("CENTER", canvas, "TOPLEFT", z.x * canvasW, -z.y * canvasH)
                 pill:Show()
@@ -5360,32 +5352,19 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
 
                     pill.zoneData = sz
                     local hex, _, r, g, b = self:GetZoneLevelColor(sz.minLvl, sz.maxLvl, playerLevel)
-                    if sz.shape == "circle" then
-                        pill:SetSize(24, 24)
-                        if pill.bg then pill.bg:Hide() end
-                        if pill.border then pill.border:Hide() end
-                        if pill.circleBg then pill.circleBg:Show() end
-                        if pill.circleBorder then
-                            pill.circleBorder:Show()
-                            pill.circleBorder:SetVertexColor(r, g, b, 0.85)
-                        end
-                        pill.text:SetText(string.format("%s%d|r", hex, sz.minLvl))
-                    else
-                        local w = (sz.minLvl == sz.maxLvl) and 26 or 46
-                        pill:SetSize(w, 18)
-                        if pill.circleBg then pill.circleBg:Hide() end
-                        if pill.circleBorder then pill.circleBorder:Hide() end
-                        if pill.bg then pill.bg:Show() end
-                        if pill.border then
-                            pill.border:Show()
-                            pill.border:SetColorTexture(r, g, b, 0.45)
-                        end
-                        if sz.minLvl == sz.maxLvl then
-                            pill.text:SetText(string.format("%s%d|r", hex, sz.minLvl))
-                        else
-                            pill.text:SetText(string.format("%s%d–%d|r", hex, sz.minLvl, sz.maxLvl))
-                        end
+                    if pill.bg then pill.bg:Hide() end
+                    if pill.border then pill.border:Hide() end
+                    if pill.circleBg then pill.circleBg:Hide() end
+                    if pill.circleBorder then pill.circleBorder:Hide() end
+
+                    local textStr = (sz.minLvl == sz.maxLvl) and string.format("%s%d|r", hex, sz.minLvl) or string.format("%s%d–%d|r", hex, sz.minLvl, sz.maxLvl)
+                    pill.text:SetText(textStr)
+                    if pill.text.SetShadowColor then
+                        pill.text:SetShadowColor(0, 0, 0, 1)
+                        pill.text:SetShadowOffset(1, -1)
                     end
+                    local textW = (pill.text.GetStringWidth and pill.text:GetStringWidth()) or 0
+                    pill:SetSize(math.max(textW + 8, 20), 16)
                     pill:ClearAllPoints()
                     local px = sz.contX or sz.x or 0.5
                     local py = sz.contY or sz.y or 0.5
@@ -5554,7 +5533,12 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                     pill.subzoneData = sz
                     local w = (sz.minLvl == sz.maxLvl) and 26 or 46
                     pill:SetSize(w, 18)
+                    if pill.bg then
+                        pill.bg:Show()
+                        pill.bg:SetColorTexture(0.04, 0.04, 0.07, 0.82)
+                    end
                     if pill.border then
+                        pill.border:Show()
                         pill.border:SetColorTexture(r, g, b, 0.45)
                     end
                     if sz.minLvl == sz.maxLvl then
