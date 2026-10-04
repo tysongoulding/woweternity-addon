@@ -4893,15 +4893,18 @@ local SUBZONE_LEVEL_OVERLAYS = {
         maxLvl = 28,
         contX = 0.457,
         contY = 0.540,
+        zoneX = 0.348,
+        zoneY = 0.138,
         shape = "square",
         faction = "Horde",
         uiMapID = 1412,
         zoneArea = {
             uiMapID = 1412,
-            x = 0.328,
-            y = 0.174,
+            x = 0.348,
+            y = 0.138,
             width = 0.120,
             height = 0.280,
+            showArea = false,
             texture = "area_overlay_plateau",
             borderTexture = "area_border_plateau",
         },
@@ -5114,6 +5117,12 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
         if self.mapZoneBadge then self.mapZoneBadge:Hide() end
         if self.continentZonePills then
             for _, p in ipairs(self.continentZonePills) do p:Hide() end
+        end
+        if self.subzoneAreaFrames then
+            for _, f in ipairs(self.subzoneAreaFrames) do f:Hide() end
+        end
+        if self.subzoneMarkerPills then
+            for _, p in ipairs(self.subzoneMarkerPills) do p:Hide() end
         end
         return
     end
@@ -5395,6 +5404,11 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                 f:Hide()
             end
         end
+        if self.subzoneMarkerPills then
+            for _, p in ipairs(self.subzoneMarkerPills) do
+                p:Hide()
+            end
+        end
     else
         -- Zone Map
         for _, p in ipairs(self.continentZonePills) do
@@ -5422,117 +5436,145 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
             if self.mapZoneBadge then self.mapZoneBadge:Hide() end
         end
 
-        -- Subzone Area Overlays (e.g. Mulgore: Skywatcher Plateau 50% transparent area overlay)
+        -- Subzone Markers & Area Overlays (e.g. Mulgore: Skywatcher Plateau level 28 square marker at 34.8, 13.8)
         self.subzoneAreaFrames = self.subzoneAreaFrames or {}
+        self.subzoneMarkerPills = self.subzoneMarkerPills or {}
         local areaIndex = 0
+        local markerIndex = 0
         if SUBZONE_LEVEL_OVERLAYS then
             for _, sz in ipairs(SUBZONE_LEVEL_OVERLAYS) do
-                if sz.zoneArea and (sz.zoneArea.uiMapID == currentMapID or (zoneData and (zoneData.uiMapID == sz.uiMapID or zoneData.name == sz.zoneName))) then
-                    areaIndex = areaIndex + 1
-                    local areaFrame = self.subzoneAreaFrames[areaIndex]
-                    if not areaFrame then
-                        areaFrame = CreateFrame("Button", "WEA_SubzoneArea_" .. areaIndex, canvas)
-                        areaFrame:SetFrameStrata("MEDIUM")
+                if (sz.zoneX or sz.zoneArea) and (sz.uiMapID == currentMapID or (sz.zoneArea and sz.zoneArea.uiMapID == currentMapID) or (zoneData and (zoneData.uiMapID == sz.uiMapID or zoneData.name == sz.zoneName))) then
+                    local zx = sz.zoneX or (sz.zoneArea and sz.zoneArea.x) or 0.348
+                    local zy = sz.zoneY or (sz.zoneArea and sz.zoneArea.y) or 0.138
+                    local hex, diffLabel, r, g, b = self:GetZoneLevelColor(sz.minLvl, sz.maxLvl, playerLevel)
 
-                        local texName = (sz.zoneArea and sz.zoneArea.texture) or "area_overlay_plateau"
-                        local borderTexName = (sz.zoneArea and sz.zoneArea.borderTexture) or "area_border_plateau"
+                    -- Area Effect (rendered only if explicitly enabled via showArea = true)
+                    if sz.zoneArea and sz.zoneArea.showArea then
+                        areaIndex = areaIndex + 1
+                        local areaFrame = self.subzoneAreaFrames[areaIndex]
+                        if not areaFrame then
+                            areaFrame = CreateFrame("Frame", "WEA_SubzoneArea_" .. areaIndex, canvas)
+                            areaFrame:SetFrameStrata("MEDIUM")
 
-                        local areaBg = areaFrame:CreateTexture(nil, "BACKGROUND")
-                        areaBg:SetAllPoints(areaFrame)
-                        areaBg:SetTexture(string.format("Interface\\AddOns\\WoW Eternity Addon\\media\\%s", texName))
-                        areaFrame.bg = areaBg
+                            local texName = sz.zoneArea.texture or "area_overlay_plateau"
+                            local borderTexName = sz.zoneArea.borderTexture or "area_border_plateau"
 
-                        local areaBorder = areaFrame:CreateTexture(nil, "BORDER")
-                        areaBorder:SetAllPoints(areaFrame)
-                        areaBorder:SetTexture(string.format("Interface\\AddOns\\WoW Eternity Addon\\media\\%s", borderTexName))
-                        areaFrame.border = areaBorder
+                            local areaBg = areaFrame:CreateTexture(nil, "BACKGROUND")
+                            areaBg:SetAllPoints(areaFrame)
+                            areaBg:SetTexture(string.format("Interface\\AddOns\\WoW Eternity Addon\\media\\%s", texName))
+                            areaFrame.bg = areaBg
 
-                        local dot = CreateFrame("Button", "WEA_SubzoneMarker_" .. areaIndex, areaFrame)
-                        local dw = (sz.minLvl == sz.maxLvl) and 26 or 46
-                        dot:SetSize(dw, 18)
-                        dot:SetFrameStrata("HIGH")
-                        dot:SetPoint("CENTER", areaFrame, "CENTER", 0, 0)
+                            local areaBorder = areaFrame:CreateTexture(nil, "BORDER")
+                            areaBorder:SetAllPoints(areaFrame)
+                            areaBorder:SetTexture(string.format("Interface\\AddOns\\WoW Eternity Addon\\media\\%s", borderTexName))
+                            areaFrame.border = areaBorder
 
-                        local dotBg = dot:CreateTexture(nil, "BACKGROUND")
-                        dotBg:SetAllPoints(dot)
-                        dotBg:SetColorTexture(0.04, 0.04, 0.07, 0.82)
-                        dot.bg = dotBg
+                            self.subzoneAreaFrames[areaIndex] = areaFrame
+                        end
 
-                        local dotBorder = dot:CreateTexture(nil, "BORDER")
-                        dotBorder:SetPoint("TOPLEFT", -1, 1)
-                        dotBorder:SetPoint("BOTTOMRIGHT", 1, -1)
-                        dotBorder:SetColorTexture(0.90, 0.80, 0.50, 0.30)
-                        dot.border = dotBorder
+                        if areaFrame:GetParent() ~= canvas then
+                            areaFrame:SetParent(canvas)
+                        end
 
-                        local dotText = dot:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-                        dotText:SetAllPoints(dot)
-                        dotText:SetJustifyH("CENTER")
-                        dotText:SetJustifyV("MIDDLE")
-                        dot.text = dotText
+                        -- 50% transparent overlay (alpha 0.50)
+                        if areaFrame.bg then
+                            areaFrame.bg:Show()
+                            areaFrame.bg:SetVertexColor(r, g, b, 0.50)
+                        end
+                        if areaFrame.border then
+                            areaFrame.border:Show()
+                            areaFrame.border:SetVertexColor(r, g, b, 0.80)
+                        end
 
-                        areaFrame.dot = dot
+                        areaFrame:SetSize((sz.zoneArea.width or 0.120) * canvasW, (sz.zoneArea.height or 0.280) * canvasH)
+                        areaFrame:ClearAllPoints()
+                        areaFrame:SetPoint("CENTER", canvas, "TOPLEFT", zx * canvasW, -zy * canvasH)
+                        areaFrame:Show()
+                    end
 
-                        local onEnter = function(p)
+                    -- Subzone Square Badge Marker (Crisp 26x18 square badge matching zone pills)
+                    markerIndex = markerIndex + 1
+                    local pill = self.subzoneMarkerPills[markerIndex]
+                    if not pill then
+                        pill = CreateFrame("Button", "WEA_SubzoneMarkerPill_" .. markerIndex, canvas)
+                        pill:SetSize(26, 18)
+                        pill:SetFrameStrata("HIGH")
+
+                        local bg = pill:CreateTexture(nil, "BACKGROUND")
+                        bg:SetAllPoints(pill)
+                        bg:SetColorTexture(0.04, 0.04, 0.07, 0.82)
+                        pill.bg = bg
+
+                        local border = pill:CreateTexture(nil, "BORDER")
+                        border:SetPoint("TOPLEFT", -1, 1)
+                        border:SetPoint("BOTTOMRIGHT", 1, -1)
+                        border:SetColorTexture(0.90, 0.80, 0.50, 0.30)
+                        pill.border = border
+
+                        local text = pill:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                        text:SetAllPoints(pill)
+                        text:SetJustifyH("CENTER")
+                        text:SetJustifyV("MIDDLE")
+                        pill.text = text
+
+                        pill:SetScript("OnEnter", function(p)
                             local data = p.subzoneData
                             if not GameTooltip or not data then return end
                             GameTooltip:SetOwner(p, "ANCHOR_RIGHT")
                             local pLvl = (UnitLevel and UnitLevel("player")) or 1
-                            local hex, diffLabel = WoWEternityAddon:GetZoneLevelColor(data.minLvl, data.maxLvl, pLvl)
+                            local pHex, pDiff = WoWEternityAddon:GetZoneLevelColor(data.minLvl, data.maxLvl, pLvl)
                             GameTooltip:AddLine("|cffe6cc80WoW Eternity Addon|r", 1, 1, 1)
-                            GameTooltip:AddLine(string.format("Area: |cffffffff%s|r  |cffe6cc80[Level %d]|r", data.name, data.minLvl), 1, 1, 1)
-                            GameTooltip:AddLine(string.format("Difficulty: %s%s|r  ·  Your Level: |cffffd100%d|r", hex, diffLabel, pLvl), 0.9, 0.9, 0.9)
-                            GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r", data.zoneName), 0.8, 0.8, 0.8)
+                            if data.minLvl == data.maxLvl then
+                                GameTooltip:AddLine(string.format("Area: |cffffffff%s|r  |cffe6cc80[Level %d]|r", data.name, data.minLvl), 1, 1, 1)
+                            else
+                                GameTooltip:AddLine(string.format("Area: |cffffffff%s|r  |cffe6cc80[Level %d–%d]|r", data.name, data.minLvl, data.maxLvl), 1, 1, 1)
+                            end
+                            GameTooltip:AddLine(string.format("Difficulty: %s%s|r  ·  Your Level: |cffffd100%d|r", pHex, pDiff, pLvl), 0.9, 0.9, 0.9)
+                            if data.zoneName then
+                                GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r", data.zoneName), 0.8, 0.8, 0.8)
+                            end
+                            if data.faction then
+                                local fHex = (data.faction == "Horde" and "|cffff4444") or (data.faction == "Alliance" and "|cff38bdf8") or "|cffffd100"
+                                GameTooltip:AddLine(string.format("Territory: %s%s|r", fHex, data.faction), 0.8, 0.8, 0.8)
+                            end
                             GameTooltip:Show()
-                        end
+                        end)
 
-                        local onLeave = function()
+                        pill:SetScript("OnLeave", function()
                             if GameTooltip then GameTooltip:Hide() end
-                        end
+                        end)
 
-                        areaFrame:SetScript("OnEnter", onEnter)
-                        areaFrame:SetScript("OnLeave", onLeave)
-                        dot:SetScript("OnEnter", onEnter)
-                        dot:SetScript("OnLeave", onLeave)
-
-                        self.subzoneAreaFrames[areaIndex] = areaFrame
+                        self.subzoneMarkerPills[markerIndex] = pill
                     end
 
-                    if areaFrame:GetParent() ~= canvas then
-                        areaFrame:SetParent(canvas)
+                    if pill:GetParent() ~= canvas then
+                        pill:SetParent(canvas)
                     end
 
-                    areaFrame.subzoneData = sz
-                    areaFrame.dot.subzoneData = sz
-
-                    local hex, diffLabel, r, g, b = self:GetZoneLevelColor(sz.minLvl, sz.maxLvl, playerLevel)
-                    -- 50% transparent overlay (alpha 0.50)
-                    if areaFrame.bg then
-                        areaFrame.bg:SetVertexColor(r, g, b, 0.50)
+                    pill.subzoneData = sz
+                    local w = (sz.minLvl == sz.maxLvl) and 26 or 46
+                    pill:SetSize(w, 18)
+                    if pill.border then
+                        pill.border:SetColorTexture(r, g, b, 0.45)
                     end
-                    if areaFrame.border then
-                        areaFrame.border:SetVertexColor(r, g, b, 0.80)
-                    end
-                    if areaFrame.dot then
-                        if areaFrame.dot.border then
-                            areaFrame.dot.border:SetColorTexture(r, g, b, 0.45)
-                        end
-                        if sz.minLvl == sz.maxLvl then
-                            areaFrame.dot.text:SetText(string.format("%s%d|r", hex, sz.minLvl))
-                        else
-                            areaFrame.dot.text:SetText(string.format("%s%d–%d|r", hex, sz.minLvl, sz.maxLvl))
-                        end
+                    if sz.minLvl == sz.maxLvl then
+                        pill.text:SetText(string.format("%s%d|r", hex, sz.minLvl))
+                    else
+                        pill.text:SetText(string.format("%s%d–%d|r", hex, sz.minLvl, sz.maxLvl))
                     end
 
-                    areaFrame:SetSize(sz.zoneArea.width * canvasW, sz.zoneArea.height * canvasH)
-                    areaFrame:ClearAllPoints()
-                    areaFrame:SetPoint("CENTER", canvas, "TOPLEFT", sz.zoneArea.x * canvasW, -sz.zoneArea.y * canvasH)
-                    areaFrame:Show()
+                    pill:ClearAllPoints()
+                    pill:SetPoint("CENTER", canvas, "TOPLEFT", zx * canvasW, -zy * canvasH)
+                    pill:Show()
                 end
             end
         end
 
         for i = areaIndex + 1, #self.subzoneAreaFrames do
             self.subzoneAreaFrames[i]:Hide()
+        end
+        for i = markerIndex + 1, #self.subzoneMarkerPills do
+            self.subzoneMarkerPills[i]:Hide()
         end
     end
 end

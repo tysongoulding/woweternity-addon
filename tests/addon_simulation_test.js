@@ -532,10 +532,11 @@ assert.strictEqual(mulgore.maxLvl, 10, 'Mulgore maxLvl must be 10');
 assert.strictEqual(mulgore.x, 0.474, 'Mulgore x coordinate must be 0.474 (47.4)');
 assert.strictEqual(mulgore.y, 0.613, 'Mulgore y coordinate must be 0.613 (61.3)');
 
-// Subzone Overlay (Skywatcher Plateau: level 28 at 45.7, 54.0 on Kalimdor, 50% transparent area overlay in Mulgore)
+// Subzone Overlay & Marker (Skywatcher Plateau: level 28 at 45.7, 54.0 on Kalimdor, square marker at 34.8, 13.8 in Mulgore)
 assert.ok(luaSource.includes('SUBZONE_LEVEL_OVERLAYS'), 'Must define SUBZONE_LEVEL_OVERLAYS');
 assert.ok(luaSource.includes('name = "Skywatcher Plateau"'), 'Must define Skywatcher Plateau in SUBZONE_LEVEL_OVERLAYS');
 assert.ok(luaSource.includes('contX = 0.457') && luaSource.includes('contY = 0.540'), 'Skywatcher Plateau dot marker must be at 45.7, 54.0');
+assert.ok(luaSource.includes('zoneX = 0.348') && luaSource.includes('zoneY = 0.138'), 'Skywatcher Plateau square marker must be at 34.8, 13.8 in Mulgore');
 assert.ok(luaSource.includes('area_overlay_plateau') || luaSource.includes('area_overlay_oval'), 'Must use plateau/oval area overlay texture');
 assert.ok(luaSource.includes('areaFrame.bg:SetVertexColor(r, g, b, 0.50)'), 'Must render 50% transparent area overlay');
 assert.ok(luaSource.includes('pill.border:SetColorTexture(r, g, b, 0.45)'), 'Must render soft colored background wash and 1px border');
