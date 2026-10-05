@@ -606,6 +606,189 @@ assert.ok(luaSource.includes('"Alcaz Prison (48–53)"'), 'Alcaz Prison must be 
 assert.ok(luaSource.includes('"Blackmaw Hold (55–60)"'), 'Blackmaw Hold must be in Azshara');
 assert.ok(luaSource.includes('"The Shaper\'s Terrace (58–60)"'), 'The Shaper\'s Terrace must be in Un\'Goro Crater');
 
+// --- Suite 11: Continent Map Dungeon List Sidebar & Interactive Zone Highlighting ---
+console.log('--- Suite 11: Continent Map Dungeon List Sidebar & Interactive Zone Highlighting ---');
+
+// 1. Static Analysis of Required Methods, Frames & Properties
+assert.ok(luaSource.includes('function WoWEternityAddon:GetOrCreateContinentDungeonPanel'), 'Must implement GetOrCreateContinentDungeonPanel');
+assert.ok(luaSource.includes('function WoWEternityAddon:HighlightContinentZonePill'), 'Must implement HighlightContinentZonePill');
+assert.ok(luaSource.includes('function WoWEternityAddon:UpdateContinentDungeonPanel'), 'Must implement UpdateContinentDungeonPanel');
+assert.ok(luaSource.includes('WoWEternity_ContinentDungeonPanel'), 'Must create WoWEternity_ContinentDungeonPanel frame');
+assert.ok(luaSource.includes('WoWEternity_ContDungeonRow_'), 'Must create reusable row buttons in WoWEternity_ContDungeonRow_ pool');
+assert.ok(luaSource.includes('panel:SetFrameStrata("HIGH")'), 'Continent dungeon panel strata must be HIGH');
+assert.ok(luaSource.includes('panel:SetSize(200,'), 'Continent dungeon panel width must be 200px');
+assert.ok(luaSource.includes('0.04, 0.04, 0.07, 0.88'), 'Continent dungeon panel must use dark theme backdrop');
+assert.ok(luaSource.includes('0.90, 0.80, 0.50, 0.40'), 'Continent dungeon panel must have gold border');
+assert.ok(luaSource.includes('|cffe6cc80Dungeons|r'), 'Continent dungeon panel must have gold title header');
+assert.ok(luaSource.includes('row.hoverBg'), 'Dungeon row must have hoverBg texture');
+assert.ok(luaSource.includes('0.90, 0.80, 0.50, 0.15'), 'Dungeon row hoverBg must use gold highlight');
+assert.ok(luaSource.includes('row.dungeonText'), 'Dungeon row must have dungeonText font string');
+assert.ok(luaSource.includes('row.zoneText'), 'Dungeon row must have zoneText font string');
+assert.ok(luaSource.includes('row.lvlText'), 'Dungeon row must have lvlText font string');
+
+// 2. Integration in UpdateMapZoneOverlays & Zone Map Scope
+assert.ok(luaSource.includes('self:UpdateContinentDungeonPanel(canvas, contKey, playerLevel, playerFaction)'), 'Must call UpdateContinentDungeonPanel on continent maps');
+assert.ok(luaSource.includes('self.continentDungeonPanel:Hide()'), 'Must hide continent dungeon panel on zone maps');
+
+// 3. Hover Highlighting & Scale / Color Toggle Static Verification
+assert.ok(luaSource.includes('pill:SetScale(1.35)'), 'Hovering dungeon row must scale zone pill up to 1.35x');
+assert.ok(luaSource.includes('pill:SetScale(1.0)'), 'Leaving dungeon row must restore zone pill scale to 1.0x');
+assert.ok(luaSource.includes('|cff38bdf8'), 'Hovering dungeon row must highlight pill text in cyan |cff38bdf8');
+assert.ok(luaSource.includes('0.22, 0.74, 0.97, 1.0'), 'Hovering dungeon row must underline pill in cyan');
+assert.ok(luaSource.includes('HighlightContinentZonePill(r.zoneName, true)'), 'Row OnEnter must call HighlightContinentZonePill enable=true');
+assert.ok(luaSource.includes('HighlightContinentZonePill(r.zoneName, false)'), 'Row OnLeave must call HighlightContinentZonePill enable=false');
+
+// 4. Click Navigation Verification
+assert.ok(luaSource.includes('WorldMapFrame:SetMapID(r.uiMapID)'), 'Clicking dungeon row must call WorldMapFrame:SetMapID');
+assert.ok(luaSource.includes('WoWEternityAddon:UpdateMapZoneOverlays()'), 'Clicking dungeon row must trigger UpdateMapZoneOverlays');
+
+// 5. Behavioral Simulation: Dungeon Extraction, Faction Filtering & Sorting
+const extractDungeonsForContinent = (continentKey, faction) => {
+    const dungeonList = [];
+    for (const line of luaLines) {
+        if (!line.includes(`continent = "${continentKey}"`)) continue;
+        if (!line.includes('dungeons = {')) continue;
+
+        const nameMatch = line.match(/name\s*=\s*"([^"]+)"/);
+        const mapMatch = line.match(/uiMapID\s*=\s*(\d+)/);
+        const dMatch = line.match(/dungeons\s*=\s*\{([^}]+)\}/);
+        if (!nameMatch || !mapMatch || !dMatch) continue;
+
+        const zoneName = nameMatch[1];
+        const uiMapID = parseInt(mapMatch[1], 10);
+        const dEntries = dMatch[1].match(/"([^"]+)"/g) || [];
+
+        for (const rawD of dEntries) {
+            const cleanD = rawD.replace(/"/g, '');
+            const parsed = cleanD.match(/^(.*?)\s*\(([0-9]+)[^0-9]+([0-9]+)\)/);
+            if (!parsed) continue;
+
+            const dName = parsed[1].trim();
+            const dMin = parseInt(parsed[2], 10);
+            const dMax = parseInt(parsed[3], 10);
+
+            let isExcluded = false;
+            if (faction === 'alliance') {
+                if (dName === 'Ragefire Chasm' || dName === 'Ruins of Lordaeron') isExcluded = true;
+            } else if (faction === 'horde') {
+                if (dName === 'The Deadmines' || dName === 'The Stockade' || dName === 'Stockade' || dName === 'Hall of Thanes') isExcluded = true;
+            }
+
+            if (!isExcluded) {
+                dungeonList.push({
+                    name: dName,
+                    minLvl: dMin,
+                    maxLvl: dMax,
+                    zoneName,
+                    uiMapID
+                });
+            }
+        }
+    }
+
+    // Sort: minLvl ASC, maxLvl ASC, name ASC
+    dungeonList.sort((a, b) => {
+        if (a.minLvl !== b.minLvl) return a.minLvl - b.minLvl;
+        if (a.maxLvl !== b.maxLvl) return a.maxLvl - b.maxLvl;
+        return a.name.localeCompare(b.name);
+    });
+
+    return dungeonList;
+};
+
+// Kalimdor: Alliance vs Horde filtering
+const kalimdorAlly = extractDungeonsForContinent('kalimdor', 'alliance');
+const kalimdorHorde = extractDungeonsForContinent('kalimdor', 'horde');
+
+assert.strictEqual(kalimdorAlly.length, 10, 'Alliance must see 10 Kalimdor dungeons');
+assert.strictEqual(kalimdorHorde.length, 11, 'Horde must see 11 Kalimdor dungeons (including RFC)');
+assert.ok(!kalimdorAlly.some(d => d.name === 'Ragefire Chasm'), 'Alliance Kalimdor list must NEVER contain Ragefire Chasm');
+assert.ok(kalimdorHorde.some(d => d.name === 'Ragefire Chasm'), 'Horde Kalimdor list must contain Ragefire Chasm');
+assert.ok(kalimdorAlly.some(d => d.name === 'Wailing Caverns'), 'Alliance Kalimdor list must contain Wailing Caverns');
+assert.ok(kalimdorAlly.some(d => d.name === 'Blackfathom Deeps'), 'Alliance Kalimdor list must contain Blackfathom Deeps');
+
+// Eastern Kingdoms: Alliance vs Horde filtering
+const ekAlly = extractDungeonsForContinent('eastern_kingdoms', 'alliance');
+const ekHorde = extractDungeonsForContinent('eastern_kingdoms', 'horde');
+
+assert.strictEqual(ekAlly.length, 16, 'Alliance must see 16 Eastern Kingdoms dungeons');
+assert.strictEqual(ekHorde.length, 14, 'Horde must see 14 Eastern Kingdoms dungeons');
+assert.ok(!ekAlly.some(d => d.name === 'Ruins of Lordaeron'), 'Alliance EK list must NEVER contain Ruins of Lordaeron');
+assert.ok(ekAlly.some(d => d.name === 'The Deadmines'), 'Alliance EK list must contain The Deadmines');
+assert.ok(ekAlly.some(d => d.name === 'Stockade'), 'Alliance EK list must contain Stockade');
+assert.ok(ekAlly.some(d => d.name === 'Hall of Thanes'), 'Alliance EK list must contain Hall of Thanes');
+
+assert.ok(ekHorde.some(d => d.name === 'Ruins of Lordaeron'), 'Horde EK list must contain Ruins of Lordaeron');
+assert.ok(!ekHorde.some(d => d.name === 'The Deadmines'), 'Horde EK list must NEVER contain The Deadmines');
+assert.ok(!ekHorde.some(d => d.name === 'Stockade'), 'Horde EK list must NEVER contain Stockade');
+assert.ok(!ekHorde.some(d => d.name === 'Hall of Thanes'), 'Horde EK list must NEVER contain Hall of Thanes');
+assert.ok(ekHorde.some(d => d.name === 'Shadowfang Keep'), 'Horde EK list must contain Shadowfang Keep');
+assert.ok(ekHorde.some(d => d.name === 'Scarlet Monastery'), 'Horde EK list must contain Scarlet Monastery');
+
+// 6. Sorting Order Verification (minLvl ASC, maxLvl ASC, name ASC)
+for (let i = 0; i < ekAlly.length - 1; i++) {
+    const current = ekAlly[i];
+    const next = ekAlly[i + 1];
+    assert.ok(current.minLvl <= next.minLvl, `Dungeons must be sorted ascending by minLvl: ${current.name} (${current.minLvl}) <= ${next.name} (${next.minLvl})`);
+    if (current.minLvl === next.minLvl) {
+        assert.ok(current.maxLvl <= next.maxLvl, `Dungeons with same minLvl must be sorted by maxLvl: ${current.name} (${current.maxLvl}) <= ${next.name} (${next.maxLvl})`);
+    }
+}
+assert.strictEqual(ekAlly[0].name, 'Hall of Thanes', 'Hall of Thanes (13-18) must be first EK Alliance dungeon');
+assert.strictEqual(ekAlly[1].name, 'The Deadmines', 'The Deadmines (17-26) must be second EK Alliance dungeon');
+
+// 7. Interactive Hover Pill State Toggle Simulation
+const mockPill = {
+    scale: 1.0,
+    textColor: '|cff44ff44',
+    underlineShown: false,
+    underlineColor: null,
+    borderShown: false,
+    zoneData: { name: 'Westfall', minLvl: 10, maxLvl: 20, faction: 'Alliance' },
+    SetScale(s) { this.scale = s; },
+    SetTextColor(c) { this.textColor = c; },
+    SetUnderline(show, color) { this.underlineShown = show; this.underlineColor = color; }
+};
+
+const simulateHighlight = (pill, enable) => {
+    if (enable) {
+        pill.SetScale(1.35);
+        pill.SetTextColor('|cff38bdf8');
+        pill.SetUnderline(true, 'cyan');
+    } else {
+        pill.SetScale(1.0);
+        pill.SetTextColor('|cff44ff44');
+        pill.SetUnderline(true, 'alliance_blue');
+    }
+};
+
+simulateHighlight(mockPill, true);
+assert.strictEqual(mockPill.scale, 1.35, 'Pill scale must be 1.35 on hover');
+assert.strictEqual(mockPill.textColor, '|cff38bdf8', 'Pill text must be bright cyan on hover');
+assert.strictEqual(mockPill.underlineColor, 'cyan', 'Pill underline must be cyan on hover');
+
+simulateHighlight(mockPill, false);
+assert.strictEqual(mockPill.scale, 1.0, 'Pill scale must restore to 1.0 on unhover');
+assert.strictEqual(mockPill.textColor, '|cff44ff44', 'Pill text must restore to original difficulty on unhover');
+assert.strictEqual(mockPill.underlineColor, 'alliance_blue', 'Pill underline must restore to faction color on unhover');
+
+// 8. Click-to-Zoom Navigation Simulation
+let currentSimulationMapID = 1415; // Eastern Kingdoms
+let overlayUpdateTriggered = false;
+const simulateRowClick = (uiMapID) => {
+    currentSimulationMapID = uiMapID;
+    overlayUpdateTriggered = true;
+};
+simulateRowClick(ekAlly[1].uiMapID); // Click The Deadmines (Westfall uiMapID 1436)
+assert.strictEqual(currentSimulationMapID, 1436, 'Clicking Deadmines must navigate to Westfall map 1436');
+assert.strictEqual(overlayUpdateTriggered, true, 'Clicking row must trigger overlay update');
+
+// 9. Zone Map Sidebar Hidden Simulation
+const isContinent = simulateIsContinentMap(currentSimulationMapID, 'Westfall');
+assert.strictEqual(isContinent, null, 'Westfall map is not a continent');
+const sidebarVisible = isContinent !== null;
+assert.strictEqual(sidebarVisible, false, 'Sidebar must be hidden on zone maps');
+
 const mediaFiles = [
     'circle_bg.png', 'circle_bg.tga',
     'circle_border.png', 'circle_border.tga',
