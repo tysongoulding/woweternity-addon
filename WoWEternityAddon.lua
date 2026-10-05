@@ -4952,16 +4952,33 @@ function WoWEternityAddon:GetFactionDisplay(faction)
 end
 
 function WoWEternityAddon:IsContinentMap(mapID)
+    if not mapID or mapID == 0 then return nil end
+    -- If this mapID is directly recognized as an individual zone in our database, it is NOT a continent
+    if self.ZONE_BY_MAPID and self.ZONE_BY_MAPID[mapID] then
+        return nil
+    end
+
+    -- Explicit continent map IDs
     if mapID == 1414 or mapID == 12 then return "kalimdor" end
     if mapID == 1415 or mapID == 13 then return "eastern_kingdoms" end
+
+    -- Check C_Map info
     if C_Map and C_Map.GetMapInfo then
         local info = C_Map.GetMapInfo(mapID)
-        if info and info.name then
-            local n = info.name:lower()
-            if n:find("kalimdor") then return "kalimdor" end
-            if n:find("eastern") or n:find("kingdom") then return "eastern_kingdoms" end
+        if info then
+            -- If Enum.UIMapType exists and this is an individual zone/micro map, reject
+            if info.mapType and Enum and Enum.UIMapType and info.mapType ~= Enum.UIMapType.Continent then
+                return nil
+            end
+            if info.name then
+                local n = info.name:lower():gsub("%s+", "")
+                if n == "kalimdor" then return "kalimdor" end
+                if n == "easternkingdoms" then return "eastern_kingdoms" end
+            end
         end
     end
+
+    -- Legacy fallback
     if GetCurrentMapContinent then
         local c = GetCurrentMapContinent()
         local z = (GetCurrentMapZone and GetCurrentMapZone()) or 0
@@ -5102,20 +5119,65 @@ function WoWEternityAddon:InitMapZoneOverlays()
     self.mapOverlaysInitialized = true
     self.continentZonePills = {}
 
-    if WorldMapFrame.HookScript then
-        WorldMapFrame:HookScript("OnShow", function()
+    local function TriggerInstantUpdate()
+        if WorldMapFrame and WorldMapFrame:IsShown() then
+            local currentMap = 0
+            if WorldMapFrame.GetMapID then
+                currentMap = WorldMapFrame:GetMapID() or 0
+            elseif C_Map and C_Map.GetBestMapForUnit then
+                currentMap = C_Map.GetBestMapForUnit("player") or 0
+            end
+            WoWEternityAddon.lastMapOverlayMapID = currentMap
             WoWEternityAddon:UpdateMapZoneOverlays()
+        end
+    end
+
+    if WorldMapFrame.HookScript then
+        WorldMapFrame:HookScript("OnShow", TriggerInstantUpdate)
+    end
+
+    -- Securely hook Blizzard map navigation APIs for instant 0ms response
+    if hooksecurefunc then
+        if WorldMapFrame and WorldMapFrame.SetMapID then
+            pcall(hooksecurefunc, WorldMapFrame, "SetMapID", TriggerInstantUpdate)
+        end
+        if WorldMapFrame and WorldMapFrame.OnMapChanged then
+            pcall(hooksecurefunc, WorldMapFrame, "OnMapChanged", TriggerInstantUpdate)
+        end
+        if SetMapByID then
+            pcall(hooksecurefunc, "SetMapByID", TriggerInstantUpdate)
+        end
+        if SetMapToCurrentZone then
+            pcall(hooksecurefunc, "SetMapToCurrentZone", TriggerInstantUpdate)
+        end
+        if ZoomOut then
+            pcall(hooksecurefunc, "ZoomOut", TriggerInstantUpdate)
+        end
+    end
+
+    -- Hook canvas click/navigation for immediate updates
+    local canvas = (WorldMapFrame.GetCanvas and WorldMapFrame:GetCanvas())
+        or (WorldMapFrame.ScrollContainer and WorldMapFrame.ScrollContainer.Child)
+        or WorldMapButton
+        or WorldMapFrame
+    if canvas and canvas.HookScript then
+        pcall(canvas.HookScript, canvas, "OnMouseUp", function()
+            TriggerInstantUpdate()
         end)
     end
 
+    -- Event-driven and frame-level watcher (no debounce, instant per-frame reactivity)
     local overlayWatcher = CreateFrame and CreateFrame("Frame")
-    if overlayWatcher and overlayWatcher.SetScript then
-        overlayWatcher.elapsed = 0
-        overlayWatcher:SetScript("OnUpdate", function(_, dt)
-            if not WorldMapFrame or not WorldMapFrame:IsShown() then return end
-            overlayWatcher.elapsed = overlayWatcher.elapsed + (dt or 0)
-            if overlayWatcher.elapsed >= 0.2 then
-                overlayWatcher.elapsed = 0
+    if overlayWatcher then
+        if overlayWatcher.RegisterEvent then
+            overlayWatcher:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+            overlayWatcher:RegisterEvent("ZONE_CHANGED")
+            overlayWatcher:RegisterEvent("WORLD_MAP_UPDATE")
+            overlayWatcher:SetScript("OnEvent", TriggerInstantUpdate)
+        end
+        if overlayWatcher.SetScript then
+            overlayWatcher:SetScript("OnUpdate", function()
+                if not WorldMapFrame or not WorldMapFrame:IsShown() then return end
                 local currentMap = 0
                 if WorldMapFrame.GetMapID then
                     currentMap = WorldMapFrame:GetMapID() or 0
@@ -5126,8 +5188,8 @@ function WoWEternityAddon:InitMapZoneOverlays()
                     WoWEternityAddon.lastMapOverlayMapID = currentMap
                     WoWEternityAddon:UpdateMapZoneOverlays()
                 end
-            end
-        end)
+            end)
+        end
     end
 end
 
@@ -5267,11 +5329,14 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
 
                     pill:SetScript("OnClick", function(p)
                         if p.zoneData and p.zoneData.uiMapID then
+                            if GameTooltip then GameTooltip:Hide() end
                             if WorldMapFrame and WorldMapFrame.SetMapID then
                                 WorldMapFrame:SetMapID(p.zoneData.uiMapID)
                             elseif SetMapByID then
                                 SetMapByID(p.zoneData.uiMapID)
                             end
+                            WoWEternityAddon.lastMapOverlayMapID = p.zoneData.uiMapID
+                            WoWEternityAddon:UpdateMapZoneOverlays()
                         end
                     end)
 
@@ -5386,11 +5451,14 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
 
                         pill:SetScript("OnClick", function(p)
                             if p.zoneData and p.zoneData.uiMapID then
+                                if GameTooltip then GameTooltip:Hide() end
                                 if WorldMapFrame and WorldMapFrame.SetMapID then
                                     WorldMapFrame:SetMapID(p.zoneData.uiMapID)
                                 elseif SetMapByID then
                                     SetMapByID(p.zoneData.uiMapID)
                                 end
+                                WoWEternityAddon.lastMapOverlayMapID = p.zoneData.uiMapID
+                                WoWEternityAddon:UpdateMapZoneOverlays()
                             end
                         end)
 

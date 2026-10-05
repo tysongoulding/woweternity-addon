@@ -507,15 +507,31 @@ assert.strictEqual(simulateZoneLevelColor(10, 30, 32).label, 'Easy', 'Level 32 i
 assert.strictEqual(simulateZoneLevelColor(10, 30, 45).label, 'Trivial', 'Level 45 in Barrens (10-30) is Trivial');
 
 // 4. Continent vs Zone Map Detection Simulation
-const simulateIsContinentMap = (mapID) => {
+const zoneMapIDs = new Set(zones.map(z => z.uiMapID));
+const simulateIsContinentMap = (mapID, mapName) => {
+    if (zoneMapIDs.has(mapID)) return null;
     if (mapID === 1414 || mapID === 12) return 'kalimdor';
     if (mapID === 1415 || mapID === 13) return 'eastern_kingdoms';
+    if (mapName) {
+        const clean = mapName.toLowerCase().replace(/\s+/g, '');
+        if (clean === 'kalimdor') return 'kalimdor';
+        if (clean === 'easternkingdoms') return 'eastern_kingdoms';
+    }
     return null;
 };
 
-assert.strictEqual(simulateIsContinentMap(1414), 'kalimdor', 'Map 1414 must be Kalimdor');
-assert.strictEqual(simulateIsContinentMap(1415), 'eastern_kingdoms', 'Map 1415 must be Eastern Kingdoms');
-assert.strictEqual(simulateIsContinentMap(1413), null, 'Barrens (1413) is a zone map, not continent');
+assert.strictEqual(simulateIsContinentMap(1414, 'Kalimdor'), 'kalimdor', 'Map 1414 must be Kalimdor');
+assert.strictEqual(simulateIsContinentMap(1415, 'Eastern Kingdoms'), 'eastern_kingdoms', 'Map 1415 must be Eastern Kingdoms');
+assert.strictEqual(simulateIsContinentMap(1413, 'The Barrens'), null, 'Barrens (1413) is a zone map, not continent');
+assert.strictEqual(simulateIsContinentMap(1423, 'Eastern Plaguelands'), null, 'Eastern Plaguelands (1423) must be a zone map, never a continent');
+
+// Static analysis of IsContinentMap & instant responsiveness in WoWEternityAddon.lua
+assert.ok(luaSource.includes('self.ZONE_BY_MAPID[mapID]'), 'IsContinentMap must check ZONE_BY_MAPID to reject zones');
+assert.ok(!luaSource.includes('n:find("eastern") or n:find("kingdom")'), 'Must not use loose substring search for eastern kingdoms');
+assert.ok(luaSource.includes('n == "easternkingdoms"'), 'Must strictly match easternkingdoms');
+assert.ok(luaSource.includes('TriggerInstantUpdate'), 'Must use instant update handler for map transitions');
+assert.ok(luaSource.includes('"WORLD_MAP_UPDATE"'), 'Must register WORLD_MAP_UPDATE event');
+assert.ok(!luaSource.includes('overlayWatcher.elapsed >= 0.2'), 'Must eliminate 200ms polling throttle for 0ms frame response');
 
 const barrens = zones.find(z => z.uiMapID === 1413);
 assert.ok(barrens, 'Barrens must exist in database');
