@@ -5170,9 +5170,10 @@ function WoWEternityAddon:InitMapZoneOverlays()
     local overlayWatcher = CreateFrame and CreateFrame("Frame")
     if overlayWatcher then
         if overlayWatcher.RegisterEvent then
-            overlayWatcher:RegisterEvent("ZONE_CHANGED_NEW_AREA")
-            overlayWatcher:RegisterEvent("ZONE_CHANGED")
-            overlayWatcher:RegisterEvent("WORLD_MAP_UPDATE")
+            pcall(overlayWatcher.RegisterEvent, overlayWatcher, "ZONE_CHANGED_NEW_AREA")
+            pcall(overlayWatcher.RegisterEvent, overlayWatcher, "ZONE_CHANGED")
+            pcall(overlayWatcher.RegisterEvent, overlayWatcher, "ZONE_CHANGED_INDOORS")
+            pcall(overlayWatcher.RegisterEvent, overlayWatcher, "PLAYER_ENTERING_WORLD")
             overlayWatcher:SetScript("OnEvent", TriggerInstantUpdate)
         end
         if overlayWatcher.SetScript then

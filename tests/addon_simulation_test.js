@@ -530,7 +530,8 @@ assert.ok(luaSource.includes('self.ZONE_BY_MAPID[mapID]'), 'IsContinentMap must 
 assert.ok(!luaSource.includes('n:find("eastern") or n:find("kingdom")'), 'Must not use loose substring search for eastern kingdoms');
 assert.ok(luaSource.includes('n == "easternkingdoms"'), 'Must strictly match easternkingdoms');
 assert.ok(luaSource.includes('TriggerInstantUpdate'), 'Must use instant update handler for map transitions');
-assert.ok(luaSource.includes('"WORLD_MAP_UPDATE"'), 'Must register WORLD_MAP_UPDATE event');
+assert.ok(!luaSource.includes('"WORLD_MAP_UPDATE"'), 'Must not register deprecated WORLD_MAP_UPDATE event');
+assert.ok(luaSource.includes('"ZONE_CHANGED_NEW_AREA"'), 'Must register ZONE_CHANGED_NEW_AREA event');
 assert.ok(!luaSource.includes('overlayWatcher.elapsed >= 0.2'), 'Must eliminate 200ms polling throttle for 0ms frame response');
 
 const barrens = zones.find(z => z.uiMapID === 1413);
