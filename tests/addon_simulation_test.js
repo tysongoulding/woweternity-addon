@@ -545,8 +545,8 @@ assert.ok(luaSource.includes('pill.text:SetShadowOffset(1, -1)'), 'Continent num
 assert.ok(luaSource.includes('function WoWEternityAddon:GetFactionDisplay'), 'Must implement GetFactionDisplay helper');
 assert.ok(luaSource.includes('pill.underline'), 'Pill frames must have underline texture');
 assert.ok(luaSource.includes('0.22, 0.74, 0.97') && luaSource.includes('1.0, 0.27, 0.27'), 'Must use Alliance Blue and Horde Red underline colors');
-assert.ok(luaSource.includes('Specific to Alliance') || luaSource.includes('Alliance Only'), 'Tooltip must indicate Alliance-specific zones');
-assert.ok(luaSource.includes('Specific to Horde') || luaSource.includes('Horde Only'), 'Tooltip must indicate Horde-specific zones');
+assert.ok(luaSource.includes('"Alliance"') && luaSource.includes('"Horde"') && luaSource.includes('"Both"'), 'GetFactionDisplay must return Alliance, Horde, or Both');
+assert.ok(!luaSource.includes('Underlined: Specific to'), 'Must remove "* underlined: specific to horde or alliance" from tooltip');
 
 const mediaFiles = [
     'circle_bg.png', 'circle_bg.tga',

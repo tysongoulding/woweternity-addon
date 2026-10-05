@@ -4943,15 +4943,11 @@ end
 
 function WoWEternityAddon:GetFactionDisplay(faction)
     if faction == "Alliance" then
-        return "|cff38bdf8", "Alliance Only", true, 0.22, 0.74, 0.97
+        return "|cff38bdf8", "Alliance", true, 0.22, 0.74, 0.97
     elseif faction == "Horde" then
-        return "|cffff4444", "Horde Only", true, 1.0, 0.27, 0.27
-    elseif faction == "Contested" then
-        return "|cffffd100", "Contested (Both Factions)", false, nil, nil, nil
-    elseif faction == "Neutral" then
-        return "|cffffd100", "Neutral (Both Factions)", false, nil, nil, nil
+        return "|cffff4444", "Horde", true, 1.0, 0.27, 0.27
     else
-        return "|cffffd100", (faction or "Both Factions"), false, nil, nil, nil
+        return "|cffffd100", "Both", false, nil, nil, nil
     end
 end
 
@@ -5056,13 +5052,8 @@ function WoWEternityAddon:GetOrCreateMapZoneBadge(canvas)
         GameTooltip:AddLine(string.format("Level Range: %s%d–%d|r  (%s%s|r)", hex, z.minLvl, z.maxLvl, hex, diffLabel), 1, 1, 1)
         GameTooltip:AddLine(string.format("Your Level: |cffffd100%d|r", playerLvl), 0.9, 0.9, 0.9)
         if z.faction then
-            local fHex, fLabel, hasUnderline = WoWEternityAddon:GetFactionDisplay(z.faction)
+            local fHex, fLabel = WoWEternityAddon:GetFactionDisplay(z.faction)
             GameTooltip:AddLine(string.format("Faction: %s%s|r", fHex, fLabel), 0.9, 0.9, 0.9)
-            if hasUnderline then
-                GameTooltip:AddLine(string.format("%s• Underlined: Specific to %s|r", fHex, z.faction), 0.75, 0.75, 0.75)
-            else
-                GameTooltip:AddLine("|cffffd100• Both Alliance & Horde (No Underline)|r", 0.75, 0.75, 0.75)
-            end
         end
         if z.dungeons and #z.dungeons > 0 then
             GameTooltip:AddLine(" ")
@@ -5241,13 +5232,8 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                             GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r", zd.zoneName), 0.8, 0.8, 0.8)
                         end
                         if zd.faction then
-                            local fHex, fLabel, hasUnderline = WoWEternityAddon:GetFactionDisplay(zd.faction)
+                            local fHex, fLabel = WoWEternityAddon:GetFactionDisplay(zd.faction)
                             GameTooltip:AddLine(string.format("Faction: %s%s|r", fHex, fLabel), 0.9, 0.9, 0.9)
-                            if hasUnderline then
-                                GameTooltip:AddLine(string.format("%s• Underlined: Specific to %s|r", fHex, zd.faction), 0.75, 0.75, 0.75)
-                            else
-                                GameTooltip:AddLine("|cffffd100• Both Alliance & Horde (No Underline)|r", 0.75, 0.75, 0.75)
-                            end
                         end
                         if zd.dungeons and #zd.dungeons > 0 then
                             GameTooltip:AddLine(" ")
@@ -5372,13 +5358,8 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                                 GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r", zd.zoneName), 0.8, 0.8, 0.8)
                             end
                             if zd.faction then
-                                local fHex, fLabel, hasUnderline = WoWEternityAddon:GetFactionDisplay(zd.faction)
+                                local fHex, fLabel = WoWEternityAddon:GetFactionDisplay(zd.faction)
                                 GameTooltip:AddLine(string.format("Faction: %s%s|r", fHex, fLabel), 0.9, 0.9, 0.9)
-                                if hasUnderline then
-                                    GameTooltip:AddLine(string.format("%s• Underlined: Specific to %s|r", fHex, zd.faction), 0.75, 0.75, 0.75)
-                                else
-                                    GameTooltip:AddLine("|cffffd100• Both Alliance & Horde (No Underline)|r", 0.75, 0.75, 0.75)
-                                end
                             end
                             GameTooltip:AddLine(" ")
                             GameTooltip:AddLine("|cff38bdf8Click to zoom into zone map|r", 0.4, 0.8, 1.0)
@@ -5599,13 +5580,8 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                                 GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r", data.zoneName), 0.8, 0.8, 0.8)
                             end
                             if data.faction then
-                                local fHex, fLabel, hasUnderline = WoWEternityAddon:GetFactionDisplay(data.faction)
+                                local fHex, fLabel = WoWEternityAddon:GetFactionDisplay(data.faction)
                                 GameTooltip:AddLine(string.format("Faction: %s%s|r", fHex, fLabel), 0.9, 0.9, 0.9)
-                                if hasUnderline then
-                                    GameTooltip:AddLine(string.format("%s• Underlined: Specific to %s|r", fHex, data.faction), 0.75, 0.75, 0.75)
-                                else
-                                    GameTooltip:AddLine("|cffffd100• Both Alliance & Horde (No Underline)|r", 0.75, 0.75, 0.75)
-                                end
                             end
                             GameTooltip:Show()
                         end)
