@@ -5146,8 +5146,28 @@ function WoWEternityAddon:GetOrCreateContinentDungeonPanel(canvas)
     panel.title = headerTitle
     panel.titleText = headerTitle
 
+    local collapseBtn = CreateFrame("Button", "WoWEternity_ContDungeonCollapseBtn", panel)
+    collapseBtn:SetSize(18, 18)
+    collapseBtn:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -6, -5)
+    local collapseText = collapseBtn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    collapseText:SetPoint("CENTER", collapseBtn, "CENTER", 0, 0)
+    collapseText:SetText("[-]")
+    if collapseBtn.SetFontString then collapseBtn:SetFontString(collapseText) end
+    collapseBtn.text = collapseText
+    panel.collapseBtn = collapseBtn
+
+    collapseBtn:SetScript("OnClick", function()
+        if not WoWEternityAddonDB then WoWEternityAddonDB = {} end
+        WoWEternityAddonDB.mapDungeonsCollapsed = not WoWEternityAddonDB.mapDungeonsCollapsed
+        if WoWEternityAddon.UpdateContinentDungeonPanel and panel.lastCanvas and panel.lastContKey then
+            WoWEternityAddon:UpdateContinentDungeonPanel(panel.lastCanvas, panel.lastContKey, panel.lastPlayerLevel, panel.lastPlayerFaction)
+        elseif WoWEternityAddon.UpdateMapZoneOverlays then
+            WoWEternityAddon:UpdateMapZoneOverlays()
+        end
+    end)
+
     local headerCount = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    headerCount:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -8, -8)
+    headerCount:SetPoint("RIGHT", collapseBtn, "LEFT", -4, 0)
     headerCount:SetText("|cff9ca3af(0)|r")
     panel.headerCount = headerCount
     panel.count = headerCount
@@ -5172,13 +5192,30 @@ function WoWEternityAddon:HighlightContinentZonePill(zoneName, enable)
         if pill.zoneData and pill.zoneData.name == zoneName then
             local z = pill.zoneData
             if enable then
-                if pill.SetScale then pill:SetScale(1.35) end
-                local lvlStr = (z.minLvl == z.maxLvl) and tostring(z.minLvl) or string.format("%d–%d", z.minLvl, z.maxLvl)
                 if pill.text then
+                    if pill.text.SetFontObject then
+                        pill.text:SetFontObject(GameFontHighlightLarge or "GameFontHighlightLarge")
+                    end
+                    pcall(function()
+                        local fPath = pill.text:GetFont()
+                        if fPath then pill.text:SetFont(fPath, 15, "OUTLINE") end
+                    end)
+                    local lvlStr = (z.minLvl == z.maxLvl) and tostring(z.minLvl) or string.format("%d–%d", z.minLvl, z.maxLvl)
                     pill.text:SetText(string.format("|cff38bdf8%s|r", lvlStr))
                 end
+                if pill.bg then
+                    pill.bg:SetColorTexture(0.04, 0.04, 0.07, 0.90)
+                    pill.bg:Show()
+                end
+                if pill.border then
+                    pill.border:SetColorTexture(0.90, 0.80, 0.50, 0.70)
+                    pill.border:Show()
+                end
+                local textW = (pill.text and pill.text.GetStringWidth and pill.text:GetStringWidth()) or 0
+                if pill.SetSize then
+                    pill:SetSize(math.max(textW + 12, 36), 20)
+                end
                 if pill.underline then
-                    local textW = (pill.text and pill.text.GetStringWidth and pill.text:GetStringWidth()) or 0
                     pill.underline:ClearAllPoints()
                     pill.underline:SetPoint("BOTTOM", pill, "BOTTOM", 0, 1)
                     pill.underline:SetSize(math.max(textW + 2, 14), 2)
@@ -5186,15 +5223,26 @@ function WoWEternityAddon:HighlightContinentZonePill(zoneName, enable)
                     pill.underline:Show()
                 end
             else
-                if pill.SetScale then pill:SetScale(1.0) end
-                local hex = self:GetZoneLevelColor(z.minLvl, z.maxLvl, playerLevel)
                 if pill.text then
+                    if pill.text.SetFontObject then
+                        pill.text:SetFontObject(GameFontHighlightSmall or "GameFontHighlightSmall")
+                    end
+                    pcall(function()
+                        local fPath = pill.text:GetFont()
+                        if fPath then pill.text:SetFont(fPath, 11, "NONE") end
+                    end)
+                    local hex = self:GetZoneLevelColor(z.minLvl, z.maxLvl, playerLevel)
                     local textStr = (z.minLvl == z.maxLvl) and string.format("%s%d|r", hex, z.minLvl) or string.format("%s%d–%d|r", hex, z.minLvl, z.maxLvl)
                     pill.text:SetText(textStr)
                 end
+                if pill.bg then pill.bg:Hide() end
+                if pill.border then pill.border:Hide() end
+                local textW = (pill.text and pill.text.GetStringWidth and pill.text:GetStringWidth()) or 0
+                if pill.SetSize then
+                    pill:SetSize(math.max(textW + 8, 28), 16)
+                end
                 local fHex, fLabel, hasUnderline, ur, ug, ub = self:GetFactionDisplay(z.faction)
                 if hasUnderline and pill.underline then
-                    local textW = (pill.text and pill.text.GetStringWidth and pill.text:GetStringWidth()) or 0
                     pill.underline:ClearAllPoints()
                     pill.underline:SetPoint("BOTTOM", pill, "BOTTOM", 0, 1)
                     pill.underline:SetSize(math.max(textW + 2, 14), 2)
@@ -5216,6 +5264,11 @@ function WoWEternityAddon:UpdateContinentDungeonPanel(canvas, contKey, playerLev
 
     local panel = self:GetOrCreateContinentDungeonPanel(canvas)
     if not panel then return end
+
+    panel.lastCanvas = canvas
+    panel.lastContKey = contKey
+    panel.lastPlayerLevel = playerLevel
+    panel.lastPlayerFaction = playerFaction
 
     playerLevel = playerLevel or (UnitLevel and UnitLevel("player")) or 1
     playerFaction = (playerFaction or (self.GetPlayerFaction and self:GetPlayerFaction()) or ""):lower()
@@ -5279,122 +5332,140 @@ function WoWEternityAddon:UpdateContinentDungeonPanel(canvas, contKey, playerLev
         panel.headerCount:SetText(string.format("|cff9ca3af(%d)|r", #dungeonList))
     end
 
-    self.continentDungeonRows = self.continentDungeonRows or {}
-    local rowHeight = 26
-    local topOffset = 27
-    local spacing = 2
+    local isCollapsed = (WoWEternityAddonDB and WoWEternityAddonDB.mapDungeonsCollapsed)
+    if panel.collapseBtn then
+        local btnText = isCollapsed and "[+]" or "[-]"
+        if panel.collapseBtn.SetText then panel.collapseBtn:SetText(btnText) end
+        if panel.collapseBtn.text and panel.collapseBtn.text.SetText then
+            panel.collapseBtn.text:SetText(btnText)
+        end
+    end
 
-    for i, d in ipairs(dungeonList) do
-        local row = self.continentDungeonRows[i]
-        if not row then
-            row = CreateFrame("Button", "WoWEternity_ContDungeonRow_" .. i, panel)
+    if isCollapsed then
+        if self.continentDungeonRows then
+            for _, row in ipairs(self.continentDungeonRows) do
+                row:Hide()
+            end
+        end
+        panel:SetSize(200, 26)
+    else
+        self.continentDungeonRows = self.continentDungeonRows or {}
+        local rowHeight = 26
+        local topOffset = 27
+        local spacing = 2
+
+        for i, d in ipairs(dungeonList) do
+            local row = self.continentDungeonRows[i]
+            if not row then
+                row = CreateFrame("Button", "WoWEternity_ContDungeonRow_" .. i, panel)
+                row:SetHeight(rowHeight)
+
+                local hoverBg = row:CreateTexture(nil, "BACKGROUND")
+                hoverBg:SetAllPoints(row)
+                hoverBg:SetColorTexture(0.90, 0.80, 0.50, 0.15)
+                hoverBg:Hide()
+                row.hoverBg = hoverBg
+
+                local dungeonText = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                dungeonText:SetPoint("TOPLEFT", row, "TOPLEFT", 4, -2)
+                dungeonText:SetPoint("TOPRIGHT", row, "TOPRIGHT", -56, -2)
+                dungeonText:SetJustifyH("LEFT")
+                dungeonText:SetWordWrap(false)
+                row.dungeonText = dungeonText
+                row.nameText = dungeonText
+
+                local zoneText = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+                zoneText:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 4, 2)
+                zoneText:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -56, 2)
+                zoneText:SetJustifyH("LEFT")
+                zoneText:SetWordWrap(false)
+                row.zoneText = zoneText
+
+                local lvlText = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                lvlText:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+                lvlText:SetJustifyH("RIGHT")
+                row.lvlText = lvlText
+
+                row:EnableMouse(true)
+                row:SetScript("OnEnter", function(r)
+                    if r.hoverBg then r.hoverBg:Show() end
+                    if r.zoneName then
+                        WoWEternityAddon:HighlightContinentZonePill(r.zoneName, true)
+                    end
+                    if GameTooltip and r.dungeonData then
+                        GameTooltip:SetOwner(r, "ANCHOR_LEFT", -4, 0)
+                        local data = r.dungeonData
+                        local pLvl = (UnitLevel and UnitLevel("player")) or 1
+                        local hex, diffLabel = WoWEternityAddon:GetZoneLevelColor(data.minLvl, data.maxLvl, pLvl)
+                        GameTooltip:AddLine("|cffe6cc80WoW Eternity Addon|r", 1, 1, 1)
+                        GameTooltip:AddLine(string.format("Dungeon: |cffffffff%s|r", data.name), 1, 1, 1)
+                        GameTooltip:AddLine(string.format("Level Range: %s%d–%d|r  (%s%s|r)", hex, data.minLvl, data.maxLvl, hex, diffLabel), 0.9, 0.9, 0.9)
+                        GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r", data.zoneName), 0.9, 0.9, 0.9)
+                        if data.zoneFaction then
+                            local fHex, fLabel = WoWEternityAddon:GetFactionDisplay(data.zoneFaction)
+                            GameTooltip:AddLine(string.format("Faction: %s%s|r", fHex, fLabel), 0.9, 0.9, 0.9)
+                        end
+                        GameTooltip:AddLine(" ")
+                        GameTooltip:AddLine("|cff38bdf8Click to zoom into zone map|r", 0.4, 0.8, 1.0)
+                        GameTooltip:Show()
+                    end
+                end)
+
+                row:SetScript("OnLeave", function(r)
+                    if r.hoverBg then r.hoverBg:Hide() end
+                    if r.zoneName then
+                        WoWEternityAddon:HighlightContinentZonePill(r.zoneName, false)
+                    end
+                    if GameTooltip then GameTooltip:Hide() end
+                end)
+
+                row:SetScript("OnClick", function(r)
+                    if r.uiMapID then
+                        if WorldMapFrame and WorldMapFrame.SetMapID then
+                            WorldMapFrame:SetMapID(r.uiMapID)
+                        elseif SetMapByID then
+                            SetMapByID(r.uiMapID)
+                        end
+                        if WoWEternityAddon.UpdateMapZoneOverlays then
+                            WoWEternityAddon:UpdateMapZoneOverlays()
+                        end
+                    end
+                end)
+
+                self.continentDungeonRows[i] = row
+            end
+
+            if row:GetParent() ~= panel then
+                row:SetParent(panel)
+            end
+
+            row.dungeonData = d
+            row.zoneName = d.zoneName
+            row.uiMapID = d.uiMapID
+            row.dungeonName = d.name
+            row.minLvl = d.minLvl
+            row.maxLvl = d.maxLvl
+
+            local hex = self:GetZoneLevelColor(d.minLvl, d.maxLvl, playerLevel)
+            row.dungeonText:SetText(d.name)
+            row.zoneText:SetText(string.format("|cff9ca3af%s|r", d.zoneName))
+            row.lvlText:SetText(string.format("%s[%d–%d]|r", hex, d.minLvl, d.maxLvl))
+
+            row:ClearAllPoints()
+            row:SetPoint("TOPLEFT", panel, "TOPLEFT", 6, -(topOffset + (i - 1) * (rowHeight + spacing)))
+            row:SetPoint("RIGHT", panel, "RIGHT", -6, 0)
             row:SetHeight(rowHeight)
-
-            local hoverBg = row:CreateTexture(nil, "BACKGROUND")
-            hoverBg:SetAllPoints(row)
-            hoverBg:SetColorTexture(0.90, 0.80, 0.50, 0.15)
-            hoverBg:Hide()
-            row.hoverBg = hoverBg
-
-            local dungeonText = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-            dungeonText:SetPoint("TOPLEFT", row, "TOPLEFT", 4, -2)
-            dungeonText:SetPoint("TOPRIGHT", row, "TOPRIGHT", -56, -2)
-            dungeonText:SetJustifyH("LEFT")
-            dungeonText:SetWordWrap(false)
-            row.dungeonText = dungeonText
-            row.nameText = dungeonText
-
-            local zoneText = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-            zoneText:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 4, 2)
-            zoneText:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -56, 2)
-            zoneText:SetJustifyH("LEFT")
-            zoneText:SetWordWrap(false)
-            row.zoneText = zoneText
-
-            local lvlText = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-            lvlText:SetPoint("RIGHT", row, "RIGHT", -4, 0)
-            lvlText:SetJustifyH("RIGHT")
-            row.lvlText = lvlText
-
-            row:EnableMouse(true)
-            row:SetScript("OnEnter", function(r)
-                if r.hoverBg then r.hoverBg:Show() end
-                if r.zoneName then
-                    WoWEternityAddon:HighlightContinentZonePill(r.zoneName, true)
-                end
-                if GameTooltip and r.dungeonData then
-                    GameTooltip:SetOwner(r, "ANCHOR_LEFT", -4, 0)
-                    local data = r.dungeonData
-                    local pLvl = (UnitLevel and UnitLevel("player")) or 1
-                    local hex, diffLabel = WoWEternityAddon:GetZoneLevelColor(data.minLvl, data.maxLvl, pLvl)
-                    GameTooltip:AddLine("|cffe6cc80WoW Eternity Addon|r", 1, 1, 1)
-                    GameTooltip:AddLine(string.format("Dungeon: |cffffffff%s|r", data.name), 1, 1, 1)
-                    GameTooltip:AddLine(string.format("Level Range: %s%d–%d|r  (%s%s|r)", hex, data.minLvl, data.maxLvl, hex, diffLabel), 0.9, 0.9, 0.9)
-                    GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r", data.zoneName), 0.9, 0.9, 0.9)
-                    if data.zoneFaction then
-                        local fHex, fLabel = WoWEternityAddon:GetFactionDisplay(data.zoneFaction)
-                        GameTooltip:AddLine(string.format("Faction: %s%s|r", fHex, fLabel), 0.9, 0.9, 0.9)
-                    end
-                    GameTooltip:AddLine(" ")
-                    GameTooltip:AddLine("|cff38bdf8Click to zoom into zone map|r", 0.4, 0.8, 1.0)
-                    GameTooltip:Show()
-                end
-            end)
-
-            row:SetScript("OnLeave", function(r)
-                if r.hoverBg then r.hoverBg:Hide() end
-                if r.zoneName then
-                    WoWEternityAddon:HighlightContinentZonePill(r.zoneName, false)
-                end
-                if GameTooltip then GameTooltip:Hide() end
-            end)
-
-            row:SetScript("OnClick", function(r)
-                if r.uiMapID then
-                    if WorldMapFrame and WorldMapFrame.SetMapID then
-                        WorldMapFrame:SetMapID(r.uiMapID)
-                    elseif SetMapByID then
-                        SetMapByID(r.uiMapID)
-                    end
-                    if WoWEternityAddon.UpdateMapZoneOverlays then
-                        WoWEternityAddon:UpdateMapZoneOverlays()
-                    end
-                end
-            end)
-
-            self.continentDungeonRows[i] = row
+            if row.hoverBg then row.hoverBg:Hide() end
+            row:Show()
         end
 
-        if row:GetParent() ~= panel then
-            row:SetParent(panel)
+        for i = #dungeonList + 1, #self.continentDungeonRows do
+            self.continentDungeonRows[i]:Hide()
         end
 
-        row.dungeonData = d
-        row.zoneName = d.zoneName
-        row.uiMapID = d.uiMapID
-        row.dungeonName = d.name
-        row.minLvl = d.minLvl
-        row.maxLvl = d.maxLvl
-
-        local hex = self:GetZoneLevelColor(d.minLvl, d.maxLvl, playerLevel)
-        row.dungeonText:SetText(d.name)
-        row.zoneText:SetText(string.format("|cff9ca3af%s|r", d.zoneName))
-        row.lvlText:SetText(string.format("%s[%d–%d]|r", hex, d.minLvl, d.maxLvl))
-
-        row:ClearAllPoints()
-        row:SetPoint("TOPLEFT", panel, "TOPLEFT", 6, -(topOffset + (i - 1) * (rowHeight + spacing)))
-        row:SetPoint("RIGHT", panel, "RIGHT", -6, 0)
-        row:SetHeight(rowHeight)
-        if row.hoverBg then row.hoverBg:Hide() end
-        row:Show()
+        local panelHeight = math.min(topOffset + (#dungeonList * (rowHeight + spacing)) + 6, 480)
+        panel:SetSize(200, panelHeight)
     end
-
-    for i = #dungeonList + 1, #self.continentDungeonRows do
-        self.continentDungeonRows[i]:Hide()
-    end
-
-    local panelHeight = math.min(topOffset + (#dungeonList * (rowHeight + spacing)) + 6, 480)
-    panel:SetSize(200, panelHeight)
 
     panel:ClearAllPoints()
     if self.mapZoneBadge and self.mapZoneBadge:IsShown() then
@@ -5405,12 +5476,301 @@ function WoWEternityAddon:UpdateContinentDungeonPanel(canvas, contKey, playerLev
     panel:Show()
 end
 
+function WoWEternityAddon:GetOrCreateContinentRaidPanel(canvas)
+    if self.continentRaidPanel then
+        if canvas and self.continentRaidPanel:GetParent() ~= canvas then
+            self.continentRaidPanel:SetParent(canvas)
+        end
+        return self.continentRaidPanel
+    end
+    if not CreateFrame then return nil end
+
+    local panel = CreateFrame("Frame", "WoWEternity_ContinentRaidPanel", canvas)
+    panel:SetSize(200, 480)
+    panel:SetFrameStrata("HIGH")
+
+    -- Subtle high-contrast dark backdrop matching addon theme
+    local bg = panel:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints(panel)
+    bg:SetColorTexture(0.04, 0.04, 0.07, 0.88)
+    panel.bg = bg
+
+    -- 1px border accent
+    local border = panel:CreateTexture(nil, "BORDER")
+    border:SetPoint("TOPLEFT", -1, 1)
+    border:SetPoint("BOTTOMRIGHT", 1, -1)
+    border:SetColorTexture(0.90, 0.80, 0.50, 0.40)
+    panel.border = border
+
+    -- Orange title header: |cffff8000Raids|r with count badge and collapse button
+    local headerTitle = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    headerTitle:SetPoint("TOPLEFT", panel, "TOPLEFT", 8, -7)
+    headerTitle:SetText("|cffff8000Raids|r")
+    panel.headerTitle = headerTitle
+    panel.title = headerTitle
+    panel.titleText = headerTitle
+
+    local collapseBtn = CreateFrame("Button", "WoWEternity_ContRaidCollapseBtn", panel)
+    collapseBtn:SetSize(18, 18)
+    collapseBtn:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -6, -5)
+    local collapseText = collapseBtn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    collapseText:SetPoint("CENTER", collapseBtn, "CENTER", 0, 0)
+    collapseText:SetText("[-]")
+    if collapseBtn.SetFontString then collapseBtn:SetFontString(collapseText) end
+    collapseBtn.text = collapseText
+    panel.collapseBtn = collapseBtn
+
+    collapseBtn:SetScript("OnClick", function()
+        if not WoWEternityAddonDB then WoWEternityAddonDB = {} end
+        WoWEternityAddonDB.mapRaidsCollapsed = not WoWEternityAddonDB.mapRaidsCollapsed
+        if WoWEternityAddon.UpdateContinentRaidPanel and panel.lastCanvas and panel.lastContKey then
+            WoWEternityAddon:UpdateContinentRaidPanel(panel.lastCanvas, panel.lastContKey, panel.lastPlayerLevel, panel.lastPlayerFaction)
+        elseif WoWEternityAddon.UpdateMapZoneOverlays then
+            WoWEternityAddon:UpdateMapZoneOverlays()
+        end
+    end)
+
+    local headerCount = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    headerCount:SetPoint("RIGHT", collapseBtn, "LEFT", -4, 0)
+    headerCount:SetText("|cff9ca3af(0)|r")
+    panel.headerCount = headerCount
+    panel.count = headerCount
+    panel.countText = headerCount
+
+    local divider = panel:CreateTexture(nil, "BORDER")
+    divider:SetPoint("TOPLEFT", panel, "TOPLEFT", 6, -23)
+    divider:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -6, -23)
+    divider:SetHeight(1)
+    divider:SetColorTexture(0.90, 0.80, 0.50, 0.25)
+    panel.divider = divider
+
+    self.continentRaidRows = self.continentRaidRows or {}
+    self.continentRaidPanel = panel
+    return panel
+end
+
+function WoWEternityAddon:UpdateContinentRaidPanel(canvas, contKey, playerLevel, playerFaction)
+    if not canvas or not contKey then
+        if self.continentRaidPanel then self.continentRaidPanel:Hide() end
+        return
+    end
+
+    local panel = self:GetOrCreateContinentRaidPanel(canvas)
+    if not panel then return end
+
+    panel.lastCanvas = canvas
+    panel.lastContKey = contKey
+    panel.lastPlayerLevel = playerLevel
+    panel.lastPlayerFaction = playerFaction
+
+    playerLevel = playerLevel or (UnitLevel and UnitLevel("player")) or 1
+    playerFaction = (playerFaction or (self.GetPlayerFaction and self:GetPlayerFaction()) or ""):lower()
+
+    local raidList = {}
+    if ZONE_LEVEL_RANGES then
+        for _, z in ipairs(ZONE_LEVEL_RANGES) do
+            if z.continent == contKey and z.raids and #z.raids > 0 then
+                for _, rStr in ipairs(z.raids) do
+                    local rName, minLvl, maxLvl = rStr:match("^(.-)%s*%((%d+)[^%d]+(%d+)%)")
+                    if not rName then
+                        rName, minLvl = rStr:match("^(.-)%s*%((%d+)%+%s*%)")
+                        if rName and minLvl then maxLvl = minLvl end
+                    end
+                    if not rName then
+                        rName, minLvl = rStr:match("^(.-)%s*%((%d+)%)")
+                        if rName and minLvl then maxLvl = minLvl end
+                    end
+                    if not rName then
+                        rName = rStr; minLvl = 60; maxLvl = 60
+                    end
+
+                    rName = rName:gsub("^%s+", ""):gsub("%s+$", "")
+                    minLvl = tonumber(minLvl) or 60
+                    maxLvl = tonumber(maxLvl) or minLvl
+
+                    table.insert(raidList, {
+                        name = rName,
+                        rawString = rStr,
+                        minLvl = minLvl,
+                        maxLvl = maxLvl,
+                        zoneName = z.name,
+                        uiMapID = z.uiMapID,
+                        zoneFaction = z.faction,
+                    })
+                end
+            end
+        end
+    end
+
+    if #raidList == 0 then
+        panel:Hide()
+        return
+    end
+
+    -- Sort ascending: minLvl ASC, maxLvl ASC, name ASC
+    table.sort(raidList, function(a, b)
+        if a.minLvl ~= b.minLvl then
+            return a.minLvl < b.minLvl
+        elseif a.maxLvl ~= b.maxLvl then
+            return a.maxLvl < b.maxLvl
+        else
+            return a.name < b.name
+        end
+    end)
+
+    if panel.headerCount then
+        panel.headerCount:SetText(string.format("|cff9ca3af(%d)|r", #raidList))
+    end
+
+    local isCollapsed = (WoWEternityAddonDB and WoWEternityAddonDB.mapRaidsCollapsed)
+    if panel.collapseBtn then
+        local btnText = isCollapsed and "[+]" or "[-]"
+        if panel.collapseBtn.SetText then panel.collapseBtn:SetText(btnText) end
+        if panel.collapseBtn.text and panel.collapseBtn.text.SetText then
+            panel.collapseBtn.text:SetText(btnText)
+        end
+    end
+
+    if isCollapsed then
+        if self.continentRaidRows then
+            for _, row in ipairs(self.continentRaidRows) do
+                row:Hide()
+            end
+        end
+        panel:SetSize(200, 26)
+    else
+        self.continentRaidRows = self.continentRaidRows or {}
+        local rowHeight = 26
+        local topOffset = 27
+        local spacing = 2
+
+        for i, r in ipairs(raidList) do
+            local row = self.continentRaidRows[i]
+            if not row then
+                row = CreateFrame("Button", "WoWEternity_ContRaidRow_" .. i, panel)
+                row:SetHeight(rowHeight)
+
+                local hoverBg = row:CreateTexture(nil, "BACKGROUND")
+                hoverBg:SetAllPoints(row)
+                hoverBg:SetColorTexture(0.90, 0.80, 0.50, 0.15)
+                hoverBg:Hide()
+                row.hoverBg = hoverBg
+
+                local raidText = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                raidText:SetPoint("TOPLEFT", row, "TOPLEFT", 4, -2)
+                raidText:SetPoint("TOPRIGHT", row, "TOPRIGHT", -56, -2)
+                raidText:SetJustifyH("LEFT")
+                raidText:SetWordWrap(false)
+                row.raidText = raidText
+                row.nameText = raidText
+
+                local zoneText = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+                zoneText:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 4, 2)
+                zoneText:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -56, 2)
+                zoneText:SetJustifyH("LEFT")
+                zoneText:SetWordWrap(false)
+                row.zoneText = zoneText
+
+                local lvlText = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                lvlText:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+                lvlText:SetJustifyH("RIGHT")
+                row.lvlText = lvlText
+
+                row:EnableMouse(true)
+                row:SetScript("OnEnter", function(rRow)
+                    if rRow.hoverBg then rRow.hoverBg:Show() end
+                    if rRow.zoneName then
+                        WoWEternityAddon:HighlightContinentZonePill(rRow.zoneName, true)
+                    end
+                    if GameTooltip and rRow.raidData then
+                        GameTooltip:SetOwner(rRow, "ANCHOR_RIGHT", 4, 0)
+                        local data = rRow.raidData
+                        local pLvl = (UnitLevel and UnitLevel("player")) or 1
+                        local hex, diffLabel = WoWEternityAddon:GetZoneLevelColor(data.minLvl, data.maxLvl, pLvl)
+                        local lvlDisplay = (data.minLvl == data.maxLvl) and (data.minLvl .. "+") or string.format("%d–%d", data.minLvl, data.maxLvl)
+                        GameTooltip:AddLine("|cffe6cc80WoW Eternity Addon|r", 1, 1, 1)
+                        GameTooltip:AddLine(string.format("Raid: |cffff8000%s|r", data.name), 1, 1, 1)
+                        GameTooltip:AddLine(string.format("Level: %s%s|r  (%s%s|r)", hex, lvlDisplay, hex, diffLabel), 0.9, 0.9, 0.9)
+                        GameTooltip:AddLine(string.format("Zone: |cffffffff%s|r", data.zoneName), 0.9, 0.9, 0.9)
+                        if data.zoneFaction then
+                            local fHex, fLabel = WoWEternityAddon:GetFactionDisplay(data.zoneFaction)
+                            GameTooltip:AddLine(string.format("Faction: %s%s|r", fHex, fLabel), 0.9, 0.9, 0.9)
+                        end
+                        GameTooltip:AddLine(" ")
+                        GameTooltip:AddLine("|cff38bdf8Click to zoom into zone map|r", 0.4, 0.8, 1.0)
+                        GameTooltip:Show()
+                    end
+                end)
+
+                row:SetScript("OnLeave", function(rRow)
+                    if rRow.hoverBg then rRow.hoverBg:Hide() end
+                    if rRow.zoneName then
+                        WoWEternityAddon:HighlightContinentZonePill(rRow.zoneName, false)
+                    end
+                    if GameTooltip then GameTooltip:Hide() end
+                end)
+
+                row:SetScript("OnClick", function(rRow)
+                    if rRow.uiMapID then
+                        if WorldMapFrame and WorldMapFrame.SetMapID then
+                            WorldMapFrame:SetMapID(rRow.uiMapID)
+                        elseif SetMapByID then
+                            SetMapByID(rRow.uiMapID)
+                        end
+                        if WoWEternityAddon.UpdateMapZoneOverlays then
+                            WoWEternityAddon:UpdateMapZoneOverlays()
+                        end
+                    end
+                end)
+
+                self.continentRaidRows[i] = row
+            end
+
+            if row:GetParent() ~= panel then
+                row:SetParent(panel)
+            end
+
+            row.raidData = r
+            row.zoneName = r.zoneName
+            row.uiMapID = r.uiMapID
+            row.raidName = r.name
+            row.minLvl = r.minLvl
+            row.maxLvl = r.maxLvl
+
+            local hex = self:GetZoneLevelColor(r.minLvl, r.maxLvl, playerLevel)
+            local lvlDisplay = (r.minLvl == r.maxLvl) and (r.minLvl .. "+") or string.format("%d–%d", r.minLvl, r.maxLvl)
+            row.raidText:SetText(r.name)
+            row.zoneText:SetText(string.format("|cff9ca3af%s|r", r.zoneName))
+            row.lvlText:SetText(string.format("%s[%s]|r", hex, lvlDisplay))
+
+            row:ClearAllPoints()
+            row:SetPoint("TOPLEFT", panel, "TOPLEFT", 6, -(topOffset + (i - 1) * (rowHeight + spacing)))
+            row:SetPoint("RIGHT", panel, "RIGHT", -6, 0)
+            row:SetHeight(rowHeight)
+            if row.hoverBg then row.hoverBg:Hide() end
+            row:Show()
+        end
+
+        for i = #raidList + 1, #self.continentRaidRows do
+            self.continentRaidRows[i]:Hide()
+        end
+
+        local panelHeight = math.min(topOffset + (#raidList * (rowHeight + spacing)) + 6, 480)
+        panel:SetSize(200, panelHeight)
+    end
+
+    panel:ClearAllPoints()
+    panel:SetPoint("TOPLEFT", canvas, "TOPLEFT", 12, -12)
+    panel:Show()
+end
+
 function WoWEternityAddon:InitMapZoneOverlays()
     if not WorldMapFrame then return end
     if self.mapOverlaysInitialized then return end
     self.mapOverlaysInitialized = true
     self.continentZonePills = {}
     self.continentDungeonRows = {}
+    self.continentRaidRows = {}
 
     if WorldMapFrame.HookScript then
         WorldMapFrame:HookScript("OnShow", function()
@@ -5452,6 +5812,9 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
         end
         if self.continentDungeonPanel then
             self.continentDungeonPanel:Hide()
+        end
+        if self.continentRaidPanel then
+            self.continentRaidPanel:Hide()
         end
         if self.subzoneAreaFrames then
             for _, f in ipairs(self.subzoneAreaFrames) do f:Hide() end
@@ -5536,7 +5899,9 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                     pill.underline = underline
 
                     pill:SetScript("OnEnter", function(p)
-                        if not GameTooltip or not p.zoneData then return end
+                        if not p.zoneData then return end
+                        WoWEternityAddon:HighlightContinentZonePill(p.zoneData.name, true)
+                        if not GameTooltip then return end
                         GameTooltip:SetOwner(p, "ANCHOR_RIGHT")
                         local zd = p.zoneData
                         local pLvl = (UnitLevel and UnitLevel("player")) or 1
@@ -5574,7 +5939,10 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         GameTooltip:Show()
                     end)
 
-                    pill:SetScript("OnLeave", function()
+                    pill:SetScript("OnLeave", function(p)
+                        if p and p.zoneData then
+                            WoWEternityAddon:HighlightContinentZonePill(p.zoneData.name, false)
+                        end
                         if GameTooltip then GameTooltip:Hide() end
                     end)
 
@@ -5775,6 +6143,7 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
 
         local playerFaction = self.levelingFaction or (self.GetPlayerFaction and self:GetPlayerFaction())
         self:UpdateContinentDungeonPanel(canvas, contKey, playerLevel, playerFaction)
+        self:UpdateContinentRaidPanel(canvas, contKey, playerLevel, playerFaction)
     else
         -- Zone Map
         for _, p in ipairs(self.continentZonePills) do
@@ -5782,6 +6151,9 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
         end
         if self.continentDungeonPanel then
             self.continentDungeonPanel:Hide()
+        end
+        if self.continentRaidPanel then
+            self.continentRaidPanel:Hide()
         end
 
         local zoneData = self:GetCurrentZoneData(currentMapID)
@@ -7994,6 +8366,8 @@ function WoWEternityAddon:OnInitialize()
     if WoWEternityAddonDB.autoExport == nil then WoWEternityAddonDB.autoExport = true end
     if WoWEternityAddonDB.verboseLogs == nil then WoWEternityAddonDB.verboseLogs = false end
     if WoWEternityAddonDB.showMapOverlays == nil then WoWEternityAddonDB.showMapOverlays = true end
+    if WoWEternityAddonDB.mapDungeonsCollapsed == nil then WoWEternityAddonDB.mapDungeonsCollapsed = false end
+    if WoWEternityAddonDB.mapRaidsCollapsed == nil then WoWEternityAddonDB.mapRaidsCollapsed = false end
 
     -- Cadberry Leveling Guide & Navigation Arrow Persistence
     WoWEternityAddonCharDB = WoWEternityAddonCharDB or {}

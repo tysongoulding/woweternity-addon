@@ -615,6 +615,8 @@ assert.ok(luaSource.includes('function WoWEternityAddon:HighlightContinentZonePi
 assert.ok(luaSource.includes('function WoWEternityAddon:UpdateContinentDungeonPanel'), 'Must implement UpdateContinentDungeonPanel');
 assert.ok(luaSource.includes('WoWEternity_ContinentDungeonPanel'), 'Must create WoWEternity_ContinentDungeonPanel frame');
 assert.ok(luaSource.includes('WoWEternity_ContDungeonRow_'), 'Must create reusable row buttons in WoWEternity_ContDungeonRow_ pool');
+assert.ok(luaSource.includes('WoWEternity_ContDungeonCollapseBtn'), 'Must create collapse button in dungeon panel header');
+assert.ok(luaSource.includes('WoWEternityAddonDB.mapDungeonsCollapsed'), 'Must persist dungeon collapse state in WoWEternityAddonDB');
 assert.ok(luaSource.includes('panel:SetFrameStrata("HIGH")'), 'Continent dungeon panel strata must be HIGH');
 assert.ok(luaSource.includes('panel:SetSize(200,'), 'Continent dungeon panel width must be 200px');
 assert.ok(luaSource.includes('0.04, 0.04, 0.07, 0.88'), 'Continent dungeon panel must use dark theme backdrop');
@@ -626,19 +628,36 @@ assert.ok(luaSource.includes('row.dungeonText'), 'Dungeon row must have dungeonT
 assert.ok(luaSource.includes('row.zoneText'), 'Dungeon row must have zoneText font string');
 assert.ok(luaSource.includes('row.lvlText'), 'Dungeon row must have lvlText font string');
 
-// 2. Integration in UpdateMapZoneOverlays & Zone Map Scope
-assert.ok(luaSource.includes('self:UpdateContinentDungeonPanel(canvas, contKey, playerLevel, playerFaction)'), 'Must call UpdateContinentDungeonPanel on continent maps');
-assert.ok(luaSource.includes('self.continentDungeonPanel:Hide()'), 'Must hide continent dungeon panel on zone maps');
+// 2. Static Analysis of Raids Sidebar (Left-Hand Side)
+assert.ok(luaSource.includes('function WoWEternityAddon:GetOrCreateContinentRaidPanel'), 'Must implement GetOrCreateContinentRaidPanel');
+assert.ok(luaSource.includes('function WoWEternityAddon:UpdateContinentRaidPanel'), 'Must implement UpdateContinentRaidPanel');
+assert.ok(luaSource.includes('WoWEternity_ContinentRaidPanel'), 'Must create WoWEternity_ContinentRaidPanel frame');
+assert.ok(luaSource.includes('WoWEternity_ContRaidRow_'), 'Must create reusable row buttons in WoWEternity_ContRaidRow_ pool');
+assert.ok(luaSource.includes('WoWEternity_ContRaidCollapseBtn'), 'Must create collapse button in raids panel header');
+assert.ok(luaSource.includes('WoWEternityAddonDB.mapRaidsCollapsed'), 'Must persist raid collapse state in WoWEternityAddonDB');
+assert.ok(luaSource.includes('panel:SetPoint("TOPLEFT", canvas, "TOPLEFT", 12, -12)'), 'Raids panel must anchor to TOPLEFT 12, -12');
+assert.ok(luaSource.includes('|cffff8000Raids|r'), 'Raids panel must have orange Raids title header');
 
-// 3. Hover Highlighting & Scale / Color Toggle Static Verification
-assert.ok(luaSource.includes('pill:SetScale(1.35)'), 'Hovering dungeon row must scale zone pill up to 1.35x');
-assert.ok(luaSource.includes('pill:SetScale(1.0)'), 'Leaving dungeon row must restore zone pill scale to 1.0x');
+// 3. Integration in UpdateMapZoneOverlays & Zone Map Scope
+assert.ok(luaSource.includes('self:UpdateContinentDungeonPanel(canvas, contKey, playerLevel, playerFaction)'), 'Must call UpdateContinentDungeonPanel on continent maps');
+assert.ok(luaSource.includes('self:UpdateContinentRaidPanel(canvas, contKey, playerLevel, playerFaction)'), 'Must call UpdateContinentRaidPanel on continent maps');
+assert.ok(luaSource.includes('self.continentDungeonPanel:Hide()'), 'Must hide continent dungeon panel on zone maps');
+assert.ok(luaSource.includes('self.continentRaidPanel:Hide()'), 'Must hide continent raid panel on zone maps');
+
+// 4. Zero-Shift Hover Highlighting & Signature Backdrop/Border
+assert.ok(!luaSource.includes('pill:SetScale(1.35)'), 'Must NOT scale pill up on hover (zero shift guarantee)');
+assert.ok(luaSource.includes('pill.bg:SetColorTexture(0.04, 0.04, 0.07, 0.90)'), 'Hovering pill must show signature dark backdrop');
+assert.ok(luaSource.includes('pill.border:SetColorTexture(0.90, 0.80, 0.50, 0.70)'), 'Hovering pill must show gold border');
+assert.ok(luaSource.includes('pill.bg:Hide()'), 'Unhovering pill must hide bg');
+assert.ok(luaSource.includes('pill.border:Hide()'), 'Unhovering pill must hide border');
+assert.ok(luaSource.includes('GameFontHighlightLarge'), 'Hovering pill must enlarge font to GameFontHighlightLarge');
+assert.ok(luaSource.includes('GameFontHighlightSmall'), 'Unhovering pill must restore font to GameFontHighlightSmall');
 assert.ok(luaSource.includes('|cff38bdf8'), 'Hovering dungeon row must highlight pill text in cyan |cff38bdf8');
 assert.ok(luaSource.includes('0.22, 0.74, 0.97, 1.0'), 'Hovering dungeon row must underline pill in cyan');
 assert.ok(luaSource.includes('HighlightContinentZonePill(r.zoneName, true)'), 'Row OnEnter must call HighlightContinentZonePill enable=true');
 assert.ok(luaSource.includes('HighlightContinentZonePill(r.zoneName, false)'), 'Row OnLeave must call HighlightContinentZonePill enable=false');
 
-// 4. Click Navigation Verification
+// 5. Click Navigation Verification
 assert.ok(luaSource.includes('WorldMapFrame:SetMapID(r.uiMapID)'), 'Clicking dungeon row must call WorldMapFrame:SetMapID');
 assert.ok(luaSource.includes('WoWEternityAddon:UpdateMapZoneOverlays()'), 'Clicking dungeon row must trigger UpdateMapZoneOverlays');
 
@@ -737,42 +756,183 @@ for (let i = 0; i < ekAlly.length - 1; i++) {
 assert.strictEqual(ekAlly[0].name, 'Hall of Thanes', 'Hall of Thanes (13-18) must be first EK Alliance dungeon');
 assert.strictEqual(ekAlly[1].name, 'The Deadmines', 'The Deadmines (17-26) must be second EK Alliance dungeon');
 
-// 7. Interactive Hover Pill State Toggle Simulation
+// 7. Interactive Hover Pill State Toggle Simulation (Zero-Shift + Enlarged Font + WoW Eternity Badge)
 const mockPill = {
     scale: 1.0,
+    fontSize: 11,
+    fontObject: 'GameFontHighlightSmall',
     textColor: '|cff44ff44',
+    bgShown: false,
+    borderShown: false,
     underlineShown: false,
     underlineColor: null,
-    borderShown: false,
+    width: 28,
+    height: 16,
     zoneData: { name: 'Westfall', minLvl: 10, maxLvl: 20, faction: 'Alliance' },
-    SetScale(s) { this.scale = s; },
+    SetFont(f, size, flag) { this.fontSize = size; },
+    SetFontObject(fo) { this.fontObject = fo; },
     SetTextColor(c) { this.textColor = c; },
-    SetUnderline(show, color) { this.underlineShown = show; this.underlineColor = color; }
+    SetSize(w, h) { this.width = w; this.height = h; },
+    SetUnderline(show, color) { this.underlineShown = show; this.underlineColor = color; },
+    ShowBg() { this.bgShown = true; },
+    HideBg() { this.bgShown = false; },
+    ShowBorder() { this.borderShown = true; },
+    HideBorder() { this.borderShown = false; }
 };
 
 const simulateHighlight = (pill, enable) => {
+    // Zero-shift: SetScale is NEVER called; scale remains strictly 1.0
     if (enable) {
-        pill.SetScale(1.35);
+        pill.SetFontObject('GameFontHighlightLarge');
+        pill.SetFont(null, 15, 'OUTLINE');
         pill.SetTextColor('|cff38bdf8');
+        pill.ShowBg();
+        pill.ShowBorder();
+        pill.SetSize(40, 20);
         pill.SetUnderline(true, 'cyan');
     } else {
-        pill.SetScale(1.0);
+        pill.SetFontObject('GameFontHighlightSmall');
+        pill.SetFont(null, 11, 'NONE');
         pill.SetTextColor('|cff44ff44');
+        pill.HideBg();
+        pill.HideBorder();
+        pill.SetSize(28, 16);
         pill.SetUnderline(true, 'alliance_blue');
     }
 };
 
 simulateHighlight(mockPill, true);
-assert.strictEqual(mockPill.scale, 1.35, 'Pill scale must be 1.35 on hover');
+assert.strictEqual(mockPill.scale, 1.0, 'Pill scale must remain strictly 1.0 on hover (zero coordinate shift)');
+assert.strictEqual(mockPill.fontSize, 15, 'Pill font size must enlarge to 15pt outline on hover');
+assert.strictEqual(mockPill.fontObject, 'GameFontHighlightLarge', 'Pill font object must be GameFontHighlightLarge on hover');
+assert.strictEqual(mockPill.bgShown, true, 'Pill dark backdrop must be shown on hover');
+assert.strictEqual(mockPill.borderShown, true, 'Pill gold border must be shown on hover');
 assert.strictEqual(mockPill.textColor, '|cff38bdf8', 'Pill text must be bright cyan on hover');
 assert.strictEqual(mockPill.underlineColor, 'cyan', 'Pill underline must be cyan on hover');
+assert.strictEqual(mockPill.height, 20, 'Pill height must expand to 20px on hover');
 
 simulateHighlight(mockPill, false);
-assert.strictEqual(mockPill.scale, 1.0, 'Pill scale must restore to 1.0 on unhover');
+assert.strictEqual(mockPill.scale, 1.0, 'Pill scale must remain strictly 1.0 on unhover');
+assert.strictEqual(mockPill.fontSize, 11, 'Pill font size must restore to 11pt on unhover');
+assert.strictEqual(mockPill.fontObject, 'GameFontHighlightSmall', 'Pill font object must restore to GameFontHighlightSmall on unhover');
+assert.strictEqual(mockPill.bgShown, false, 'Pill dark backdrop must be hidden on unhover');
+assert.strictEqual(mockPill.borderShown, false, 'Pill gold border must be hidden on unhover');
 assert.strictEqual(mockPill.textColor, '|cff44ff44', 'Pill text must restore to original difficulty on unhover');
 assert.strictEqual(mockPill.underlineColor, 'alliance_blue', 'Pill underline must restore to faction color on unhover');
+assert.strictEqual(mockPill.height, 16, 'Pill height must restore to 16px on unhover');
 
-// 8. Click-to-Zoom Navigation Simulation
+// 8. Raids Sidebar Extraction & Level Sorting Simulation
+const extractRaidsForContinent = (continentKey) => {
+    const raidList = [];
+    for (const line of luaLines) {
+        if (!line.includes(`continent = "${continentKey}"`)) continue;
+        if (!line.includes('raids = {')) continue;
+
+        const nameMatch = line.match(/name\s*=\s*"([^"]+)"/);
+        const mapMatch = line.match(/uiMapID\s*=\s*(\d+)/);
+        const rMatch = line.match(/raids\s*=\s*\{([^}]+)\}/);
+        if (!nameMatch || !mapMatch || !rMatch) continue;
+
+        const zoneName = nameMatch[1];
+        const uiMapID = parseInt(mapMatch[1], 10);
+        const rEntries = rMatch[1].match(/"([^"]+)"/g) || [];
+
+        for (const rawR of rEntries) {
+            const cleanR = rawR.replace(/"/g, '');
+            let rName = cleanR;
+            let minLvl = 60;
+            let maxLvl = 60;
+            const parsedRange = cleanR.match(/^(.*?)\s*\(([0-9]+)[^0-9]+([0-9]+)\)/);
+            const parsedPlus = cleanR.match(/^(.*?)\s*\(([0-9]+)\+\)/);
+            const parsedSingle = cleanR.match(/^(.*?)\s*\(([0-9]+)\)/);
+
+            if (parsedRange) {
+                rName = parsedRange[1].trim();
+                minLvl = parseInt(parsedRange[2], 10);
+                maxLvl = parseInt(parsedRange[3], 10);
+            } else if (parsedPlus) {
+                rName = parsedPlus[1].trim();
+                minLvl = parseInt(parsedPlus[2], 10);
+                maxLvl = minLvl;
+            } else if (parsedSingle) {
+                rName = parsedSingle[1].trim();
+                minLvl = parseInt(parsedSingle[2], 10);
+                maxLvl = minLvl;
+            }
+
+            raidList.push({
+                name: rName,
+                rawString: cleanR,
+                minLvl,
+                maxLvl,
+                zoneName,
+                uiMapID
+            });
+        }
+    }
+
+    raidList.sort((a, b) => {
+        if (a.minLvl !== b.minLvl) return a.minLvl - b.minLvl;
+        if (a.maxLvl !== b.maxLvl) return a.maxLvl - b.maxLvl;
+        return a.name.localeCompare(b.name);
+    });
+
+    return raidList;
+};
+
+const kalimdorRaids = extractRaidsForContinent('kalimdor');
+assert.strictEqual(kalimdorRaids.length, 3, 'Kalimdor must have 3 raids (Onyxia, AQ20, AQ40)');
+assert.ok(kalimdorRaids.some(r => r.name === "Onyxia's Lair"), 'Kalimdor must include Onyxia\'s Lair');
+assert.ok(kalimdorRaids.some(r => r.name === "Ruins of Ahn'Qiraj"), 'Kalimdor must include Ruins of Ahn\'Qiraj');
+assert.ok(kalimdorRaids.some(r => r.name === "Temple of Ahn'Qiraj"), 'Kalimdor must include Temple of Ahn\'Qiraj');
+
+const ekRaids = extractRaidsForContinent('eastern_kingdoms');
+assert.strictEqual(ekRaids.length, 4, 'Eastern Kingdoms must have 4 raids (BWL, MC, Naxx, ZG)');
+assert.ok(ekRaids.some(r => r.name === "Blackwing Lair"), 'EK must include Blackwing Lair');
+assert.ok(ekRaids.some(r => r.name === "Molten Core"), 'EK must include Molten Core');
+assert.ok(ekRaids.some(r => r.name === "Naxxramas"), 'EK must include Naxxramas');
+assert.ok(ekRaids.some(r => r.name === "Zul'Gurub"), 'EK must include Zul\'Gurub');
+
+// 9. Sidebars Collapse Toggle & Persistence Simulation
+const mockDB = { mapDungeonsCollapsed: false, mapRaidsCollapsed: false };
+
+const toggleDungeonsCollapse = (collapsedState) => {
+    mockDB.mapDungeonsCollapsed = collapsedState;
+    return {
+        height: mockDB.mapDungeonsCollapsed ? 26 : Math.min(27 + (ekAlly.length * 28) + 6, 480),
+        buttonText: mockDB.mapDungeonsCollapsed ? '[+]' : '[-]'
+    };
+};
+
+const dCollapsed = toggleDungeonsCollapse(true);
+assert.strictEqual(mockDB.mapDungeonsCollapsed, true, 'Dungeons sidebar state must persist in DB as collapsed');
+assert.strictEqual(dCollapsed.height, 26, 'Dungeons sidebar height must shrink to 26px when collapsed');
+assert.strictEqual(dCollapsed.buttonText, '[+]', 'Collapse button must display [+] when collapsed');
+
+const dExpanded = toggleDungeonsCollapse(false);
+assert.strictEqual(mockDB.mapDungeonsCollapsed, false, 'Dungeons sidebar state must persist in DB as expanded');
+assert.strictEqual(dExpanded.buttonText, '[-]', 'Collapse button must display [-] when expanded');
+assert.ok(dExpanded.height > 26, 'Dungeons sidebar height must expand to fit rows');
+
+const toggleRaidsCollapse = (collapsedState) => {
+    mockDB.mapRaidsCollapsed = collapsedState;
+    return {
+        height: mockDB.mapRaidsCollapsed ? 26 : Math.min(27 + (ekRaids.length * 28) + 6, 480),
+        buttonText: mockDB.mapRaidsCollapsed ? '[+]' : '[-]'
+    };
+};
+
+const rCollapsed = toggleRaidsCollapse(true);
+assert.strictEqual(mockDB.mapRaidsCollapsed, true, 'Raids sidebar state must persist in DB as collapsed');
+assert.strictEqual(rCollapsed.height, 26, 'Raids sidebar height must shrink to 26px when collapsed');
+assert.strictEqual(rCollapsed.buttonText, '[+]', 'Raids collapse button must display [+] when collapsed');
+
+const rExpanded = toggleRaidsCollapse(false);
+assert.strictEqual(mockDB.mapRaidsCollapsed, false, 'Raids sidebar state must persist in DB as expanded');
+assert.strictEqual(rExpanded.buttonText, '[-]', 'Raids collapse button must display [-] when expanded');
+assert.ok(rExpanded.height > 26, 'Raids sidebar height must expand to fit rows');
+
+// 10. Click-to-Zoom Navigation Simulation
 let currentSimulationMapID = 1415; // Eastern Kingdoms
 let overlayUpdateTriggered = false;
 const simulateRowClick = (uiMapID) => {
@@ -783,11 +943,32 @@ simulateRowClick(ekAlly[1].uiMapID); // Click The Deadmines (Westfall uiMapID 14
 assert.strictEqual(currentSimulationMapID, 1436, 'Clicking Deadmines must navigate to Westfall map 1436');
 assert.strictEqual(overlayUpdateTriggered, true, 'Clicking row must trigger overlay update');
 
-// 9. Zone Map Sidebar Hidden Simulation
-const isContinent = simulateIsContinentMap(currentSimulationMapID, 'Westfall');
-assert.strictEqual(isContinent, null, 'Westfall map is not a continent');
-const sidebarVisible = isContinent !== null;
-assert.strictEqual(sidebarVisible, false, 'Sidebar must be hidden on zone maps');
+// Test click on Raid row: Molten Core (Searing Gorge uiMapID 1427)
+const mcRaid = ekRaids.find(r => r.name === 'Molten Core');
+assert.ok(mcRaid, 'Molten Core raid must exist in EK raids');
+simulateRowClick(mcRaid.uiMapID);
+assert.strictEqual(currentSimulationMapID, 1427, 'Clicking Molten Core must navigate to Searing Gorge map 1427');
+
+// 11. Zone Map Both Sidebars Hidden Simulation
+const simulatePanelsVisibility = (mapID, mapName) => {
+    const isContinent = simulateIsContinentMap(mapID, mapName);
+    return {
+        dungeonsShown: isContinent !== null,
+        raidsShown: isContinent !== null
+    };
+};
+
+const ekVisibility = simulatePanelsVisibility(1415, 'Eastern Kingdoms');
+assert.strictEqual(ekVisibility.dungeonsShown, true, 'Dungeons sidebar must be shown on Eastern Kingdoms');
+assert.strictEqual(ekVisibility.raidsShown, true, 'Raids sidebar must be shown on Eastern Kingdoms');
+
+const westfallVisibility = simulatePanelsVisibility(1436, 'Westfall');
+assert.strictEqual(westfallVisibility.dungeonsShown, false, 'Dungeons sidebar must be hidden on Westfall zone map');
+assert.strictEqual(westfallVisibility.raidsShown, false, 'Raids sidebar must be hidden on Westfall zone map');
+
+const barrensVisibility = simulatePanelsVisibility(1413, 'The Barrens');
+assert.strictEqual(barrensVisibility.dungeonsShown, false, 'Dungeons sidebar must be hidden on Barrens zone map');
+assert.strictEqual(barrensVisibility.raidsShown, false, 'Raids sidebar must be hidden on Barrens zone map');
 
 const mediaFiles = [
     'circle_bg.png', 'circle_bg.tga',
