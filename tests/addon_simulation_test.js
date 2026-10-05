@@ -457,8 +457,10 @@ assert.ok(luaSource.includes('function WoWEternityAddon:PrintMapCursorPosition')
 assert.ok(!luaSource.includes('hooksecurefunc(WorldMapFrame, "SetMapID"'), 'Must NEVER hooksecurefunc SetMapID to avoid ADDON_ACTION_BLOCKED taint on back button');
 assert.ok(!luaSource.includes('hooksecurefunc(WorldMapFrame, "OnMapChanged"'), 'Must NEVER hooksecurefunc OnMapChanged to avoid MapCanvas execution taint');
 assert.ok(!luaSource.includes('canvas:HookScript("OnMouseUp"'), 'Must NEVER hook canvas OnMouseUp to avoid breaking map panning and navigation');
-assert.ok(luaSource.includes('WorldMapFrame.AddDataProvider'), 'Must integrate native WorldMapFrame.AddDataProvider for zero-taint reactivity');
-assert.ok(luaSource.includes('NavigateToParentMap'), 'Must delegate right-click to NavigateToParentMap for zoom-out');
+assert.ok(!luaSource.includes('WorldMapFrame.AddDataProvider'), 'Must NEVER add custom DataProvider to WorldMapFrame to prevent MapCanvas execution taint');
+assert.ok(!luaSource.includes('NavigateToParentMap'), 'Must NEVER override right-click with NavigateToParentMap so native map zoom-out works');
+assert.ok(!luaSource.includes('pill.RegisterForClicks'), 'Must NOT intercept right-click on map pins/pills');
+assert.ok(!luaSource.includes('badge.RegisterForClicks'), 'Must NOT intercept right-click on map badge');
 
 // 2. Parse & Validate ZONE_LEVEL_RANGES Database
 const zoneRegex = /\{[\s\S]*?name\s*=\s*"([^"]+)",[\s\S]*?continent\s*=\s*"([^"]+)",[\s\S]*?minLvl\s*=\s*(\d+),[\s\S]*?maxLvl\s*=\s*(\d+),[\s\S]*?x\s*=\s*([\d\.]+),[\s\S]*?y\s*=\s*([\d\.]+),[\s\S]*?uiMapID\s*=\s*(\d+)/g;
@@ -535,10 +537,8 @@ assert.strictEqual(simulateIsContinentMap(1423, 'Eastern Plaguelands'), null, 'E
 assert.ok(luaSource.includes('self.ZONE_BY_MAPID[mapID]'), 'IsContinentMap must check ZONE_BY_MAPID to reject zones');
 assert.ok(!luaSource.includes('n:find("eastern") or n:find("kingdom")'), 'Must not use loose substring search for eastern kingdoms');
 assert.ok(luaSource.includes('n == "easternkingdoms"'), 'Must strictly match easternkingdoms');
-assert.ok(luaSource.includes('TriggerInstantUpdate'), 'Must use instant update handler for map transitions');
 assert.ok(!luaSource.includes('"WORLD_MAP_UPDATE"'), 'Must not register deprecated WORLD_MAP_UPDATE event');
-assert.ok(luaSource.includes('"ZONE_CHANGED_NEW_AREA"'), 'Must register ZONE_CHANGED_NEW_AREA event');
-assert.ok(!luaSource.includes('overlayWatcher.elapsed >= 0.2'), 'Must eliminate 200ms polling throttle for 0ms frame response');
+assert.ok(luaSource.includes('overlayWatcher.elapsed >= 0.1'), 'Must use 100ms decoupled watcher loop for responsive zero-taint updates');
 
 const barrens = zones.find(z => z.uiMapID === 1413);
 assert.ok(barrens, 'Barrens must exist in database');
