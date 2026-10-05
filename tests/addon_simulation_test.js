@@ -451,8 +451,14 @@ assert.ok(luaSource.includes('GameTooltip:AddLine("|cffe6cc80WoW Eternity Addon|
 assert.ok(luaSource.includes('ZONE_LEVEL_RANGES'), 'Must define ZONE_LEVEL_RANGES database');
 assert.ok(luaSource.includes('WoWEternityAddonDB.showMapOverlays'), 'Must support showMapOverlays setting');
 assert.ok(luaSource.includes('cmd == "map"'), 'Must handle /wea map slash command');
-assert.ok(luaSource.includes('cmd == "cursor"'), 'Must handle /wea cursor slash command');
 assert.ok(luaSource.includes('function WoWEternityAddon:PrintMapCursorPosition'), 'Must implement PrintMapCursorPosition');
+
+// Anti-Taint & Map Navigation Protection Assertions
+assert.ok(!luaSource.includes('hooksecurefunc(WorldMapFrame, "SetMapID"'), 'Must NEVER hooksecurefunc SetMapID to avoid ADDON_ACTION_BLOCKED taint on back button');
+assert.ok(!luaSource.includes('hooksecurefunc(WorldMapFrame, "OnMapChanged"'), 'Must NEVER hooksecurefunc OnMapChanged to avoid MapCanvas execution taint');
+assert.ok(!luaSource.includes('canvas:HookScript("OnMouseUp"'), 'Must NEVER hook canvas OnMouseUp to avoid breaking map panning and navigation');
+assert.ok(luaSource.includes('WorldMapFrame.AddDataProvider'), 'Must integrate native WorldMapFrame.AddDataProvider for zero-taint reactivity');
+assert.ok(luaSource.includes('NavigateToParentMap'), 'Must delegate right-click to NavigateToParentMap for zoom-out');
 
 // 2. Parse & Validate ZONE_LEVEL_RANGES Database
 const zoneRegex = /\{[\s\S]*?name\s*=\s*"([^"]+)",[\s\S]*?continent\s*=\s*"([^"]+)",[\s\S]*?minLvl\s*=\s*(\d+),[\s\S]*?maxLvl\s*=\s*(\d+),[\s\S]*?x\s*=\s*([\d\.]+),[\s\S]*?y\s*=\s*([\d\.]+),[\s\S]*?uiMapID\s*=\s*(\d+)/g;

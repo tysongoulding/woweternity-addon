@@ -5055,6 +5055,9 @@ function WoWEternityAddon:GetOrCreateMapZoneBadge(canvas)
     badge.underline = underline
 
     badge:EnableMouse(true)
+    if badge.RegisterForClicks then
+        badge:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    end
     badge:SetScript("OnEnter", function(b)
         local br = b.currentBorderR or 0.90
         local bgCol = b.currentBorderG or 0.80
@@ -5093,7 +5096,8 @@ function WoWEternityAddon:GetOrCreateMapZoneBadge(canvas)
             GameTooltip:AddLine(string.format("|cff00ff00Active Guide Objective:|r Step #%d (%s)", activeStep.stepNumber, activeStep.title), 0.2, 1.0, 0.2)
         end
         GameTooltip:AddLine(" ")
-        GameTooltip:AddLine("|cff888888Click to open WoW Eternity Panel (/wea)|r", 0.5, 0.8, 1)
+        GameTooltip:AddLine("|cff888888Left-Click: Open WoW Eternity Panel (/wea)|r", 0.5, 0.8, 1)
+        GameTooltip:AddLine("|cff888888Right-Click: Zoom Out to Continent Map|r", 0.5, 0.8, 1)
         GameTooltip:Show()
     end)
 
@@ -5105,7 +5109,15 @@ function WoWEternityAddon:GetOrCreateMapZoneBadge(canvas)
         if GameTooltip then GameTooltip:Hide() end
     end)
 
-    badge:SetScript("OnClick", function()
+    badge:SetScript("OnClick", function(b, button)
+        if button == "RightButton" then
+            if WorldMapFrame and WorldMapFrame.NavigateToParentMap then
+                pcall(WorldMapFrame.NavigateToParentMap, WorldMapFrame)
+            elseif ZoomOut then
+                pcall(ZoomOut)
+            end
+            return
+        end
         WoWEternityAddon:ToggleSettingsFrame()
     end)
 
@@ -5136,34 +5148,30 @@ function WoWEternityAddon:InitMapZoneOverlays()
         WorldMapFrame:HookScript("OnShow", TriggerInstantUpdate)
     end
 
-    -- Securely hook Blizzard map navigation APIs for instant 0ms response
-    if hooksecurefunc then
-        if WorldMapFrame and WorldMapFrame.SetMapID then
-            pcall(hooksecurefunc, WorldMapFrame, "SetMapID", TriggerInstantUpdate)
+    -- Blizzard MapCanvas DataProvider for native zero-taint instant map reactivity
+    if WorldMapFrame and WorldMapFrame.AddDataProvider and not self.mapZoneDataProviderAdded then
+        local dataProvider = {}
+        function dataProvider:OnAdded(owningMap)
+            self.owningMap = owningMap
         end
-        if WorldMapFrame and WorldMapFrame.OnMapChanged then
-            pcall(hooksecurefunc, WorldMapFrame, "OnMapChanged", TriggerInstantUpdate)
+        function dataProvider:OnRemoved()
+            self.owningMap = nil
         end
-        if SetMapByID then
-            pcall(hooksecurefunc, "SetMapByID", TriggerInstantUpdate)
-        end
-        if SetMapToCurrentZone then
-            pcall(hooksecurefunc, "SetMapToCurrentZone", TriggerInstantUpdate)
-        end
-        if ZoomOut then
-            pcall(hooksecurefunc, "ZoomOut", TriggerInstantUpdate)
-        end
-    end
-
-    -- Hook canvas click/navigation for immediate updates
-    local canvas = (WorldMapFrame.GetCanvas and WorldMapFrame:GetCanvas())
-        or (WorldMapFrame.ScrollContainer and WorldMapFrame.ScrollContainer.Child)
-        or WorldMapButton
-        or WorldMapFrame
-    if canvas and canvas.HookScript then
-        pcall(canvas.HookScript, canvas, "OnMouseUp", function()
+        function dataProvider:RefreshAllData(fromOnShow)
             TriggerInstantUpdate()
-        end)
+        end
+        function dataProvider:OnShow()
+            TriggerInstantUpdate()
+        end
+        function dataProvider:OnHide()
+        end
+        function dataProvider:OnMapChanged()
+            TriggerInstantUpdate()
+        end
+        local ok = pcall(WorldMapFrame.AddDataProvider, WorldMapFrame, dataProvider)
+        if ok then
+            self.mapZoneDataProviderAdded = true
+        end
     end
 
     -- Event-driven and frame-level watcher (no debounce, instant per-frame reactivity)
@@ -5320,7 +5328,8 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                             end
                         end
                         GameTooltip:AddLine(" ")
-                        GameTooltip:AddLine("|cff38bdf8Click to zoom into zone map|r", 0.4, 0.8, 1.0)
+                        GameTooltip:AddLine("|cff38bdf8Left-Click: Zoom into zone map|r", 0.4, 0.8, 1.0)
+                        GameTooltip:AddLine("|cff888888Right-Click: Zoom out to parent map|r", 0.5, 0.8, 1.0)
                         GameTooltip:Show()
                     end)
 
@@ -5328,7 +5337,20 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         if GameTooltip then GameTooltip:Hide() end
                     end)
 
-                    pill:SetScript("OnClick", function(p)
+                    if pill.RegisterForClicks then
+                        pill:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+                    end
+
+                    pill:SetScript("OnClick", function(p, button)
+                        if button == "RightButton" then
+                            if GameTooltip then GameTooltip:Hide() end
+                            if WorldMapFrame and WorldMapFrame.NavigateToParentMap then
+                                pcall(WorldMapFrame.NavigateToParentMap, WorldMapFrame)
+                            elseif ZoomOut then
+                                pcall(ZoomOut)
+                            end
+                            return
+                        end
                         if p.zoneData and p.zoneData.uiMapID then
                             if GameTooltip then GameTooltip:Hide() end
                             if WorldMapFrame and WorldMapFrame.SetMapID then
@@ -5442,7 +5464,8 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                                 GameTooltip:AddLine(string.format("Faction: %s%s|r", fHex, fLabel), 0.9, 0.9, 0.9)
                             end
                             GameTooltip:AddLine(" ")
-                            GameTooltip:AddLine("|cff38bdf8Click to zoom into zone map|r", 0.4, 0.8, 1.0)
+                            GameTooltip:AddLine("|cff38bdf8Left-Click: Zoom into zone map|r", 0.4, 0.8, 1.0)
+                            GameTooltip:AddLine("|cff888888Right-Click: Zoom out to parent map|r", 0.5, 0.8, 1.0)
                             GameTooltip:Show()
                         end)
 
@@ -5450,7 +5473,20 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                             if GameTooltip then GameTooltip:Hide() end
                         end)
 
-                        pill:SetScript("OnClick", function(p)
+                        if pill.RegisterForClicks then
+                            pill:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+                        end
+
+                        pill:SetScript("OnClick", function(p, button)
+                            if button == "RightButton" then
+                                if GameTooltip then GameTooltip:Hide() end
+                                if WorldMapFrame and WorldMapFrame.NavigateToParentMap then
+                                    pcall(WorldMapFrame.NavigateToParentMap, WorldMapFrame)
+                                elseif ZoomOut then
+                                    pcall(ZoomOut)
+                                end
+                                return
+                            end
                             if p.zoneData and p.zoneData.uiMapID then
                                 if GameTooltip then GameTooltip:Hide() end
                                 if WorldMapFrame and WorldMapFrame.SetMapID then
@@ -5579,6 +5615,7 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         if not areaFrame then
                             areaFrame = CreateFrame("Frame", "WEA_SubzoneArea_" .. areaIndex, canvas)
                             areaFrame:SetFrameStrata("MEDIUM")
+                            areaFrame:EnableMouse(false)
 
                             local texName = sz.zoneArea.texture or "area_overlay_plateau"
                             local borderTexName = sz.zoneArea.borderTexture or "area_border_plateau"
@@ -5599,6 +5636,7 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         if areaFrame:GetParent() ~= canvas then
                             areaFrame:SetParent(canvas)
                         end
+                        areaFrame:EnableMouse(false)
 
                         -- 50% transparent overlay (alpha 0.50)
                         if areaFrame.bg then
@@ -5623,6 +5661,9 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         pill = CreateFrame("Button", "WEA_SubzoneMarkerPill_" .. markerIndex, canvas)
                         pill:SetSize(26, 18)
                         pill:SetFrameStrata("HIGH")
+                        if pill.RegisterForClicks then
+                            pill:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+                        end
 
                         local bg = pill:CreateTexture(nil, "BACKGROUND")
                         bg:SetAllPoints(pill)
@@ -5666,11 +5707,25 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                                 local fHex, fLabel = WoWEternityAddon:GetFactionDisplay(data.faction)
                                 GameTooltip:AddLine(string.format("Faction: %s%s|r", fHex, fLabel), 0.9, 0.9, 0.9)
                             end
+                            GameTooltip:AddLine(" ")
+                            GameTooltip:AddLine("|cff888888Right-Click: Zoom out to parent map|r", 0.5, 0.8, 1.0)
                             GameTooltip:Show()
                         end)
 
                         pill:SetScript("OnLeave", function()
                             if GameTooltip then GameTooltip:Hide() end
+                        end)
+
+                        pill:SetScript("OnClick", function(p, button)
+                            if button == "RightButton" then
+                                if GameTooltip then GameTooltip:Hide() end
+                                if WorldMapFrame and WorldMapFrame.NavigateToParentMap then
+                                    pcall(WorldMapFrame.NavigateToParentMap, WorldMapFrame)
+                                elseif ZoomOut then
+                                    pcall(ZoomOut)
+                                end
+                                return
+                            end
                         end)
 
                         self.subzoneMarkerPills[markerIndex] = pill
