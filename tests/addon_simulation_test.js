@@ -548,6 +548,30 @@ assert.ok(luaSource.includes('0.22, 0.74, 0.97') && luaSource.includes('1.0, 0.2
 assert.ok(luaSource.includes('"Alliance"') && luaSource.includes('"Horde"') && luaSource.includes('"Both"'), 'GetFactionDisplay must return Alliance, Horde, or Both');
 assert.ok(!luaSource.includes('Underlined: Specific to'), 'Must remove "* underlined: specific to horde or alliance" from tooltip');
 
+// 6. Dungeons and Raids Separation Verification
+assert.ok(luaSource.includes('raids = { "Onyxia\'s Lair (60+)" }'), 'Onyxia must be in raids list for Dustwallow Marsh');
+assert.ok(luaSource.includes('raids = { "Ruins of Ahn\'Qiraj (60+)", "Temple of Ahn\'Qiraj (60+)" }'), 'AQ20 and AQ40 must be in raids list for Silithus');
+assert.ok(luaSource.includes('dungeons = { "Blackrock Depths (52–60)" }, raids = { "Molten Core (60+)" }'), 'BRD must be dungeon and MC must be raid in Searing Gorge');
+assert.ok(luaSource.includes('dungeons = { "Lower Blackrock Spire (55–60)" }, raids = { "Blackwing Lair (60+)" }'), 'LBRS must be dungeon and BWL must be raid in Burning Steppes');
+assert.ok(luaSource.includes('dungeons = { "Stratholme (58–60)" }, raids = { "Naxxramas (60+)" }'), 'Stratholme must be dungeon and Naxxramas must be raid in EPL');
+assert.ok(luaSource.includes('raids = { "Zul\'Gurub (60+)" }'), 'Zul\'Gurub must be in raids list for STV');
+
+assert.ok(luaSource.includes('GameTooltip:AddLine("|cffffd100Dungeons in Zone:|r", 1, 0.82, 0)'), 'Must render gold Dungeons in Zone header in zone badge');
+assert.ok(luaSource.includes('GameTooltip:AddLine("|cffff8000Raids in Zone:|r", 1, 0.50, 0)'), 'Must render orange Raids in Zone header in zone badge');
+assert.ok(luaSource.includes('GameTooltip:AddLine("|cffffd100Dungeons:|r", 1, 0.82, 0)'), 'Must render gold Dungeons header in continent hover');
+assert.ok(luaSource.includes('GameTooltip:AddLine("|cffff8000Raids:|r", 1, 0.50, 0)'), 'Must render orange Raids header in continent hover');
+
+// Assert no raids remain in dungeons arrays
+const dungeonsMatch = luaSource.match(/dungeons\s*=\s*\{([^}]+)\}/g) || [];
+for (const dm of dungeonsMatch) {
+    assert.ok(!dm.includes('Molten Core'), 'Molten Core must not be in dungeons list');
+    assert.ok(!dm.includes('Blackwing Lair'), 'Blackwing Lair must not be in dungeons list');
+    assert.ok(!dm.includes('Onyxia'), 'Onyxia must not be in dungeons list');
+    assert.ok(!dm.includes('Ahn\'Qiraj'), 'Ahn\'Qiraj must not be in dungeons list');
+    assert.ok(!dm.includes('Zul\'Gurub'), 'Zul\'Gurub must not be in dungeons list');
+    assert.ok(!dm.includes('Naxxramas'), 'Naxxramas must not be in dungeons list');
+}
+
 const mediaFiles = [
     'circle_bg.png', 'circle_bg.tga',
     'circle_border.png', 'circle_border.tga',
