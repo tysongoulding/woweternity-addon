@@ -4953,32 +4953,31 @@ end
 
 function WoWEternityAddon:IsContinentMap(mapID)
     if not mapID or mapID == 0 then return nil end
-    -- If this mapID is directly recognized as an individual zone in our database, it is NOT a continent
+    if mapID == 1414 or mapID == 12 then return "kalimdor" end
+    if mapID == 1415 or mapID == 13 then return "eastern_kingdoms" end
+
+    -- Guard: If mapID belongs to a known zone in ZONE_BY_MAPID, it is never a continent map
     if self.ZONE_BY_MAPID and self.ZONE_BY_MAPID[mapID] then
         return nil
     end
 
-    -- Explicit continent map IDs
-    if mapID == 1414 or mapID == 12 then return "kalimdor" end
-    if mapID == 1415 or mapID == 13 then return "eastern_kingdoms" end
-
-    -- Check C_Map info
     if C_Map and C_Map.GetMapInfo then
         local info = C_Map.GetMapInfo(mapID)
         if info then
-            -- If Enum.UIMapType exists and this is an individual zone/micro map, reject
-            if info.mapType and Enum and Enum.UIMapType and info.mapType ~= Enum.UIMapType.Continent then
-                return nil
+            if Enum and Enum.UIMapType and info.mapType then
+                if info.mapType ~= Enum.UIMapType.Continent then
+                    return nil
+                end
             end
             if info.name then
                 local n = info.name:lower():gsub("%s+", "")
                 if n == "kalimdor" then return "kalimdor" end
-                if n == "easternkingdoms" then return "eastern_kingdoms" end
+                if n == "easternkingdoms" or n == "theeasternkingdoms" or n == "easternkingdom" then
+                    return "eastern_kingdoms"
+                end
             end
         end
     end
-
-    -- Legacy fallback
     if GetCurrentMapContinent then
         local c = GetCurrentMapContinent()
         local z = (GetCurrentMapZone and GetCurrentMapZone()) or 0
@@ -5125,7 +5124,7 @@ function WoWEternityAddon:InitMapZoneOverlays()
         end)
     end
 
-    local overlayWatcher = CreateFrame and CreateFrame("Frame", "WoWEternity_OverlayWatcher", UIParent)
+    local overlayWatcher = CreateFrame and CreateFrame("Frame")
     if overlayWatcher and overlayWatcher.SetScript then
         overlayWatcher.elapsed = 0
         overlayWatcher:SetScript("OnUpdate", function(_, dt)
@@ -5284,11 +5283,13 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
 
                     pill:SetScript("OnClick", function(p)
                         if p.zoneData and p.zoneData.uiMapID then
-                            if GameTooltip then GameTooltip:Hide() end
                             if WorldMapFrame and WorldMapFrame.SetMapID then
                                 WorldMapFrame:SetMapID(p.zoneData.uiMapID)
                             elseif SetMapByID then
                                 SetMapByID(p.zoneData.uiMapID)
+                            end
+                            if WoWEternityAddon.UpdateMapZoneOverlays then
+                                WoWEternityAddon:UpdateMapZoneOverlays()
                             end
                         end
                     end)
@@ -5404,11 +5405,13 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
 
                         pill:SetScript("OnClick", function(p)
                             if p.zoneData and p.zoneData.uiMapID then
-                                if GameTooltip then GameTooltip:Hide() end
                                 if WorldMapFrame and WorldMapFrame.SetMapID then
                                     WorldMapFrame:SetMapID(p.zoneData.uiMapID)
                                 elseif SetMapByID then
                                     SetMapByID(p.zoneData.uiMapID)
+                                end
+                                if WoWEternityAddon.UpdateMapZoneOverlays then
+                                    WoWEternityAddon:UpdateMapZoneOverlays()
                                 end
                             end
                         end)
@@ -5529,7 +5532,6 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         if not areaFrame then
                             areaFrame = CreateFrame("Frame", "WEA_SubzoneArea_" .. areaIndex, canvas)
                             areaFrame:SetFrameStrata("MEDIUM")
-                            areaFrame:EnableMouse(false)
 
                             local texName = sz.zoneArea.texture or "area_overlay_plateau"
                             local borderTexName = sz.zoneArea.borderTexture or "area_border_plateau"
@@ -5550,7 +5552,6 @@ function WoWEternityAddon:UpdateMapZoneOverlays()
                         if areaFrame:GetParent() ~= canvas then
                             areaFrame:SetParent(canvas)
                         end
-                        areaFrame:EnableMouse(false)
 
                         -- 50% transparent overlay (alpha 0.50)
                         if areaFrame.bg then
