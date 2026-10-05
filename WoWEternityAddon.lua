@@ -4838,10 +4838,11 @@ end
 -- ============================================================================
 
 local ZONE_LEVEL_RANGES = {
-    -- Kalimdor (18 zones)
+    -- Kalimdor (19 zones)
     { name = "Teldrassil", continent = "kalimdor", minLvl = 1, maxLvl = 10, x = 0.426, y = 0.084, uiMapID = 1438, faction = "Alliance" },
     { name = "Darkshore", continent = "kalimdor", minLvl = 10, maxLvl = 20, x = 0.452, y = 0.2365, uiMapID = 1439, faction = "Alliance" },
-    { name = "Moonglade", continent = "kalimdor", minLvl = 1, maxLvl = 60, x = 0.544, y = 0.170, uiMapID = 1450, faction = "Neutral" },
+    { name = "Moonglade", continent = "kalimdor", minLvl = 1, maxLvl = 60, x = 0.544, y = 0.170, uiMapID = 1450, faction = "Neutral", raids = { "Barrow Deeps (60+)" } },
+    { name = "Mount Hyjal", continent = "kalimdor", minLvl = 60, maxLvl = 60, x = 0.528, y = 0.225, uiMapID = 1450, faction = "Contested", raids = { "Hyjal Summit (60+)" } },
     { name = "Winterspring", continent = "kalimdor", minLvl = 55, maxLvl = 60, x = 0.577, y = 0.243, uiMapID = 1452, faction = "Contested" },
     { name = "Felwood", continent = "kalimdor", minLvl = 48, maxLvl = 55, x = 0.495, y = 0.268, uiMapID = 1448, faction = "Contested" },
     { name = "Ashenvale", continent = "kalimdor", minLvl = 18, maxLvl = 30, x = 0.512, y = 0.430, uiMapID = 1440, faction = "Contested", dungeons = { "Blackfathom Deeps (24–32)" } },
@@ -5193,13 +5194,6 @@ function WoWEternityAddon:HighlightContinentZonePill(zoneName, enable)
             local z = pill.zoneData
             if enable then
                 if pill.text then
-                    if pill.text.SetFontObject then
-                        pill.text:SetFontObject(GameFontHighlightLarge or "GameFontHighlightLarge")
-                    end
-                    pcall(function()
-                        local fPath = pill.text:GetFont()
-                        if fPath then pill.text:SetFont(fPath, 15, "OUTLINE") end
-                    end)
                     local lvlStr = (z.minLvl == z.maxLvl) and tostring(z.minLvl) or string.format("%d–%d", z.minLvl, z.maxLvl)
                     pill.text:SetText(string.format("|cff38bdf8%s|r", lvlStr))
                 end
@@ -5213,7 +5207,7 @@ function WoWEternityAddon:HighlightContinentZonePill(zoneName, enable)
                 end
                 local textW = (pill.text and pill.text.GetStringWidth and pill.text:GetStringWidth()) or 0
                 if pill.SetSize then
-                    pill:SetSize(math.max(textW + 12, 36), 20)
+                    pill:SetSize(math.max(textW + 8, 28), 16)
                 end
                 if pill.underline then
                     pill.underline:ClearAllPoints()
@@ -5224,13 +5218,6 @@ function WoWEternityAddon:HighlightContinentZonePill(zoneName, enable)
                 end
             else
                 if pill.text then
-                    if pill.text.SetFontObject then
-                        pill.text:SetFontObject(GameFontHighlightSmall or "GameFontHighlightSmall")
-                    end
-                    pcall(function()
-                        local fPath = pill.text:GetFont()
-                        if fPath then pill.text:SetFont(fPath, 11, "NONE") end
-                    end)
                     local hex = self:GetZoneLevelColor(z.minLvl, z.maxLvl, playerLevel)
                     local textStr = (z.minLvl == z.maxLvl) and string.format("%s%d|r", hex, z.minLvl) or string.format("%s%d–%d|r", hex, z.minLvl, z.maxLvl)
                     pill.text:SetText(textStr)

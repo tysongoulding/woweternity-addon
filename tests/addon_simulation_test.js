@@ -478,10 +478,10 @@ while ((zMatch = zoneRegex.exec(luaSource)) !== null) {
     });
 }
 
-assert.strictEqual(zones.length, 39, 'Must define 39 zones in ZONE_LEVEL_RANGES (18 Kalimdor, 21 Eastern Kingdoms)');
+assert.strictEqual(zones.length, 40, 'Must define 40 zones in ZONE_LEVEL_RANGES (19 Kalimdor, 21 Eastern Kingdoms)');
 const kalimdorZones = zones.filter(z => z.continent === 'kalimdor');
 const ekZones = zones.filter(z => z.continent === 'eastern_kingdoms');
-assert.strictEqual(kalimdorZones.length, 18, 'Must define 18 Kalimdor zones');
+assert.strictEqual(kalimdorZones.length, 19, 'Must define 19 Kalimdor zones');
 assert.strictEqual(ekZones.length, 21, 'Must define 21 Eastern Kingdoms zones');
 
 for (const z of zones) {
@@ -649,9 +649,12 @@ assert.ok(!luaSource.includes('pill:SetScale(1.35)'), 'Must NOT scale pill up on
 assert.ok(luaSource.includes('pill.bg:SetColorTexture(0.04, 0.04, 0.07, 0.90)'), 'Hovering pill must show signature dark backdrop');
 assert.ok(luaSource.includes('pill.border:SetColorTexture(0.90, 0.80, 0.50, 0.70)'), 'Hovering pill must show gold border');
 assert.ok(luaSource.includes('pill.bg:Hide()'), 'Unhovering pill must hide bg');
-assert.ok(luaSource.includes('pill.border:Hide()'), 'Unhovering pill must hide border');
-assert.ok(luaSource.includes('GameFontHighlightLarge'), 'Hovering pill must enlarge font to GameFontHighlightLarge');
-assert.ok(luaSource.includes('GameFontHighlightSmall'), 'Unhovering pill must restore font to GameFontHighlightSmall');
+// Verify HighlightContinentZonePill preserves font size and does not call SetFont or SetFontObject
+const highlightFuncMatch = luaSource.match(/function WoWEternityAddon:HighlightContinentZonePill[\s\S]*?end\n\nfunction/);
+assert.ok(highlightFuncMatch, 'HighlightContinentZonePill function must be defined');
+const highlightBody = highlightFuncMatch[0];
+assert.ok(!highlightBody.includes('SetFontObject'), 'HighlightContinentZonePill must NOT alter font object on hover');
+assert.ok(!highlightBody.includes('SetFont('), 'HighlightContinentZonePill must NOT call SetFont to alter font size on hover');
 assert.ok(luaSource.includes('|cff38bdf8'), 'Hovering dungeon row must highlight pill text in cyan |cff38bdf8');
 assert.ok(luaSource.includes('0.22, 0.74, 0.97, 1.0'), 'Hovering dungeon row must underline pill in cyan');
 assert.ok(luaSource.includes('HighlightContinentZonePill(r.zoneName, true)'), 'Row OnEnter must call HighlightContinentZonePill enable=true');
@@ -781,18 +784,14 @@ const mockPill = {
 };
 
 const simulateHighlight = (pill, enable) => {
-    // Zero-shift: SetScale is NEVER called; scale remains strictly 1.0
+    // Zero-shift: SetScale is NEVER called; font size and dimensions stay strictly preserved
     if (enable) {
-        pill.SetFontObject('GameFontHighlightLarge');
-        pill.SetFont(null, 15, 'OUTLINE');
         pill.SetTextColor('|cff38bdf8');
         pill.ShowBg();
         pill.ShowBorder();
-        pill.SetSize(40, 20);
+        pill.SetSize(28, 16);
         pill.SetUnderline(true, 'cyan');
     } else {
-        pill.SetFontObject('GameFontHighlightSmall');
-        pill.SetFont(null, 11, 'NONE');
         pill.SetTextColor('|cff44ff44');
         pill.HideBg();
         pill.HideBorder();
@@ -803,18 +802,18 @@ const simulateHighlight = (pill, enable) => {
 
 simulateHighlight(mockPill, true);
 assert.strictEqual(mockPill.scale, 1.0, 'Pill scale must remain strictly 1.0 on hover (zero coordinate shift)');
-assert.strictEqual(mockPill.fontSize, 15, 'Pill font size must enlarge to 15pt outline on hover');
-assert.strictEqual(mockPill.fontObject, 'GameFontHighlightLarge', 'Pill font object must be GameFontHighlightLarge on hover');
+assert.strictEqual(mockPill.fontSize, 11, 'Pill font size must remain completely unchanged (11pt) on hover');
+assert.strictEqual(mockPill.fontObject, 'GameFontHighlightSmall', 'Pill font object must remain GameFontHighlightSmall on hover');
 assert.strictEqual(mockPill.bgShown, true, 'Pill dark backdrop must be shown on hover');
 assert.strictEqual(mockPill.borderShown, true, 'Pill gold border must be shown on hover');
 assert.strictEqual(mockPill.textColor, '|cff38bdf8', 'Pill text must be bright cyan on hover');
 assert.strictEqual(mockPill.underlineColor, 'cyan', 'Pill underline must be cyan on hover');
-assert.strictEqual(mockPill.height, 20, 'Pill height must expand to 20px on hover');
+assert.strictEqual(mockPill.height, 16, 'Pill height must remain standard 16px on hover');
 
 simulateHighlight(mockPill, false);
 assert.strictEqual(mockPill.scale, 1.0, 'Pill scale must remain strictly 1.0 on unhover');
-assert.strictEqual(mockPill.fontSize, 11, 'Pill font size must restore to 11pt on unhover');
-assert.strictEqual(mockPill.fontObject, 'GameFontHighlightSmall', 'Pill font object must restore to GameFontHighlightSmall on unhover');
+assert.strictEqual(mockPill.fontSize, 11, 'Pill font size must remain 11pt on unhover');
+assert.strictEqual(mockPill.fontObject, 'GameFontHighlightSmall', 'Pill font object must remain GameFontHighlightSmall on unhover');
 assert.strictEqual(mockPill.bgShown, false, 'Pill dark backdrop must be hidden on unhover');
 assert.strictEqual(mockPill.borderShown, false, 'Pill gold border must be hidden on unhover');
 assert.strictEqual(mockPill.textColor, '|cff44ff44', 'Pill text must restore to original difficulty on unhover');
@@ -881,10 +880,22 @@ const extractRaidsForContinent = (continentKey) => {
 };
 
 const kalimdorRaids = extractRaidsForContinent('kalimdor');
-assert.strictEqual(kalimdorRaids.length, 3, 'Kalimdor must have 3 raids (Onyxia, AQ20, AQ40)');
+assert.strictEqual(kalimdorRaids.length, 5, 'Kalimdor must have 5 raids (Barrow Deeps, Hyjal Summit, Onyxia, AQ20, AQ40)');
+assert.ok(kalimdorRaids.some(r => r.name === "Barrow Deeps"), 'Kalimdor must include Barrow Deeps');
+assert.ok(kalimdorRaids.some(r => r.name === "Hyjal Summit"), 'Kalimdor must include Hyjal Summit');
 assert.ok(kalimdorRaids.some(r => r.name === "Onyxia's Lair"), 'Kalimdor must include Onyxia\'s Lair');
 assert.ok(kalimdorRaids.some(r => r.name === "Ruins of Ahn'Qiraj"), 'Kalimdor must include Ruins of Ahn\'Qiraj');
 assert.ok(kalimdorRaids.some(r => r.name === "Temple of Ahn'Qiraj"), 'Kalimdor must include Temple of Ahn\'Qiraj');
+
+const barrowDeeps = kalimdorRaids.find(r => r.name === "Barrow Deeps");
+assert.ok(barrowDeeps, 'Barrow Deeps raid must exist in Kalimdor list');
+assert.strictEqual(barrowDeeps.zoneName, "Moonglade", 'Barrow Deeps must link to Moonglade');
+
+const hyjalSummit = kalimdorRaids.find(r => r.name === "Hyjal Summit");
+assert.ok(hyjalSummit, 'Hyjal Summit raid must exist in Kalimdor list');
+assert.strictEqual(hyjalSummit.zoneName, "Mount Hyjal", 'Hyjal Summit must link to Mount Hyjal');
+
+assert.ok(luaSource.includes('name = "Mount Hyjal"'), 'Mount Hyjal must exist in ZONE_LEVEL_RANGES');
 
 const ekRaids = extractRaidsForContinent('eastern_kingdoms');
 assert.strictEqual(ekRaids.length, 4, 'Eastern Kingdoms must have 4 raids (BWL, MC, Naxx, ZG)');
