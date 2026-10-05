@@ -572,6 +572,17 @@ for (const dm of dungeonsMatch) {
     assert.ok(!dm.includes('Naxxramas'), 'Naxxramas must not be in dungeons list');
 }
 
+// 7. 9 New WoW: Forever Dungeons Verification
+assert.ok(luaSource.includes('"Hall of Thanes (13–18)"'), 'Hall of Thanes must be in Dun Morogh');
+assert.ok(luaSource.includes('"Ruins of Lordaeron (15–20)"'), 'Ruins of Lordaeron must be in Tirisfal Glades');
+assert.ok(luaSource.includes('"Excavation Site (24–29)"'), 'Excavation Site must be in Wetlands');
+assert.ok(luaSource.includes('"City of Dalaran (28–33)"'), 'City of Dalaran must be in Alterac Mountains');
+assert.ok(luaSource.includes('"The Drowned City (35–40)"'), 'The Drowned City must be in Stranglethorn Vale');
+assert.ok(luaSource.includes('"Krul\'dok Stronghold (40–45)"'), 'Krul\'dok Stronghold must be in Badlands');
+assert.ok(luaSource.includes('"Alcaz Prison (48–53)"'), 'Alcaz Prison must be in Dustwallow Marsh');
+assert.ok(luaSource.includes('"Blackmaw Hold (55–60)"'), 'Blackmaw Hold must be in Azshara');
+assert.ok(luaSource.includes('"The Shaper\'s Terrace (58–60)"'), 'The Shaper\'s Terrace must be in Un\'Goro Crater');
+
 const mediaFiles = [
     'circle_bg.png', 'circle_bg.tga',
     'circle_border.png', 'circle_border.tga',
